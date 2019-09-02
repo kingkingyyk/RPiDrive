@@ -72,6 +72,12 @@ def navigate(request, folder_id):
                 size=os.path.getsize(os.path.join(real_path, f)),
                 parent_folder=folder
                 ).save()
+        elif os.path.isfile(f):
+            old_size = f_obj.size
+            new_size = os.path.getsize(os.path.join(real_path, f))
+            if old_size != new_size:
+                f_obj.size = new_size
+                f_obj.save()
 
     #Lazy delete file record if needed
     folders_in_fs = [x for x in os.listdir(real_path) if os.path.isdir(os.path.join(real_path, x))]
