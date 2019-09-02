@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{ drive.name }}</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Dancing+Script|Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="{% static 'index.css' %}" />
+</head>
+
+<body>
+  <div class="row">
+    <div style="width: 50%; height: 50%; margin-left: auto; margin-right: auto; margin-top: 15%; padding: 30px" class="card grey lighten-3">
+        <img class="logo" src="{% static 'images/logo.png' %}"/>
+        <span class="top-bar-title">{{ drive.name }} - Login</span>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <span><button type="submit" class="btn waves-effect waves-light red lighten-1">Login</button><span class="red-text"><b>        {{ error_message }}</b></span></span>
+        </form>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</body>
+</html>

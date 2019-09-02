@@ -1,0 +1,48 @@
+<span>
+    {% if curr_folder.parent_folder is not None %}
+    <a id="move-folder-list-back" folder-id="{{ curr_folder.parent_folder.id }}">Back</a> |
+    {% endif %}
+    To
+    {% if curr_folder.parent_folder is not None %}
+        {{ curr_folder.relative_path }}
+    {% else %}
+        (Root)
+    {% endif %}
+</span>
+<table id="move" class="highlight">
+    {% for folder in folder_list %}
+    <tr style="cursor:pointer;">
+        <td class="move-folder-entry" folder-id="{{ folder.id }}">
+            <i class="material-icons inline-icon">folder</i>{{ folder.name }}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<script>
+    currMoveDestinationDirectory = "{{ curr_folder.id }}";
+    $(".move-folder-entry").click(function() {
+        $("#file-operation-error").text('');
+        str = `<h4 id="file-operation-title">Move items</h4>`;
+        $.get(window.location + 'list-folders/'+$(this).attr('folder-id'))
+        .done(function(data) {
+            $("#file-operation-content").html(str+data);
+            $("#file-operation-name").removeClass("disabled");
+        })
+        .fail(function() {
+            $("#file-operation-error").text(data["responseJSON"]["error"]);
+        });
+    });
+    {% if curr_folder.parent_folder is not None %}
+        $("#move-folder-list-back").click(function() {
+            str = `<h4 id="file-operation-title">Move items</h4>`;
+            $.get(window.location + 'list-folders/{{curr_folder.parent_folder.id}}')
+            .done(function(data) {
+                $("#file-operation-content").html(str+data);
+                $("#file-operation-name").removeClass("disabled");
+            })
+            .fail(function() {
+                $("#file-operation-error").text(data["responseJSON"]["error"]);
+            });
+        });
+    {% endif %}
+</script>

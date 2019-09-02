@@ -1,0 +1,63 @@
+html {
+  margin: 0px;
+  height: 100%;
+}
+
+.top-bar {
+  width: 100%;
+  padding: 10px 30px;
+  border-style: solid;
+  border-color: #e0e0e0;
+  border-width: 0px 0px 1px 0px;
+}
+
+.logo {
+  height: 30px;
+}
+
+.top-bar-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 30px;
+  color: #616161;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.tasks {
+  width: 25%;
+  height: 100%;
+  padding: 15px;
+}
+
+.file-list {
+  width: 75%;
+  height: 100%;
+  padding: 15px;
+}
+
+table {
+  color: #616161;
+}
+
+.inline-icon {
+  vertical-align: bottom;
+  font-size: 24px !important;
+}
+
+.checkbox-red[type="checkbox"].filled-in:checked + span:not(.lever):after {
+  border: 2px solid #ef5350;
+  background-color: #ef5350;
+}
+
+input:focus {
+  border-bottom: 1px solid #ef5350 !important;
+  box-shadow: 0 1px 0 0 #ef5350 !important;
+}
+
+label.active {
+  color: #ef5350;
+}

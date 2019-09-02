@@ -1,0 +1,123 @@
+<div class="row">
+  <span>
+      {% if curr_folder.parent_folder != None %}
+        <a class="waves-effect waves-light red-text lighten-1" onclick="loadDirectory('{{curr_folder.parent_folder.id}}')"><i class="material-icons inline-icon">arrow_back</i></a>
+      {% endif %}
+      <a class="waves-effect waves-light red-text lighten-1" onclick="loadDirectory('{{curr_folder.id}}')"><i class="material-icons inline-icon">cached</i></a>
+      &#8205;&#8205;&#8205;&#8205;
+      <a href="{% url 'index' %}"><span class="red-text lighten-1" style="font-size: 20px">My Drive</span></a>
+      {% if ancestors|length > 0 %}
+          <i class="inline-icon material-icons grey-text">navigate_next</i>
+          <a class='dropdown-trigger white red-text lighten-1' href='#' data-target='path-dropdown'>...</a>
+
+          <ul id='path-dropdown' class='dropdown-content'>
+            {% for ancestor in ancestors %}
+                <li><a onclick="loadDirectory('{{ancestor.id}}')">{{ ancestor.name }}</a></li>
+            {% endfor %}
+          </ul>
+      {% endif %}
+      {% if curr_folder.parent_folder != None %}
+          <i class="inline-icon material-icons grey-text">navigate_next</i>
+      {% endif %}
+      <span class="red-text lighten-1" style="font-size: 20px">{{curr_folder.name}}</span>
+  </span>
+</div>
+<div class="fixed-action-btn">
+    <a class="btn-floating btn-large red">
+        <i class="large material-icons">more_horiz</i>
+    </a>
+    <ul>
+        <li>
+            <a class="waves-effect waves-light black btn-floating disabled file-actions file-actions-single file-actions-many tooltipped" onclick="openDeleteDialog()" data-tooltip="Delete" data-position="left">
+                <i class="material-icons right">delete_forever</i>
+            </a>
+        </li>
+        <li>
+            <a class="waves-effect waves-light red lighten-1 btn-floating disabled file-actions file-actions-single file-actions-many tooltipped" onclick="openMoveDialog()" data-tooltip="Move" data-position="left">
+                <i class="material-icons right">local_shipping</i>
+            </a>
+        </li>
+        <li>
+            <a class="waves-effect waves-light red lighten-1 btn-floating disabled file-actions file-actions-single tooltipped" onclick="openRenameDialog()" data-tooltip="Rename" data-position="left">
+                <i class="material-icons right">dehaze</i>
+            </a>
+        </li>
+        <li>
+            <a class="waves-effect waves-light red lighten-1 btn-floating disabled file-actions file-actions-single tooltipped" onclick="copyShareLink()" data-tooltip="Share" data-position="left">
+                <i class="material-icons right">share</i>
+            </a>
+        </li>
+        <li>
+            <a class="waves-effect waves-light btn-floating red lighten-1 tooltipped" onclick="openNewFolderDialog()" data-tooltip="New Folder" data-position="left">
+                <i class="material-icons right">create_new_folder</i>
+            </a>
+        </li>
+        <li>
+            <a class="waves-effect waves-light btn-floating red lighten-1 tooltipped" onclick="openUploadDialog()" data-tooltip="Upload files" data-position="left">
+                <i class="material-icons right">add_to_queue</i>
+            </a>
+        </li>
+    </ul>
+</div>
+<table class="highlight">
+    <tr>
+        <th style="width: 24px"><label><input type="checkbox" class="filled-in checkbox-red" id="fileSelectionAll"/><span>&#8205;</span></label></th>
+        <th>Name</th>
+        <th>Last Modified</th>
+        <th>Size</th>
+    </tr>
+    {% for file in file_objs %}
+    <tr style="cursor:pointer;" >
+        <td><label><input type="checkbox" class="filled-in fileSelectionSingle checkbox-red" file-id="{{ file.id }}" file-name="{{ file.name }}" file-type="{{ file.class_name }}"/><span>&#8205;</span></label></td>
+        {% if file.class_name == "Folder" %}
+            <td onclick="loadDirectory('{{file.id}}')"><i class="small material-icons inline-icon">folder</i>  {{ file.name }}</td>
+            <td onclick="loadDirectory('{{file.id}}')">{{ file.last_modified_natural }}</td>
+            <td onclick="loadDirectory('{{file.id}}')">{{ file.size_natural }}</td>
+        {% else %}
+            <td class="waves-effect" onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">
+                <i class="small material-icons inline-icon">
+                    {% if file.is_picture %}
+                        photo
+                    {% elif file.is_music %}
+                        music_note
+                    {% elif file.is_movie %}
+                        movie
+                    {% elif file.is_code %}
+                        code
+                    {% else %}
+                        insert_drive_file
+                    {% endif %}
+                </i>
+                {{ file.name }}
+            </td>
+            <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.last_modified_natural }}</td>
+            <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.size_natural }}</td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
+
+<div id="preview" class="modal modal-fixed-footer">
+    <div class="modal-content">
+        <h4 id="preview-title">Modal Header</h4>
+        <div id="preview-screen"></div>
+    </div>
+        <div class="modal-footer">
+        <a class="modal-close btn waves-effect waves-light red lighten-1" id="btnDownloadFromPreview" download>Download</a>
+        <a class="modal-close btn waves-effect waves-light grey" onclick="clearPreview()">Close</a>
+    </div>
+</div>
+
+<div id="file-operation-dialog" class="modal bottom-sheet">
+    <div id="file-operation-content" class="modal-content"></div>
+        <div class="modal-footer">
+        <a class="red-text" id="file-operation-error"></a>
+        <a class="btn waves-effect waves-light red lighten-1" id="file-operation-name"></a>
+        <a class="modal-close btn waves-effect waves-light grey">Close</a>
+    </div>
+</div>
+
+<script>
+    M.AutoInit();
+    setupFileSelection();
+</script>

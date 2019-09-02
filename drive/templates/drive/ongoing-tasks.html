@@ -1,0 +1,22 @@
+{% if download|length > 0 %}
+    <div class="collection">
+      {% for download, status in downloads.items %}
+      <a class="collection-item small grey-text darken-1">
+          <div class="black-text"><b>
+              {{ download.file.name }}
+          </b></div>
+          <div style="font-size: 10px">{{ download.status }}
+              {% if download.status == "Downloading" %}
+                - {{ status|floatformat:"2" }} %
+              {% endif %}
+          </div>
+          {% if download.status == "Downloading" %}
+              <div style="width:100%;height: 3px;background-color: grey">
+                  <div style="width: {{ status|floatformat:"0" }}%;height: 3px" class="red lighten-1"></div>
+              </div>
+              <div>{{ storage.status }}</div>
+          {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+{% endif %}
