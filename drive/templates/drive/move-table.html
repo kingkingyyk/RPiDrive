@@ -23,7 +23,7 @@
     $(".move-folder-entry").click(function() {
         $("#file-operation-error").text('');
         str = `<h4 id="file-operation-title">Move items</h4>`;
-        $.get(window.location + 'list-folders/'+$(this).attr('folder-id'))
+        $.get(getCurrentURL() + 'list-folders/'+$(this).attr('folder-id'))
         .done(function(data) {
             $("#file-operation-content").html(str+data);
             $("#file-operation-name").removeClass("disabled");
@@ -35,7 +35,7 @@
     {% if curr_folder.parent_folder is not None %}
         $("#move-folder-list-back").click(function() {
             str = `<h4 id="file-operation-title">Move items</h4>`;
-            $.get(window.location + 'list-folders/{{curr_folder.parent_folder.id}}')
+            $.get(getCurrentURL() + 'list-folders/{{curr_folder.parent_folder.id}}')
             .done(function(data) {
                 $("#file-operation-content").html(str+data);
                 $("#file-operation-name").removeClass("disabled");
