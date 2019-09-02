@@ -69,12 +69,12 @@ def navigate(request, folder_id):
             cls(relative_path=os.path.join(folder.relative_path, f),
                 last_modified=datetime.strptime(time.ctime(os.path.getmtime(f_real_path)),
                                                 "%a %b %d %H:%M:%S %Y"),
-                size=os.path.getsize(os.path.join(real_path, f)),
+                size=os.path.getsize(f_real_path),
                 parent_folder=folder
                 ).save()
         elif os.path.isfile(f):
             old_size = f_obj.size
-            new_size = os.path.getsize(os.path.join(real_path, f))
+            new_size = os.path.getsize(f_real_path)
             if old_size != new_size:
                 f_obj.size = new_size
                 f_obj.save()
