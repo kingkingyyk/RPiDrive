@@ -72,7 +72,7 @@ def navigate(request, folder_id):
                 size=os.path.getsize(f_real_path),
                 parent_folder=folder
                 ).save()
-        elif os.path.isfile(f):
+        elif os.path.isfile(f_real_path):
             old_size = f_obj.size
             new_size = os.path.getsize(f_real_path)
             if old_size != new_size:
