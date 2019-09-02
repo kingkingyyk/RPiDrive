@@ -8,13 +8,13 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Dancing+Script|Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection"/>
-    <link type="text/css" rel="stylesheet" href="{% static 'index.css' %}" />
+    <link type="text/css" rel="stylesheet" href="drive/{% static 'index.css' %}" />
 </head>
 
 <body>
   <div class="top-bar row">
       <span>
-        <img class="logo" src="{% static 'images/logo.png' %}"/>
+        <img class="logo" src="drive/{% static 'images/logo.png' %}"/>
         <span class="top-bar-title">{{ drive.name }}</span>
       </span>
       <span style="right: 0px; float: right;">
@@ -63,6 +63,6 @@
         csrf_token = "{{ csrf_token }}";
         currentDirectory = "{{ curr_folder.id }}";
   </script>
-  <script src="{% static 'index.js' %}"></script>
+  <script src="drive/{% static 'index.js' %}"></script>
 </body>
 </html>
