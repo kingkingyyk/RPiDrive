@@ -23,10 +23,11 @@ function loadDirectory(folderId) {
     $.get("navigate/"+folderId)
     .done(function(data) {
         $(".file-list").html(data);
+        //$(".file-list").removeClass("file-list").addClass("file-list");
         currentDirectory=folderId;
     })
     .fail(function(data) {
-        alert("failed!");
+        $(".file-list").html("<h2>Load failed!</h2>");
     });
     window.history.pushState('', '', getCurrentURL()+'?folder='+folderId);
 }
