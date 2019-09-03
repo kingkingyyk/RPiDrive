@@ -30,12 +30,13 @@ def downloader_loop():
                 if response.status_code < 300:
                     download_to_do.status = DownloadStatus.downloading.value
                     download_to_do.save()
-                    total_size = int(response.headers.get('Content-Length'))
-                    DownloaderStatus.download_progress[download_to_do.id] = (float(pos) / total_size) * 100;
+                    receiving_size = int(response.headers.get('Content-Length'))
+                    initial_size = pos
+                    DownloaderStatus.download_progress[download_to_do.id] = (float(pos) / (initial_size + receiving_size)) * 100;
                     for data in response.iter_content(chunk_size=1024):
                         file_obj.write(data)
                         pos += 1024
-                        DownloaderStatus.download_progress[download_to_do.id] = (float(pos) / total_size) * 100;
+                        DownloaderStatus.download_progress[download_to_do.id] = (float(pos) / (initial_size + receiving_size)) * 100;
                     DownloaderStatus.download_progress.pop(download_to_do.id)
 
                     download_to_do.status = DownloadStatus.finished.value

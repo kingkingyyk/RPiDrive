@@ -37,7 +37,8 @@ def add(request):
 
         if response.status_code < 400:
             if "Content-Disposition" in response.headers.keys():
-                filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])[0]
+                filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])
+                filename = filename[0] if filename else ""
         else:
             return HttpResponseBadRequest(json.dumps({'error': 'File not found!'}), content_type='application/json')
     except:
