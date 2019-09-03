@@ -35,7 +35,7 @@ def add(request):
         else:
             response = requests.head(url, verify=False, timeout=10)
 
-        if response.status_code < 300:
+        if response.status_code < 400:
             if "Content-Disposition" in response.headers.keys():
                 filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])[0]
         else:
