@@ -173,6 +173,7 @@ function openRenameDialog() {
     $("#file-operation-name").text("Rename");
     $("#file-operation-error").text("");
     $("#file-operation-name").click(function () {
+        $("#file-operation-name").addClass("disabled");
         url = getCurrentURL() + 'rename/'+selectedFileId;
         $.post( url,
             { 'name': $("#new-name").val(), 'csrfmiddlewaretoken': csrf_token })
@@ -206,6 +207,7 @@ function openMoveDialog() {
     })
 
     $("#file-operation-name").click(function () {
+        $("#file-operation-name").addClass("disabled");
         selectedFileObjIds = "";
         $(".fileSelectionSingle").each(function() {
             if ($(this).is(":checked")) {
@@ -239,6 +241,7 @@ function openDeleteDialog() {
         `);
     $("#file-operation-name").text("Delete");
     $("#file-operation-name").click(function () {
+        $("#file-operation-name").addClass("disabled");
         selectedFileObjIds = "";
         $(".fileSelectionSingle").each(function() {
             if ($(this).is(":checked")) {
