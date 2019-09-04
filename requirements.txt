@@ -2,3 +2,4 @@ humanize
 django
 requests
 psutil
+django-htmlmin

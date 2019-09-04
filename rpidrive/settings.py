@@ -48,6 +48,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
+    'htmlmin.middleware.HtmlMinifyMiddleware',
+    'htmlmin.middleware.MarkRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'rpidrive.urls'
@@ -132,3 +135,6 @@ LOGIN_REDIRECT_URL = '/drive'
 # Downloader settings
 DOWNLOADER_CONNECT_TIMEOUT = 10.0
 DOWNLOADER_READ_TIMEOUT = 10.0
+
+# HTML Minify!
+HTML_MINIFY = True
