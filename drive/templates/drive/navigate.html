@@ -74,7 +74,7 @@
             <td onclick="loadDirectory('{{file.id}}')">{{ file.last_modified_natural }}</td>
             <td onclick="loadDirectory('{{file.id}}')">{{ file.size_natural }}</td>
         {% else %}
-            <td class="waves-effect" onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">
+            <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">
                 <i class="small material-icons inline-icon">
                     {% if file.is_picture %}
                         photo
@@ -88,6 +88,9 @@
                         insert_drive_file
                     {% endif %}
                 </i>
+                {% if file.download and not file.download.operation_done  %}
+                    <i class="small material-icons inline-icon">cloud_download</i>
+                {% endif %}
                 {{ file.name }}
             </td>
             <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.last_modified_natural }}</td>

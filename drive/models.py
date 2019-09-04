@@ -59,6 +59,10 @@ class Storage(models.Model):
     def usage_percentage(self):
         return int(self.used_space * 100 / self.total_space)
 
+    @property
+    def available(self):
+        return os.path.exists(self.base_path)
+
 
 class FileObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -163,7 +167,7 @@ class DownloadStatus(Enum):
 
 
 class Download(models.Model):
-    file = models.ForeignKey(FileObject, on_delete=models.CASCADE)
+    file = models.OneToOneField(File, on_delete=models.CASCADE)
     source_url = models.URLField()
     auth = models.BooleanField()
     username = models.TextField(blank=True, null=True)
@@ -173,3 +177,7 @@ class Download(models.Model):
     detailed_status = models.TextField(blank=True, null=True)
     to_stop = models.BooleanField()
     to_delete_file = models.BooleanField()
+
+    @property
+    def operation_done(self):
+        return self.status not in [DownloadStatus.queue.value, DownloadStatus.downloading.value]

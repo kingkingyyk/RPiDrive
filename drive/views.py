@@ -172,15 +172,13 @@ def delete_file_objects(request):
         storage = get_storage()
         delete_ids = request.POST['delete-ids'].split(',')
         file_obj = FileObject.objects.filter(id__in=delete_ids).all()
-        downloads = Download.objects.filter(file__id__in=delete_ids).all()
-        file_with_download = [x.file for x in downloads]
 
-        for f in [x for x in file_obj if x not in file_with_download]:
-            FileUtils.delete_file_or_dir(os.path.join(storage.base_path, f.relative_path))
-            f.delete()
-
-        for dl in downloads:
-            Downloader.interrupt(dl)
+        for f in file_obj:
+            if f.size_natural != '-' and Download.objects.filter(file=f).first():
+                Downloader.interrupt(Download.objects.get(file=f))
+            else:
+                FileUtils.delete_file_or_dir(os.path.join(storage.base_path, f.relative_path))
+                f.delete()
 
         return HttpResponse('{}', content_type='application/json')
     except:

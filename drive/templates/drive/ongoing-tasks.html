@@ -2,12 +2,13 @@
     <div class="collection">
       {% for download, status in downloads.items %}
       <a class="collection-item small grey-text darken-1">
-          <div class="black-text"><b>
-              {{ download.file.name }}
-          </b></div>
+          <div class="black-text">
+              <b>{{ download.file.name }}</b>
+              <i class="small material-icons inline-icon red-text tooltipped" data-tooltip="Cancel" style="cursor: pointer" onclick="stopDownload('{{download.id}}')">cancel</i>
+          </div>
           <div style="font-size: 10px">{{ download.status }}
               {% if download.status == "Downloading" %}
-                - {{ status|floatformat:"2" }} %
+                - {{ status }}
               {% endif %}
           </div>
           {% if download.status == "Downloading" %}

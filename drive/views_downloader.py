@@ -2,9 +2,9 @@ from .models import *
 from .views import get_storage
 from .downloader import Downloader
 from django.http import HttpResponse, HttpResponseBadRequest
-import requests, re, os, json
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
-
+import requests, re, os, json
 
 @login_required
 def add(request):
@@ -32,11 +32,16 @@ def add(request):
     filename = ""
     try:
         if auth:
-            response = requests.head(url, auth=(auth_user, auth_password), verify=False, timeout=10)
+            response = requests.head(url, auth=(auth_user, auth_password),
+                                     verify=False, timeout=(settings.DOWNLOADER_CONNECT_TIMEOUT, settings.DOWNLOADER_READ_TIMEOUT),
+                                     allow_redirects=True)
         else:
-            response = requests.head(url, verify=False, timeout=10)
+            response = requests.head(url, verify=False, timeout=(settings.DOWNLOADER_CONNECT_TIMEOUT, settings.DOWNLOADER_READ_TIMEOUT),
+                                     allow_redirects=True)
 
         if response.status_code < 400:
+            print(response.url)
+            url = response.url
             if "Content-Disposition" in response.headers.keys():
                 filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])
                 filename = filename[0] if filename else ""
@@ -69,17 +74,20 @@ def add(request):
                   username=auth_user,
                   password=auth_password,
                   progress=0.0,
-                  status=DownloadStatus.queue.value)
+                  status=DownloadStatus.queue.value,
+                  to_stop=False,
+                  to_delete_file=False)
     dl.save()
 
     return HttpResponse('{}', content_type='application/json')
 
 
 @login_required
-def add(request):
+def cancel(request):
     download_id = request.POST['id']
     download = Download.objects.filter(id=download_id).first()
     if download is None:
         return HttpResponseBadRequest(json.dumps({'error': 'Download doesn\'t exist'}), content_type='application/json')
     else:
-        downloader_thread = None
+        Downloader.interrupt(download)
+    return HttpResponse('{}', content_type='application/json')

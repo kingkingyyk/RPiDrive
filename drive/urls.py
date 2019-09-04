@@ -17,4 +17,5 @@ urlpatterns = [
     path('list-folders/<str:folder_id>', views.list_folders, name='list_folders'),
 
     path('downloader/add', views_downloader.add, name='downloader_add'),
+    path('downloader/cancel', views_downloader.cancel, name='downloader_cancel'),
 ]

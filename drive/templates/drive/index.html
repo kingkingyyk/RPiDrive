@@ -41,10 +41,14 @@
                       {% endif %}
                   </b></div>
                   <div>{{ storage.base_path }}</div>
+                  {% if storage.available %}
                   <div style="width:100%;height: 3px;background-color: grey">
                       <div style="width: {{storage.usage_percentage}}%;height: 3px" class="red lighten-1"></div>
                   </div>
                   <div>{{ storage.ui_text_natural }}</div>
+                  {% else %}
+                      <div class="red-text"><i class="material-icons inline-icon">error</i><b>Offline!</b></div>
+                  {% endif %}
               </a>
               {% endfor %}
           </div>
@@ -64,5 +68,6 @@
         currentDirectory = "{{ curr_folder.id }}";
   </script>
   <script src="static/index.js"></script>
+  <script src="static/downloader.js"></script>
 </body>
 </html>
