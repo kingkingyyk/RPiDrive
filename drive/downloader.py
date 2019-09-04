@@ -93,5 +93,7 @@ class Downloader:
 
     @staticmethod
     def interrupt(download):
-        download.to_delete_file = True
+        download.to_stop = DownloaderStatus.stopped.value
+        if DownloaderStatus.download_progress.get(download.id, None):
+            download.to_delete_file = True
         download.save()
