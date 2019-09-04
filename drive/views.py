@@ -174,7 +174,7 @@ def delete_file_objects(request):
         file_obj = FileObject.objects.filter(id__in=delete_ids).all()
 
         for f in file_obj:
-            if f.size_natural != '-' and Download.objects.filter(file=f).first():
+            if f.size_natural != '-' and Download.objects.filter(file=f).first() and not Download.objects.get(file=f).operation_done:
                 Downloader.interrupt(Download.objects.get(file=f))
             else:
                 FileUtils.delete_file_or_dir(os.path.join(storage.base_path, f.relative_path))
