@@ -1,5 +1,6 @@
 from .models import *
 from .views import get_storage
+from .downloader import Downloader
 from django.http import HttpResponse, HttpResponseBadRequest
 import requests, re, os, json
 from django.contrib.auth.decorators import login_required
@@ -72,3 +73,13 @@ def add(request):
     dl.save()
 
     return HttpResponse('{}', content_type='application/json')
+
+
+@login_required
+def add(request):
+    download_id = request.POST['id']
+    download = Download.objects.filter(id=download_id).first()
+    if download is None:
+        return HttpResponseBadRequest(json.dumps({'error': 'Download doesn\'t exist'}), content_type='application/json')
+    else:
+        downloader_thread = None

@@ -1,5 +1,4 @@
 from django.urls import path
-from .startup import initialize_startup
 from . import views, views_downloader, views_auth
 
 urlpatterns = [
@@ -19,5 +18,3 @@ urlpatterns = [
 
     path('downloader/add', views_downloader.add, name='downloader_add'),
 ]
-
-initialize_startup()

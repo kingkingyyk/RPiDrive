@@ -155,6 +155,7 @@ class DownloadStatus(Enum):
     finished = 'Finished'
     paused = 'Paused'
     error = 'Error'
+    stopped = 'Stopped'
 
     @classmethod
     def choices(cls):
@@ -170,5 +171,5 @@ class Download(models.Model):
     progress = models.FloatField()
     status = models.TextField()
     detailed_status = models.TextField(blank=True, null=True)
-
-
+    to_stop = models.BooleanField()
+    to_delete_file = models.BooleanField()

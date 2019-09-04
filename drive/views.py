@@ -3,10 +3,7 @@ from django.http import Http404, HttpResponseBadRequest, StreamingHttpResponse, 
 from django.core.files.base import ContentFile
 from django.contrib.auth.decorators import login_required
 from wsgiref.util import FileWrapper
-from .models import *
-from datetime import datetime
-from django.utils.timezone import get_current_timezone
-from .downloader import DownloaderStatus
+from .downloader import *
 import os, time, mimetypes, traceback, json
 
 
@@ -175,12 +172,18 @@ def delete_file_objects(request):
         storage = get_storage()
         delete_ids = request.POST['delete-ids'].split(',')
         file_obj = FileObject.objects.filter(id__in=delete_ids).all()
-        for f in file_obj:
+        downloads = Download.objects.filter(file__id__in=delete_ids).all()
+        file_with_download = [x.file for x in downloads]
+
+        for f in [x for x in file_obj if x not in file_with_download]:
             FileUtils.delete_file_or_dir(os.path.join(storage.base_path, f.relative_path))
             f.delete()
+
+        for dl in downloads:
+            Downloader.interrupt(dl)
+
         return HttpResponse('{}', content_type='application/json')
     except:
-        print(str(traceback.format_exc()))
         return HttpResponseBadRequest(json.dumps({'error': str(traceback.format_exc())}), content_type='application/json')
 
 
