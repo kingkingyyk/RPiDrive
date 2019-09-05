@@ -60,14 +60,25 @@ def add(request):
         f = File.objects.get(relative_path=rel_path)
         if Download.objects.filter(file=f).exists():
             return HttpResponseBadRequest(json.dumps({'error': 'The file is associated with download!'}), content_type='application/json')
+        open(real_path, 'w+').close()
     else:
+        now = datetime.now(tz=get_current_timezone())
+        test_filename = now.strftime('%Y%m%d_%H%M%S')
+        for idx in range(0, 1000):
+            try:
+                open(real_path, 'w+').close()
+                break
+            except:
+                filename = test_filename + str(idx) + '.download'
+                rel_path = os.path.join(destination_folder.relative_path, filename)
+                real_path = os.path.join(get_storage().base_path,destination_folder.relative_path, filename)
+
         f = File(relative_path=rel_path,
-                 last_modified=datetime.now(tz=get_current_timezone()),
+                 last_modified=now,
                  size=0,
                  parent_folder=destination_folder)
         f.save()
 
-    open(real_path, 'w+').close()
     dl = Download(file=f,
                   source_url=url,
                   auth=auth,
