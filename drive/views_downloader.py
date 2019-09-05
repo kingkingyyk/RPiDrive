@@ -4,7 +4,7 @@ from .downloader import Downloader
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-import requests, re, os, json
+import requests, re, os, json, mimetypes
 
 @login_required
 def add(request):
@@ -30,6 +30,7 @@ def add(request):
         return HttpResponseBadRequest(json.dumps({'error': 'Destination folder doesn\'t exist!'}), content_type='application/json')
 
     filename = ""
+    extension = ""
     try:
         if auth:
             response = requests.head(url, auth=(auth_user, auth_password),
@@ -40,11 +41,14 @@ def add(request):
                                      allow_redirects=True)
 
         if response.status_code < 400:
-            print(response.url)
             url = response.url
             if "Content-Disposition" in response.headers.keys():
                 filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])
                 filename = filename[0] if filename else ""
+            if "Content-Type" in response.headers.keys():
+                extension = mimetypes.guess_type(response, False)
+                if extension is None:
+                    extension = ""
         else:
             return HttpResponseBadRequest(json.dumps({'error': 'File not found!'}), content_type='application/json')
     except:
@@ -52,6 +56,9 @@ def add(request):
 
     if len(filename) == 0:
         filename = url.split("/")[-1]
+
+    if not filename.endswith(extension):
+        filename = filename + extension
 
     rel_path = os.path.join(destination_folder.relative_path, filename)
     real_path = os.path.join(get_storage().base_path, rel_path)
@@ -62,16 +69,25 @@ def add(request):
             return HttpResponseBadRequest(json.dumps({'error': 'The file is associated with download!'}), content_type='application/json')
         open(real_path, 'w+').close()
     else:
+        if len(extension) == 0:
+            extension = ".download"
+
         now = datetime.now(tz=get_current_timezone())
         test_filename = now.strftime('%Y%m%d_%H%M%S')
-        for idx in range(0, 1000):
+        flag = False
+
+        for idx in range(0, 100):
             try:
                 open(real_path, 'w+').close()
+                flag = True
                 break
             except:
-                filename = test_filename + str(idx) + '.download'
+                filename = '{}_{:d}{}'.format(test_filename, idx, extension)
                 rel_path = os.path.join(destination_folder.relative_path, filename)
-                real_path = os.path.join(get_storage().base_path,destination_folder.relative_path, filename)
+                real_path = os.path.join(get_storage().base_path, destination_folder.relative_path, filename)
+
+        if not flag:
+            return HttpResponseBadRequest(json.dumps({'error': 'Failed to write file on storage!'}), content_type='application/json')
 
         f = File(relative_path=rel_path,
                  last_modified=now,
