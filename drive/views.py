@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import Http404, HttpResponseBadRequest, StreamingHttpResponse, HttpResponse
 from django.core.files.base import ContentFile
 from django.contrib.auth.decorators import login_required
@@ -112,9 +112,11 @@ def download(request, file_id):
     from .utils import range_re, RangeFileWrapper
 
     storage = get_storage()
-    file = File.objects.filter(id=file_id).first()
-    if file is None:
-        return Http404
+    file = get_object_or_404(File, id=file_id)
+
+    download_of_file = Download.objects.filter(file=file).first()
+    if download_of_file is not None and not download_of_file.operation_done:
+        return HttpResponseBadRequest(json.dumps({'error': 'File is being downloaded!'}), content_type='application/json')
 
     f_real_path = os.path.join(storage.base_path, file.relative_path)
 
