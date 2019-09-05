@@ -46,7 +46,8 @@ def add(request):
                 filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])
                 filename = filename[0] if filename else ""
             if "Content-Type" in response.headers.keys():
-                extension = mimetypes.guess_type(response, False)
+                print(response.headers["Content-Type"])
+                extension = mimetypes.guess_extension(response.headers["Content-Type"])
                 if extension is None:
                     extension = ""
         else:
@@ -57,6 +58,7 @@ def add(request):
     if len(filename) == 0:
         filename = url.split("/")[-1]
 
+    print(extension)
     if not filename.endswith(extension):
         filename = filename + extension
 
