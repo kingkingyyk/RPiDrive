@@ -9,6 +9,7 @@ import requests, re, os, json, mimetypes
 @login_required
 def add(request):
     url = request.POST['url']
+    filename = request.POST['filename']
     auth = request.POST['auth'] == 'true'
     auth_user = request.POST['auth-user']
     auth_password = request.POST['auth-password']
@@ -29,36 +30,41 @@ def add(request):
     if destination_folder is None:
         return HttpResponseBadRequest(json.dumps({'error': 'Destination folder doesn\'t exist!'}), content_type='application/json')
 
-    filename = ""
     extension = ""
-    try:
-        if auth:
-            response = requests.head(url, auth=(auth_user, auth_password),
-                                     verify=False, timeout=(settings.DOWNLOADER_CONNECT_TIMEOUT, settings.DOWNLOADER_READ_TIMEOUT),
-                                     allow_redirects=True)
-        else:
-            response = requests.head(url, verify=False, timeout=(settings.DOWNLOADER_CONNECT_TIMEOUT, settings.DOWNLOADER_READ_TIMEOUT),
-                                     allow_redirects=True)
+    if filename == "":
+        try:
+            if auth:
+                response = requests.head(url, auth=(auth_user, auth_password),
+                                         verify=False, timeout=(settings.DOWNLOADER_CONNECT_TIMEOUT, settings.DOWNLOADER_READ_TIMEOUT),
+                                         allow_redirects=True)
+            else:
+                response = requests.head(url, verify=False, timeout=(settings.DOWNLOADER_CONNECT_TIMEOUT, settings.DOWNLOADER_READ_TIMEOUT),
+                                         allow_redirects=True)
 
-        if response.status_code < 400:
-            url = response.url
-            if "Content-Disposition" in response.headers.keys():
-                filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])
-                filename = filename[0] if filename else ""
-            if "Content-Type" in response.headers.keys():
-                extension = mimetypes.guess_extension(response.headers["Content-Type"])
-                if extension is None:
-                    extension = ""
-        else:
+            if response.status_code < 400:
+                url = response.url
+                if "Content-Disposition" in response.headers.keys():
+                    filename = re.findall("filename=(.+)", response.headers["Content-Disposition"])
+                    filename = filename[0] if filename else ""
+                if "Content-Type" in response.headers.keys():
+                    extension = mimetypes.guess_extension(response.headers["Content-Type"])
+                    if extension is None:
+                        extension = ""
+            else:
+                return HttpResponseBadRequest(json.dumps({'error': 'File not found!'}), content_type='application/json')
+        except:
             return HttpResponseBadRequest(json.dumps({'error': 'File not found!'}), content_type='application/json')
-    except:
-        return HttpResponseBadRequest(json.dumps({'error': 'File not found!'}), content_type='application/json')
 
-    if len(filename) == 0:
-        filename = url.split("/")[-1]
+        if len(filename) == 0:
+            filename = url.split("/")[-1]
 
-    if not filename.endswith(extension):
-        filename = filename + extension
+        if len(extension) == 0:
+            extension = ".download"
+
+        if not filename.endswith(extension):
+            filename = filename + extension
+    else:
+        extension = filename.split('.')[-1]
 
     rel_path = os.path.join(destination_folder.relative_path, filename)
     real_path = os.path.join(get_storage().base_path, rel_path)
@@ -69,9 +75,6 @@ def add(request):
             return HttpResponseBadRequest(json.dumps({'error': 'The file is associated with download!'}), content_type='application/json')
         open(real_path, 'w+').close()
     else:
-        if len(extension) == 0:
-            extension = ".download"
-
         now = datetime.now(tz=get_current_timezone())
         test_filename = now.strftime('%Y%m%d_%H%M%S')
         flag = False

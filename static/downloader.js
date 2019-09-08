@@ -7,6 +7,12 @@ function openDownloadFileDialog() {
             <label for="download-file-url">URL</label>
           </div>
         </div>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="download-file-name" type="text" class="validate">
+            <label for="download-file-name">Filename</label>
+          </div>
+        </div>
         <label>
           <input type="checkbox" class="filled-in checkbox-red" id="download-file-auth" />
           <span>Authentication</span>
@@ -39,12 +45,14 @@ function openDownloadFileDialog() {
         url = getCurrentURL() + 'downloader/add';
 
         dl_url = $("#download-file-url").val();
+        filename = $("#download-file-name").val();
         auth = $("#download-file-auth").prop("checked").toString();
         auth_user = $("#download-file-auth-user").val();
         auth_password = $("#download-file-auth-password").val();
 
         $.post( url,
             { 'url': dl_url,
+              'filename': filename,
               'auth': auth,
               'auth-user': auth_user,
               'auth-password': auth_password,
@@ -75,5 +83,5 @@ function stopDownload(downloadID) {
 
 $(function() {
     loadOngoingTasks();
-    setInterval(loadOngoingTasks,5000);
+    setInterval(loadOngoingTasks,1000);
 });
