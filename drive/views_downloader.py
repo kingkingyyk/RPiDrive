@@ -1,6 +1,6 @@
 from .models import *
 from .views import get_storage
-from .downloader import Downloader
+from drive.features.downloader import Downloader
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from django.contrib.auth.decorators import login_required

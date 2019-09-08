@@ -7,7 +7,7 @@ class DriveConfig(AppConfig):
     executed = False
 
     def ready(self):
-        from .downloader import Downloader
+        from drive.features.downloader import Downloader
 
         if not self.executed and sys.argv[1] not in ['migrate', 'makemigrations']:
             Downloader.start()

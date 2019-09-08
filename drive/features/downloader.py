@@ -1,9 +1,9 @@
 import urllib3
 from threading import Thread
-from .models import *
+from drive.models import *
 from django.conf import settings
 from requests import Timeout
-from .utils import FileUtils
+from drive.utils import FileUtils
 import time, requests, humanize
 
 
@@ -23,7 +23,7 @@ class Downloader:
 
     @staticmethod
     def downloader_loop():
-        from .views import get_storage
+        from drive.views import get_storage
 
         while True:
             download_to_do = Download.objects\
@@ -110,7 +110,7 @@ class Downloader:
 
     @staticmethod
     def onstart_cleanup():
-        from .views import get_storage
+        from drive.views import get_storage
         downloads_to_clear = Download.objects.filter(to_delete_file=True).select_related('file').all()
         for download in downloads_to_clear:
             FileUtils.delete_file_or_dir(os.path.join(get_storage().base_path, download.file.relative_path))

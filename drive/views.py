@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import Http404, HttpResponseBadRequest, StreamingHttpResponse, HttpResponse
+from django.http import HttpResponseBadRequest, StreamingHttpResponse, HttpResponse
 from django.core.files.base import ContentFile
 from django.contrib.auth.decorators import login_required
 from wsgiref.util import FileWrapper
-from .downloader import *
+from drive.features.downloader import *
 import os, time, mimetypes, traceback, json
 
 
@@ -278,7 +278,5 @@ def upload_files(request, folder_id):
             if os.path.exists(f_real_path):
                 FileUtils.delete_file_or_dir(f_real_path)
             with open(f_real_path, 'wb+') as f:
-                uploaded_file_content = ContentFile(temp_file_obj.read())
-                for chunk in uploaded_file_content.chunks():
-                    f.write(chunk)
+                shutil.copyfileobj(temp_file_obj.file, f, 10485760)
     return redirect(reverse('index')+'?folder='+folder_id)
