@@ -161,7 +161,8 @@ def rename_file_object(request, file_obj_id):
     if file_obj is None:
         return HttpResponseBadRequest(json.dumps({'error': 'Item not exists.'}), content_type='application/json')
 
-    file_obj_real_path = os.path.join(storage.base_path, file_obj.relative_path)
+    file_obj_rel_path = file_obj.relative_path
+    file_obj_real_path = os.path.join(storage.base_path, file_obj_rel_path)
     if not os.path.exists(file_obj_real_path):
         return HttpResponseBadRequest(json.dumps({'error': 'Item not exists.'}), content_type='application/json')
 
@@ -174,6 +175,11 @@ def rename_file_object(request, file_obj_id):
         os.rename(file_obj_real_path, file_obj_new_real_path)
         file_obj.relative_path = file_obj_new_rel_path
         file_obj.save()
+
+        if os.path.isdir(file_obj_new_real_path):
+            for f in FileObject.objects.filter(relative_path__startswith=file_obj_rel_path+os.path.sep).all():
+                f.relative_path = file_obj_new_rel_path + f.relative_path[len(file_obj_rel_path):]
+                f.save()
         return HttpResponse('{}', content_type='application/json')
     except:
         return HttpResponseBadRequest(json.dumps({'error': str(traceback.format_exc())}),
@@ -206,6 +212,7 @@ def move_file_object(request):
                                           content_type='application/json')
 
         for file_obj in file_objs:
+            file_obj_old_rel_path = file_obj.relative_path
             file_obj_old_real_path = os.path.join(storage.base_path, file_obj.parent_folder.relative_path, file_obj.name)
             exp_file_obj_new_real_path = os.path.join(storage.base_path, destination_folder.relative_path, file_obj.name)
             file_obj_new_real_path = exp_file_obj_new_real_path
@@ -218,6 +225,13 @@ def move_file_object(request):
             shutil.move(file_obj_old_real_path, file_obj_new_real_path)
             file_obj.relative_path = os.path.join(destination_folder.relative_path, file_obj_new_real_path.split(os.path.sep)[-1])
             file_obj.parent_folder = destination_folder
+            file_obj.save()
+
+            if os.path.isdir(file_obj_new_real_path):
+                for f in FileObject.objects.filter(
+                        relative_path__startswith=file_obj_old_rel_path + os.path.sep).all():
+                    f.relative_path = file_obj.relative_path + f.relative_path[len(file_obj_old_rel_path):]
+                    f.save()
         return HttpResponse('{}', content_type='application/json')
     except:
         return HttpResponseBadRequest(json.dumps({'error': str(traceback.format_exc())}), content_type='application/json')
