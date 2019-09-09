@@ -117,7 +117,7 @@ class Downloader:
 
     @staticmethod
     def start():
-        time = datetime.now()
+        time = datetime.now(tz=get_current_timezone())
         drive = Drive.objects.get()
         if drive.downloader_start - time > timedelta(seconds=3):
             drive.downloader_start = time
