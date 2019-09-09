@@ -1,3 +1,12 @@
+function loadOngoingTasks() {
+    currOngoingTasks = $("#ongoing-tasks").html()
+    $.get(getCurrentURL()+"ongoing-tasks")
+    .done(function(data) {
+        $("#ongoing-tasks").html(data);
+        setTimeout(loadOngoingTasks,1000);
+    });
+}
+
 function openDownloadFileDialog() {
     $("#file-operation-content").html(`
         <h4 id="file-operation-title">Download File from URL</h4>
@@ -83,5 +92,4 @@ function stopDownload(downloadID) {
 
 $(function() {
     loadOngoingTasks();
-    setInterval(loadOngoingTasks,1000);
 });
