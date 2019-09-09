@@ -10,6 +10,9 @@ class Drive(models.Model):
     name = models.CharField(max_length=20)
     downloader_start = models.DateTimeField()
 
+    def __str__(self):
+        return self.name
+
 
 class Storage(models.Model):
     base_path = models.TextField()
@@ -64,6 +67,9 @@ class Storage(models.Model):
     def available(self):
         return os.path.exists(self.base_path)
 
+    def __str__(self):
+        return self.base_path
+
 
 class FileObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -101,6 +107,9 @@ class FileObject(models.Model):
     def real_path(self):
         from .utils.model_utils import ModelUtils
         return os.path.join(ModelUtils.get_storage().base_path, self.relative_path)
+
+    def __str__(self):
+        return self.relative_path
 
 
 class Folder(FileObject):
@@ -221,3 +230,6 @@ class Download(models.Model):
     @property
     def operation_done(self):
         return self.status not in [DownloadStatus.queue.value, DownloadStatus.downloading.value]
+
+    def __str__(self):
+        return self.source_url + ' -> ' + str(self.file)
