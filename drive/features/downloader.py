@@ -119,10 +119,10 @@ class Downloader:
     @staticmethod
     @transaction.atomic
     def start():
-        time = datetime.now(tz=get_current_timezone())
+        curr_time = datetime.now(tz=get_current_timezone())
         drive = Drive.objects.get()
-        if drive.downloader_start - time > timedelta(seconds=3):
-            drive.downloader_start = time
+        if curr_time - drive.downloader_start > timedelta(seconds=3):
+            drive.downloader_start = curr_time
             drive.save()
 
             global downloader_thread

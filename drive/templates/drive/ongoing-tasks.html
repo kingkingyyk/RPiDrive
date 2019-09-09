@@ -1,7 +1,7 @@
 {% if downloads|length > 0 %}
-    <div class="collection">
+    <ul class="collection">
       {% for download, status in downloads.items %}
-      <a class="collection-item small grey-text darken-1">
+      <li class="collection-item small grey-text darken-1">
           <div class="black-text">
               <b>{{ download.file.name }}</b>
               <i class="small material-icons inline-icon red-text tooltipped" data-tooltip="Cancel" style="cursor: pointer" onclick="stopDownload('{{download.id}}')">cancel</i>
@@ -17,7 +17,7 @@
               </div>
               <div>{{ storage.status }}</div>
           {% endif %}
-      </a>
+      </li>
       {% endfor %}
-    </div>
+    </ul>
 {% endif %}
