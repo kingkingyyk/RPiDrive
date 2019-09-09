@@ -216,6 +216,7 @@ class Download(models.Model):
     to_stop = models.BooleanField()
     to_delete_file = models.BooleanField()
     add_time = models.DateTimeField()
+    downloader_status = models.TextField(blank=True, null=True)
 
     @property
     def operation_done(self):

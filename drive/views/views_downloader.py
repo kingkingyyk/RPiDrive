@@ -106,7 +106,8 @@ def add(request):
                   status=DownloadStatus.queue.value,
                   to_stop=False,
                   to_delete_file=False,
-                  add_time=datetime.now(tz=get_current_timezone()))
+                  add_time=datetime.now(tz=get_current_timezone()),
+                  downloader_status=None)
     dl.save()
 
     return HttpResponse('{}', content_type='application/json')

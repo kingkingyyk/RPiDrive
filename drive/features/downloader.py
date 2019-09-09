@@ -60,15 +60,23 @@ class Downloader:
                             curr_downloaded_size = 0
                             start_time = datetime.now()
 
-                            DownloaderStatus.download_progress[download_to_do.id] = (float(pos) / (initial_size + receiving_size)) * 100;
+                            Download.objects.filter(id=download_to_do.id).update(downloader_status=str((float(pos) / (initial_size + receiving_size)) * 100));
 
                             try:
+                                last_chunk_time = datetime.now()
                                 for data in response.iter_content(chunk_size=1024):
                                     file_obj.write(data)
+
                                     curr_downloaded_size += len(data)
                                     pos += len(data)
-                                    time_diff = max((datetime.now()-start_time).seconds, 1)
-                                    DownloaderStatus.download_progress[download_to_do.id] = "{:.2f}% ({}/s)".format((float(pos) / (initial_size + receiving_size)) * 100, humanize.naturalsize(int(curr_downloaded_size/time_diff)))
+                                    now = datetime.now()
+                                    time_taken = max((now-start_time).seconds, 1)
+
+                                    if now - last_chunk_time > timedelta(seconds=3):
+                                        last_chunk_time = now
+                                        Download.objects\
+                                            .filter(id=download_to_do.id)\
+                                            .update(downloader_status="{:.2f}% ({}/s)".format((float(pos) / (initial_size + receiving_size)) * 100, humanize.naturalsize(int(curr_downloaded_size/time_taken))))
 
                                     if Download.objects.get(id=download_to_do.id).to_stop:
                                         force_stop = True
@@ -76,7 +84,7 @@ class Downloader:
                             except StopException:
                                 pass
 
-                            DownloaderStatus.download_progress.pop(download_to_do.id)
+                            Download.objects.filter(id=download_to_do.id).update(downloader_status=None)
                             download_to_do.status = DownloadStatus.stopped.value if force_stop else DownloadStatus.finished.value
                             has_error = False
                 except IOError as e:
@@ -111,10 +119,13 @@ class Downloader:
 
     @staticmethod
     def onstart_cleanup():
-        downloads_to_clear = Download.objects.filter(to_delete_file=True).select_related('file').all()
-        for download in downloads_to_clear:
-            FileUtils.delete_file_or_dir(os.path.join(ModelUtils.get_storage().base_path, download.file.relative_path))
-            download.file.delete()
+        try:
+            downloads_to_clear = Download.objects.filter(to_delete_file=True).select_related('file').all()
+            for download in downloads_to_clear:
+                FileUtils.delete_file_or_dir(os.path.join(ModelUtils.get_storage().base_path, download.file.relative_path))
+                download.file.delete()
+        except:
+            pass
 
     @staticmethod
     @transaction.atomic

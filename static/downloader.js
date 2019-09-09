@@ -1,9 +1,11 @@
-function loadOngoingTasks() {
+function loadOngoingTasks(loop) {
     currOngoingTasks = $("#ongoing-tasks").html()
     $.get(getCurrentURL()+"ongoing-tasks")
     .done(function(data) {
         $("#ongoing-tasks").html(data);
-        setTimeout(loadOngoingTasks,1000);
+        if (loop) {
+            setTimeout(loadOngoingTasks,3000,true);
+        }
     });
 }
 
@@ -86,10 +88,10 @@ function stopDownload(downloadID) {
         { 'id': downloadID,
           'csrfmiddlewaretoken': csrf_token })
     .done(function() {
-        loadOngoingTasks();
+        loadOngoingTasks(false);
     })
 }
 
 $(function() {
-    loadOngoingTasks();
+    loadOngoingTasks(true);
 });

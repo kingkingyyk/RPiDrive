@@ -1,6 +1,6 @@
 {% if downloads|length > 0 %}
     <ul class="collection">
-      {% for download, status in downloads.items %}
+      {% for download in downloads %}
       <li class="collection-item small grey-text darken-1">
           <div class="black-text">
               <b>{{ download.file.name }}</b>
@@ -8,7 +8,7 @@
           </div>
           <div style="font-size: 10px">{{ download.status }}
               {% if download.status == "Downloading" %}
-                - {{ status }}
+                - {{ download.downloader_status }}
               {% endif %}
           </div>
           {% if download.status == "Downloading" %}

@@ -27,7 +27,7 @@ def ongoing_tasks(request):
                 .filter(status__in=(DownloadStatus.downloading.value, DownloadStatus.queue.value))\
                 .order_by('status').all()
     context = {
-               'downloads': {x: DownloaderStatus.download_progress.get(x.id, '') for x in downloads},
+               'downloads': downloads,
                }
     return render(request, 'drive/ongoing-tasks.html', context)
 
