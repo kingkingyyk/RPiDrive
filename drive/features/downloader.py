@@ -120,8 +120,8 @@ class Downloader:
     @transaction.atomic
     def start():
         curr_time = datetime.now(tz=get_current_timezone())
-        drive = Drive.objects.get()
-        if curr_time - drive.downloader_start > timedelta(seconds=3):
+        drive = Drive.objects.first()
+        if drive is not None and curr_time - drive.downloader_start > timedelta(seconds=3):
             drive.downloader_start = curr_time
             drive.save()
 
