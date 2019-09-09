@@ -203,7 +203,6 @@ class Download(models.Model):
     detailed_status = models.TextField(blank=True, null=True)
     to_stop = models.BooleanField()
     to_delete_file = models.BooleanField()
-    downloader_status = models.TextField(blank=True, null=True)
 
     @property
     def operation_done(self):
