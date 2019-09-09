@@ -1,5 +1,5 @@
-from .models import *
-from .views import get_storage
+from drive.models import *
+from drive.utils.model_utils import ModelUtils
 from drive.features.downloader import Downloader
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
@@ -67,7 +67,7 @@ def add(request):
         extension = filename.split('.')[-1]
 
     rel_path = os.path.join(destination_folder.relative_path, filename)
-    real_path = os.path.join(get_storage().base_path, rel_path)
+    real_path = os.path.join(ModelUtils.get_storage().base_path, rel_path)
     if os.path.exists(real_path):
         os.remove(real_path)
         f = File.objects.get(relative_path=rel_path)
@@ -87,7 +87,7 @@ def add(request):
             except:
                 filename = '{}_{:d}{}'.format(test_filename, idx, extension)
                 rel_path = os.path.join(destination_folder.relative_path, filename)
-                real_path = os.path.join(get_storage().base_path, destination_folder.relative_path, filename)
+                real_path = os.path.join(ModelUtils.get_storage().base_path, destination_folder.relative_path, filename)
 
         if not flag:
             return HttpResponseBadRequest(json.dumps({'error': 'Failed to write file on storage!'}), content_type='application/json')

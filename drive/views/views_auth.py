@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth import views as auth_views
-from .models import *
-from .utils import LoginProtect
+from drive.models import *
+from drive.utils.login_protect import LoginProtect
 
 
 @LoginProtect.apply_login_protect

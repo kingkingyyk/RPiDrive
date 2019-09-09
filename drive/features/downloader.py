@@ -3,7 +3,8 @@ from threading import Thread
 from drive.models import *
 from django.conf import settings
 from requests import Timeout
-from drive.utils import FileUtils
+from drive.utils.file_utils import FileUtils
+from drive.utils.model_utils import ModelUtils
 import time, requests, humanize
 
 
@@ -19,12 +20,11 @@ class DownloaderStatus:
 class StopException(Exception):
     pass
 
+
 class Downloader:
 
     @staticmethod
     def downloader_loop():
-        from drive.views import get_storage
-
         while True:
             download_to_do = Download.objects\
                             .filter(status=DownloadStatus.downloading.value)\
@@ -36,7 +36,7 @@ class Downloader:
                                 .select_related('file')\
                                 .order_by('file__last_modified').first()
             if download_to_do:
-                real_path = os.path.join(get_storage().base_path,download_to_do.file.relative_path)
+                real_path = os.path.join(ModelUtils.get_storage().base_path,download_to_do.file.relative_path)
                 has_error = True
                 force_stop = False
                 detailed_status = None
@@ -110,20 +110,25 @@ class Downloader:
 
     @staticmethod
     def onstart_cleanup():
-        from drive.views import get_storage
         downloads_to_clear = Download.objects.filter(to_delete_file=True).select_related('file').all()
         for download in downloads_to_clear:
-            FileUtils.delete_file_or_dir(os.path.join(get_storage().base_path, download.file.relative_path))
+            FileUtils.delete_file_or_dir(os.path.join(ModelUtils.get_storage().base_path, download.file.relative_path))
             download.file.delete()
 
     @staticmethod
     def start():
-        global downloader_thread
-        Downloader.onstart_cleanup()
+        time = datetime.now()
+        drive = Drive.objects.get()
+        if drive.downloader_start - time > timedelta(seconds=3):
+            drive.downloader_start = time
+            drive.save()
 
-        downloader_thread = Thread(target=Downloader.downloader_loop)
-        downloader_thread.daemon = True
-        downloader_thread.start()
+            global downloader_thread
+            Downloader.onstart_cleanup()
+
+            downloader_thread = Thread(target=Downloader.downloader_loop)
+            downloader_thread.daemon = True
+            downloader_thread.start()
 
     @staticmethod
     def interrupt(download):

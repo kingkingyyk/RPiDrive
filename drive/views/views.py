@@ -1,36 +1,17 @@
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.http import HttpResponseBadRequest, StreamingHttpResponse, HttpResponse
-from django.core.files.base import ContentFile
 from django.contrib.auth.decorators import login_required
 from wsgiref.util import FileWrapper
 from drive.features.downloader import *
 import os, time, mimetypes, traceback, json
-
-
-def get_storage():
-    return Storage.objects.get(primary=True)
-
-
-def get_folder_by_id(folder_id):
-    try:
-        folder = Folder.objects.filter(id=folder_id).first()
-    except:
-        folder = None
-    if folder is None:
-        try:
-            folder = Folder.objects.get(relative_path='')
-        except:
-            folder = Folder(relative_path='',
-                            last_modified=datetime.strptime(time.ctime(os.path.getmtime(os.path.join(get_storage().base_path))), "%a %b %d %H:%M:%S %Y"),
-                            size=0)
-            folder.save()
-    return folder
-
+from ..utils.model_utils import ModelUtils
+from ..utils.file_utils import FileUtils
+from ..utils.connection_utils import range_re, RangeFileWrapper
 
 @login_required
 def index(request):
     drive = Drive.objects.get()
-    folder = get_folder_by_id(request.GET.get('folder', get_folder_by_id('').id))
+    folder = ModelUtils.get_folder_by_id(request.GET.get('folder', ModelUtils.get_folder_by_id('').id))
     storages = [Storage.objects.get(primary=True)] + [x for x in Storage.objects.filter(primary=False).order_by('base_path').all()]
 
     context = {'drive': drive,
@@ -53,8 +34,8 @@ def ongoing_tasks(request):
 
 @login_required
 def navigate(request, folder_id):
-    storage = get_storage()
-    folder = get_folder_by_id(folder_id)
+    storage = ModelUtils.get_storage()
+    folder = ModelUtils.get_folder_by_id(folder_id)
 
     #Lazy create file record if needed
     real_path = os.path.join(storage.base_path, folder.relative_path)
@@ -108,10 +89,7 @@ def navigate(request, folder_id):
 
 @login_required
 def download(request, file_id):
-    #https://stackoverflow.com/questions/33208849/python-django-streaming-video-mp4-file-using-httpresponse/33964547
-    from .utils import range_re, RangeFileWrapper
-
-    storage = get_storage()
+    storage = ModelUtils.get_storage()
     file = get_object_or_404(File, id=file_id)
 
     download_of_file = Download.objects.filter(file=file).first()
@@ -146,8 +124,8 @@ def download(request, file_id):
 @login_required
 def create_folder(request, folder_id):
     new_folder_name = request.POST['name']
-    storage = get_storage()
-    folder = get_folder_by_id(folder_id)
+    storage = ModelUtils.get_storage()
+    folder = ModelUtils.get_folder_by_id(folder_id)
 
     new_folder_rel_path = os.path.join(folder.relative_path, new_folder_name)
     new_folder_real_path = os.path.join(storage.base_path, new_folder_rel_path)
@@ -169,9 +147,8 @@ def create_folder(request, folder_id):
 
 @login_required
 def delete_file_objects(request):
-    from .utils import FileUtils
     try:
-        storage = get_storage()
+        storage = ModelUtils.get_storage()
         delete_ids = request.POST['delete-ids'].split(',')
         file_obj = FileObject.objects.filter(id__in=delete_ids).all()
 
@@ -190,7 +167,7 @@ def delete_file_objects(request):
 @login_required
 def rename_file_object(request, file_obj_id):
     new_name = request.POST['name']
-    storage = get_storage()
+    storage = ModelUtils.get_storage()
     file_obj = FileObject.objects.filter(id=file_obj_id).first()
     if file_obj is None:
         return HttpResponseBadRequest(json.dumps({'error': 'Item not exists.'}), content_type='application/json')
@@ -217,12 +194,12 @@ def rename_file_object(request, file_obj_id):
 @login_required
 def move_file_object(request):
     try:
-        storage = get_storage()
+        storage = ModelUtils.get_storage()
         to_move_ids = request.POST['to-move-ids'].split(',')
         destination_id = request.POST['destination-id']
 
         file_objs = FileObject.objects.filter(id__in=to_move_ids).all()
-        destination_folder = get_folder_by_id(destination_id)
+        destination_folder = ModelUtils.get_folder_by_id(destination_id)
 
         file_obj_rel_paths = [x.relative_path for x in file_objs]
         prohibited_folders = []
@@ -259,7 +236,7 @@ def move_file_object(request):
 
 @login_required
 def list_folders(request, folder_id):
-    folder = get_folder_by_id(folder_id)
+    folder = ModelUtils.get_folder_by_id(folder_id)
     folder_list = Folder.objects.filter(parent_folder=folder).order_by('relative_path').all()
     context = {
         'curr_folder': folder,
@@ -270,11 +247,10 @@ def list_folders(request, folder_id):
 
 @login_required
 def upload_files(request, folder_id):
-    from .utils import FileUtils
-    folder = get_folder_by_id(folder_id)
+    folder = ModelUtils.get_folder_by_id(folder_id)
     if request.method == 'POST' and request.FILES['files-to-upload']:
         for temp_file_obj in request.FILES.getlist('files-to-upload'):
-            f_real_path = os.path.join(get_storage().base_path, folder.relative_path, temp_file_obj.name)
+            f_real_path = os.path.join(ModelUtils.get_storage().base_path, folder.relative_path, temp_file_obj.name)
             if os.path.exists(f_real_path):
                 FileUtils.delete_file_or_dir(f_real_path)
             with open(f_real_path, 'wb+') as f:

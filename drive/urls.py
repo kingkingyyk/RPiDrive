@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, views_downloader, views_auth
+from drive.views import views, views_downloader, views_auth
 
 urlpatterns = [
     path('login', views_auth.login_view, name='login'),

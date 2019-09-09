@@ -8,6 +8,7 @@ import uuid, shutil, os, humanize
 
 class Drive(models.Model):
     name = models.CharField(max_length=20)
+    downloader_start = models.DateTimeField()
 
 
 class Storage(models.Model):
