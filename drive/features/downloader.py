@@ -2,6 +2,7 @@ import urllib3
 from threading import Thread
 from drive.models import *
 from django.conf import settings
+from django.db import transaction
 from requests import Timeout
 from drive.utils.file_utils import FileUtils
 from drive.utils.model_utils import ModelUtils
@@ -116,6 +117,7 @@ class Downloader:
             download.file.delete()
 
     @staticmethod
+    @transaction.atomic
     def start():
         time = datetime.now(tz=get_current_timezone())
         drive = Drive.objects.get()
