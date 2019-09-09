@@ -1,4 +1,5 @@
 from ..models import *
+import time
 
 
 class ModelUtils:
@@ -19,7 +20,7 @@ class ModelUtils:
             except:
                 folder = Folder(relative_path='',
                                 last_modified=datetime.strptime(
-                                    time.ctime(os.path.getmtime(os.path.join(get_storage().base_path))),
+                                    time.ctime(os.path.getmtime(os.path.join(ModelUtils.get_storage().base_path))),
                                     "%a %b %d %H:%M:%S %Y"),
                                 size=0)
                 folder.save()
