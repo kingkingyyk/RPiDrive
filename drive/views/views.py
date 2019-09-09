@@ -45,17 +45,8 @@ def navigate(request, folder_id):
         f_obj = cls.objects.filter(relative_path=os.path.join(folder.relative_path, f)).first()
         if f_obj is None:
             cls(relative_path=os.path.join(folder.relative_path, f),
-                last_modified=datetime.strptime(time.ctime(os.path.getmtime(f_real_path)),
-                                                "%a %b %d %H:%M:%S %Y"),
-                size=os.path.getsize(f_real_path),
                 parent_folder=folder
                 ).save()
-        elif os.path.isfile(f_real_path):
-            old_size = f_obj.size
-            new_size = os.path.getsize(f_real_path)
-            if old_size != new_size:
-                f_obj.size = new_size
-                f_obj.save()
 
     #Lazy delete file record if needed
     folders_in_fs = [x for x in os.listdir(real_path) if os.path.isdir(os.path.join(real_path, x))]
@@ -135,10 +126,8 @@ def create_folder(request, folder_id):
     try:
         os.mkdir(new_folder_real_path)
         Folder (relative_path=new_folder_rel_path,
-                last_modified=datetime.now(tz=get_current_timezone()),
-                size=os.path.getsize(new_folder_real_path),
                 parent_folder=folder
-                    ).save()
+                ).save()
         f = Folder.objects.get(relative_path=new_folder_rel_path)
         return HttpResponse(json.dumps({'id': str(f.id)}), content_type='application/json')
     except:

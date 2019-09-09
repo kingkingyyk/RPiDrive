@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.utils.timezone import get_current_timezone
 from enum import Enum
 from datetime import datetime, timedelta
-import uuid, shutil, os, humanize
+import uuid, shutil, os, humanize, time
 
 
 class Drive(models.Model):
@@ -70,8 +70,6 @@ class FileObject(models.Model):
     relative_path = models.TextField(unique=True)
     permissions = models.ManyToManyField('Permission')
     parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
-    last_modified = models.DateTimeField()
-    size = models.BigIntegerField()
 
     @property
     def name(self):
@@ -89,6 +87,20 @@ class FileObject(models.Model):
     @property
     def class_name(self):
         return self.__class__.__name__
+
+    @property
+    def last_modified(self):
+        return datetime.strptime(time.ctime(os.path.getmtime(self.real_path)),
+                                 "%a %b %d %H:%M:%S %Y").astimezone()
+
+    @property
+    def size(self):
+        return os.path.getsize(self.real_path)
+
+    @property
+    def real_path(self):
+        from .utils.model_utils import ModelUtils
+        return os.path.join(ModelUtils.get_storage().base_path, self.relative_path)
 
 
 class Folder(FileObject):
@@ -203,6 +215,7 @@ class Download(models.Model):
     detailed_status = models.TextField(blank=True, null=True)
     to_stop = models.BooleanField()
     to_delete_file = models.BooleanField()
+    add_time = models.DateTimeField()
 
     @property
     def operation_done(self):

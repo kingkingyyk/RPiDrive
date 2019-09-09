@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 import requests, re, os, json, mimetypes
 
+
 @login_required
 def add(request):
     url = request.POST['url']
@@ -93,8 +94,6 @@ def add(request):
             return HttpResponseBadRequest(json.dumps({'error': 'Failed to write file on storage!'}), content_type='application/json')
 
         f = File(relative_path=rel_path,
-                 last_modified=now,
-                 size=0,
                  parent_folder=destination_folder)
         f.save()
 
@@ -106,7 +105,8 @@ def add(request):
                   progress=0.0,
                   status=DownloadStatus.queue.value,
                   to_stop=False,
-                  to_delete_file=False)
+                  to_delete_file=False,
+                  add_time=datetime.now(tz=get_current_timezone()))
     dl.save()
 
     return HttpResponse('{}', content_type='application/json')

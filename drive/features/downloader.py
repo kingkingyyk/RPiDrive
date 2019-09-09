@@ -30,12 +30,12 @@ class Downloader:
             download_to_do = Download.objects\
                             .filter(status=DownloadStatus.downloading.value)\
                             .select_related('file')\
-                            .order_by('file__last_modified').first()
+                            .order_by('add_time').first()
             if not download_to_do:
                 download_to_do = Download.objects\
                                 .filter(status=DownloadStatus.queue.value)\
                                 .select_related('file')\
-                                .order_by('file__last_modified').first()
+                                .order_by('add_time').first()
             if download_to_do:
                 real_path = os.path.join(ModelUtils.get_storage().base_path,download_to_do.file.relative_path)
                 has_error = True
