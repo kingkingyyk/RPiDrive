@@ -33,7 +33,8 @@ function loadDirectory(folderId) {
 
 function loadFile(fileId, fileName, fileType) {
     url = getCurrentURL() + 'download/'+fileId;
-    if (fileType != "none") {
+    var previewableTypes = ["movie", "music", "picture", "text"];
+    if (previewableTypes.indexOf(fileType)>=0) {
         $("#preview-title").html(fileName);
         if (fileType == "movie") {
             $("#preview-screen").html("<video class='responsive-video' controls autoplay><source src='"+url+"'></video>");

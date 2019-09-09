@@ -125,6 +125,23 @@ class File(FileObject):
         return self.file_extension in ('cpp', 'java', 'py', 'php', 'cs', 'txt')
 
     @property
+    def is_compressed(self):
+        return self.file_extension in ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
+                                       'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx')
+
+    @property
+    def is_executable(self):
+        return self.file_extension in ('exe', 'sh', 'bat')
+
+    @property
+    def is_library(self):
+        return self.file_extension in ('dll', 'so')
+
+    @property
+    def is_book(self):
+        return self.file_extension in ('epub', 'mobi', 'pdf')
+
+    @property
     def preview_type(self):
         if self.is_movie:
             return 'movie'
@@ -134,6 +151,14 @@ class File(FileObject):
             return 'picture'
         elif self.is_code:
             return 'text'
+        elif self.is_compressed:
+            return 'compressed'
+        elif self.is_executable:
+            return 'executable'
+        elif self.is_library:
+            return 'library'
+        elif self.is_book:
+            return 'book'
         return 'none'
 
 

@@ -84,6 +84,14 @@
                         movie
                     {% elif file.is_code %}
                         code
+                    {% elif file.is_compressed %}
+                        archive
+                    {% elif file.is_executable %}
+                        apps
+                    {% elif file.is_library %}
+                        library_books
+                    {% elif file.is_book %}
+                        book
                     {% else %}
                         insert_drive_file
                     {% endif %}
