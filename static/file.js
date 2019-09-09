@@ -3,8 +3,8 @@ function prepareDialog(title, content, buttonName, buttonResponse) {
     $("#file-operation-info").html("");
     $("#file-operation-name").removeClass("disabled");
 
-    $("#file-operation-title").html(title);
-    $("#file-operation-content").html(`<h4 id="file-operation-title">`+title+`</h4>`+content);
+    $("#file-operation-title").html(title)
+    $("#file-operation-content").html(content);
     $("#file-operation-name").html(buttonName);
     $("#file-operation-name").off("click");
     $("#file-operation-name").click(buttonResponse);
@@ -64,7 +64,7 @@ function openRenameDialog() {
 
 function openMoveDialog() {
     prepareDialog("Move items",
-                  getLoaderCode(),
+                  getLoaderCode("small"),
                   "Move",
                   function() {
                         $("#file-operation-name").addClass("disabled");
@@ -91,7 +91,7 @@ function openMoveDialog() {
     );
     $.get(getCurrentURL() + 'list-folders/1')
     .done(function(data) {
-        $("#file-operation-content").html(str+data);
+        $("#file-operation-content").html(data);
         $("#file-operation-name").removeClass("disabled");
     })
     .fail(function() {
@@ -159,7 +159,7 @@ function openUploadDialog() {
                                             $("#file-operation-info").text(percentComplete.toString()+"%");
                                         }
                                         if (percentComplete === 100) {
-                                            $("#file-operation-info").html(getLoaderCode());
+                                            $("#file-operation-info").html(getLoaderCode("small"));
                                         }
                                     }, false);
 

@@ -3,8 +3,8 @@ function getCurrentURL() {
     return curr_url.substring(0, curr_url.indexOf('?'));
 }
 
-function getLoaderCode() {
-    return `<div class="preloader-wrapper big active">
+function getLoaderCode(size) {
+    return `<div class="preloader-wrapper "+size" active">
             <div class="spinner-layer spinner-red-only">
               <div class="circle-clipper left">
                 <div class="circle"></div>
@@ -18,12 +18,13 @@ function getLoaderCode() {
 }
 
 function loadDirectory(folderId) {
-    $(".file-list").html(getLoaderCode());
-
+    $(".file-list").html(getLoaderCode("big"));
+    updateFileActionButtons();
     $.get("navigate/"+folderId)
     .done(function(data) {
         $(".file-list").html(data);
         currentDirectory=folderId;
+        updateFileActionButtons();
     })
     .fail(function(data) {
         $(".file-list").html("<h2>Load failed!</h2>");
@@ -43,7 +44,7 @@ function loadFile(fileId, fileName, fileType) {
         } else if (fileType == "picture") {
             $("#preview-screen").html("<img style='width:100%' src='"+url+"'>");
         } else if (fileType == "text") {
-            $("#preview-screen").html(getLoaderCode());
+            $("#preview-screen").html(getLoaderCode("big"));
             $.get(url, function(data) {
                 $("#preview-screen").html("<pre style='font-size: 12px'><code>"+data+"</code></pre>");
             });
