@@ -1,5 +1,5 @@
 from django.urls import path
-from drive.views import views, views_downloader, views_auth
+from drive.views import views, views_downloader, views_auth, views_maintenance
 
 urlpatterns = [
     path('login', views_auth.login_view, name='login'),
@@ -18,4 +18,6 @@ urlpatterns = [
 
     path('downloader/add', views_downloader.add, name='downloader_add'),
     path('downloader/cancel', views_downloader.cancel, name='downloader_cancel'),
+
+    path('storage', views_maintenance.manage_storage, name='manage_storage'),
 ]

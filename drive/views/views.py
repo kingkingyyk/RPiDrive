@@ -3,7 +3,7 @@ from django.http import HttpResponseBadRequest, StreamingHttpResponse, HttpRespo
 from django.contrib.auth.decorators import login_required
 from wsgiref.util import FileWrapper
 from drive.features.downloader import *
-import os, time, mimetypes, traceback, json
+import os, mimetypes, traceback, json
 from ..utils.model_utils import ModelUtils
 from ..utils.file_utils import FileUtils
 from ..utils.connection_utils import range_re, RangeFileWrapper

@@ -1,33 +1,19 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{{ drive.name }}</title>
-    <link rel="shortcut icon" type="image/png" href="static/images/logo.png"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection"/>
-    <link type="text/css" rel="stylesheet" href="static/index.css" />
-</head>
+{% extends 'drive/base.html' %}
 
-<body>
-  <div class="top-bar row">
-      <span>
-        <img class="logo" src="static/images/logo.png"/>
-        <span class="top-bar-title">{{ drive.name }}</span>
-      </span>
-      <span style="right: 0px; float: right;">
-          <a href="{% url 'logout' %}" class="btn-flat waves-effect waves-red red-text">Logout</a>
-      </span>
-  </div>
+{% block page_title %}{{ drive.name }}{% endblock %}
+
+{% block head %}
+    <link type="text/css" rel="stylesheet" href="static/index.css" />
+{% endblock %}
+
+{% block content %}
+  {% include "drive/top-bar.html" %}
   <div class="content">
       <div class="tasks">
           <h6 class="red-text lighten-1"><b>Tasks</b></h6>
           <div class="collection">
               <a class="collection-item small grey-text darken-1" onclick="openDownloadFileDialog()" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">file_download</i>  Download File from URL</a>
-              <a class="collection-item small grey-text darken-1" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">storage</i>  Manage Storage</a>
+              <a class="collection-item small grey-text darken-1" style="cursor:pointer" href="/drive/storage"><i class="material-icons" style="vertical-align: bottom">storage</i>  Manage Storage</a>
               <a class="collection-item small grey-text darken-1" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">cloud_download</i>  Manage Downloads</a>
           </div>
           <h6 class="red-text lighten-1"><b>Storage</b></h6>
@@ -123,10 +109,9 @@
             </li>
         </ul>
     </div>
+{% endblock %}
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/highlight.min.js"></script>
+{% block js %}
   <script>
         csrf_token = "{{ csrf_token }}";
         currentDirectory = "{{ curr_folder.id }}";
@@ -134,5 +119,4 @@
   <script src="static/index.js"></script>
   <script src="static/file.js"></script>
   <script src="static/downloader.js"></script>
-</body>
-</html>
+{% endblock %}

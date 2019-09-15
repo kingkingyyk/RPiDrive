@@ -1,18 +1,12 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{{ drive.name }}</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" media="screen,projection"/>
-    <link type="text/css" rel="stylesheet" href="{% static 'index.css' %}" />
-    <link rel="shortcut icon" type="image/png" href="/drive/static/images/logo.png"/>
-</head>
+{% extends 'drive/base.html' %}
 
-<body>
+{% block page_title %}{{ drive.name }}{% endblock %}
+
+{% block head %}
+    <link type="text/css" rel="stylesheet" href="static/index.css" />
+{% endblock %}
+
+{% block content %}
   <div class="row">
     <div style="width: 50%; height: 50%; margin-left: auto; margin-right: auto; margin-top: 15%; padding: 30px" class="card grey lighten-3">
         <img class="logo" src="/drive/static/images/logo.png"/>
@@ -24,7 +18,5 @@
         </form>
     </div>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-</body>
-</html>
+{% endblock %}
+<body>

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import get_current_timezone
-from enum import Enum
+from .enum import *
 from datetime import datetime, timedelta
 import uuid, shutil, os, humanize, time
 
@@ -18,6 +18,9 @@ class Storage(models.Model):
     base_path = models.TextField()
     drive = models.ForeignKey(Drive, on_delete=models.CASCADE)
     primary = models.BooleanField()
+    is_synching = models.BooleanField()
+    last_sync_status = models.TextField(blank=True, null=True)
+    last_sync_time = models.DateTimeField(null=True)
 
     @staticmethod
     def natural_space(value):
@@ -66,6 +69,14 @@ class Storage(models.Model):
     @property
     def available(self):
         return os.path.exists(self.base_path)
+
+    @property
+    def last_sync_time_natural(self):
+        if self.last_sync_time is None:
+            return '-'
+        else:
+            delta = datetime.now(tz=get_current_timezone()) - self.last_sync_time
+            return humanize.naturaldelta(delta)+' ago' if delta < timedelta(days=2) else humanize.naturalday(self.last_sync_time)
 
     def __str__(self):
         return self.base_path
@@ -184,33 +195,10 @@ class File(FileObject):
         return 'none'
 
 
-class PermissionType(Enum):
-    read = 'READ'
-    update = 'UPDATE'
-    delete = 'DELETE'
-
-    @classmethod
-    def choices(cls):
-        return tuple((i.name, i.value) for i in cls)
-
-
 class Permission(models.Model):
     file_object = models.ForeignKey(FileObject, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     type = models.CharField(max_length=100, choices=PermissionType.choices())
-
-
-class DownloadStatus(Enum):
-    queue = 'In queue'
-    downloading = 'Downloading'
-    finished = 'Finished'
-    paused = 'Paused'
-    error = 'Error'
-    stopped = 'Stopped'
-
-    @classmethod
-    def choices(cls):
-        return tuple((i.name, i.value) for i in cls)
 
 
 class Download(models.Model):
@@ -233,3 +221,9 @@ class Download(models.Model):
 
     def __str__(self):
         return self.source_url + ' -> ' + str(self.file)
+
+
+class Synchronizer(models.Model):
+    file_object = models.OneToOneField(FileObject, on_delete=models.CASCADE)
+    day_mask = models.IntegerField(default=0b1111111)
+    period = models.IntegerField(default=15)

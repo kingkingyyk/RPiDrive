@@ -1,0 +1,102 @@
+{% extends 'drive/base.html' %}
+
+{% block page_title %}
+    Manage Storage
+{% endblock %}
+
+{% block head %}
+
+    <link type="text/css" rel="stylesheet" href="static/index.css" />
+{% endblock %}
+
+{% block content %}
+    {% include "drive/top-bar.html" %}
+    <div style="padding-left: 20px; padding-right: 20px;">
+        <h4 class="red-text lighten-1">Storage</h4>
+        <div style="padding-left: 20px; padding-right: 20px; padding-bottom: 50px">
+            <table class="highlight responsive-table">
+                <tr>
+                    <th>Path</th>
+                    <th>Primary</th>
+                    <th>Status</th>
+                    <th>Last Sync</th>
+                    <th>Total Space</th>
+                    <th>Free Space</th>
+                    <th>Operation</th>
+                </tr>
+                {% for storage in storages %}
+                <tr>
+                    <td><i class="material-icons small inline-icon">storage</i>  {{ storage.base_path }}</td>
+                    <td>
+                        {% if storage.primary %}
+                            <i class="material-icons green-text small">check</i>
+                        {% else %}
+                            <i class="material-icons red-text small">clear</i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if storage.available %}
+                            <i class="material-icons green-text small">check</i>
+                        {% else %}
+                            <i class="material-icons red-text small">clear</i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if storage.primary %}
+                            -
+                        {% else %}
+                            {{ storage.last_sync_time_natural }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if storage.available %}
+                            {{ storage.total_space_natural }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if storage.available %}
+                            {{ storage.free_space_natural }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>-</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <h4 class="red-text lighten-1">Sync Schedule</h4>
+        <div style="padding-left: 20px; padding-right: 20px; padding-top: 20px"></div>
+            <div class="row">
+                {% for weekday in weekdays %}
+                    <label style="padding: 15px">
+                        <input type="checkbox" class="filled-in" checked="checked" />
+                        <span>{{weekday}}</span>
+                    </label>
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <select>
+                        {% for name, value in storage_sync_period.items %}
+                            <option value="{{value}}">{{name}}</option>
+                        {% endfor %}
+                    </select>
+                    <label>Every</label>
+                </div>
+            </div>
+            <div>
+                <a class="waves-effect waves-light btn red lighten-1" style="position: absolute; right: 20px;">Apply</a>
+            </div>
+      </label>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        M.AutoInit();
+    </script>
+{% endblock %}
