@@ -66,8 +66,8 @@ def network_status(request):
     download_speed = ((network_after.bytes_recv - network_before.bytes_recv)*2)
     upload_speed = ((network_after.bytes_sent - network_before.bytes_sent)*2)
 
-    network_data = {'upload-speed': download_speed*8/1024,
-                    'download-speed': upload_speed*8/1024,
+    network_data = {'upload-speed': download_speed/1024,
+                    'download-speed': upload_speed/1024,
                     'upload-speed-natural': natural_bandwidth(upload_speed),
                     'download-speed-natural': natural_bandwidth(download_speed),
                     }
@@ -76,8 +76,6 @@ def network_status(request):
 
 def natural_bandwidth(value):
     if value < 1024:
-        return '{} bps'.format(value)
+        return '{} B/s'.format(value)
     else:
-        v, unit = humanize.naturalsize(value).split(' ')
-        unit = unit[0] + unit.lower()[1:]
-        return '{} {}ps'.format(v, unit)
+        return humanize.naturalsize(value) + '/s'
