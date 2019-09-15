@@ -13,8 +13,8 @@
           <h6 class="red-text lighten-1"><b>Tasks</b></h6>
           <div class="collection">
               <a class="collection-item small grey-text darken-1" onclick="openDownloadFileDialog()" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">file_download</i>  Download File from URL</a>
-              <a class="collection-item small grey-text darken-1" style="cursor:pointer" href="/drive/storage"><i class="material-icons" style="vertical-align: bottom">storage</i>  Manage Storage</a>
-              <a class="collection-item small grey-text darken-1" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">cloud_download</i>  Manage Downloads</a>
+              <a class="collection-item small grey-text darken-1" style="cursor:pointer" href="{% url 'manage_storage' %}"><i class="material-icons" style="vertical-align: bottom">storage</i>  Manage Storage</a>
+              <a class="collection-item small grey-text darken-1" style="cursor:pointer" href="{% url 'downloads' %}"><i class="material-icons" style="vertical-align: bottom">cloud_download</i>  Manage Downloads</a>
           </div>
           <h6 class="red-text lighten-1"><b>Storage</b></h6>
           <div class="collection">
@@ -34,7 +34,7 @@
                   </div>
                   <div>{{ storage.ui_text_natural }}</div>
                   {% else %}
-                      <div class="red-text"><i class="material-icons inline-icon">error</i><b>Offline!</b></div>
+                      <div class="red-text"><i class="material-icons inline-icon">disc_full</i><b>Offline!</b></div>
                   {% endif %}
               </a>
               {% endfor %}

@@ -4,6 +4,7 @@ from drive.features.downloader import Downloader
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 import requests, re, os, json, mimetypes
 
 
@@ -122,3 +123,13 @@ def cancel(request):
     else:
         Downloader.interrupt(download)
     return HttpResponse('{}', content_type='application/json')
+
+
+@login_required
+def list(request):
+    downloads = Download.objects.all()
+
+    context = {'downloads': downloads,
+               }
+
+    return render(request, 'drive/manage-downloads.html', context)

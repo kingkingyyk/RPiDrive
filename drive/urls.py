@@ -16,8 +16,11 @@ urlpatterns = [
     path('delete', views.delete_file_objects, name='delete_file_objects'),
     path('list-folders/<str:folder_id>', views.list_folders, name='list_folders'),
 
+    path('downloads', views_downloader.list, name='downloads'),
     path('downloader/add', views_downloader.add, name='downloader_add'),
     path('downloader/cancel', views_downloader.cancel, name='downloader_cancel'),
 
     path('storage', views_maintenance.manage_storage, name='manage_storage'),
+    path('system-status', views_maintenance.system_status, name='system_status'),
+    path('system-status/network', views_maintenance.network_status, name='network_status'),
 ]

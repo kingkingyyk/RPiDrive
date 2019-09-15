@@ -1,9 +1,11 @@
 <div class="top-bar row">
   <span>
     <img class="logo" src="static/images/logo.png"/>
-      <span class="top-bar-title"><a href="/drive" style="color: #616161">{{ drive.name }}</a></span>
+    <span class="top-bar-title"><a href="/drive" style="color: #616161">{{ drive.name }}</a></span>
   </span>
   <span style="right: 0px; float: right;">
+      <a href="https://github.com/kingkingyyk/RPiDrive" target="_blank" class="btn-flat waves-effect waves-red red-text">GitHub</a>
+      <a href="{% url 'system_status' %}" class="btn-flat waves-effect waves-red red-text">Status</a>
       <a href="{% url 'logout' %}" class="btn-flat waves-effect waves-red red-text">Logout</a>
   </span>
 </div>
