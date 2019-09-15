@@ -25,7 +25,7 @@ def system_status(request):
 
     cpu_data = [
         ('Cores', '{} cores, {} threads'.format(psutil.cpu_count(False), psutil.cpu_count(True))),
-        ('Clock', ','.join([str(x.current) for x in psutil.cpu_freq(percpu=True)])),
+        ('Clock', ', '.join([str(x.current)+'MHz' for x in psutil.cpu_freq(percpu=True)])),
         ('Usage', '{}%'.format(psutil.cpu_percent())),
     ]
 
