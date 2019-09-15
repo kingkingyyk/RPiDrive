@@ -38,7 +38,7 @@ def system_status(request):
 
     sensor_data = []
     if 'sensors_temperatures' in psutil.__dict__:
-        sensor_data = [('CPU Temperature', '{}C'.format(psutil.sensors_temperatures(False)['cpu-thermal'].current))]
+        sensor_data = [('CPU Temperature', '{}°C'.format(psutil.sensors_temperatures(False)['cpu-thermal'][0].current))]
 
     env_data = [
         ('OS', '{} {}'.format(platform.system(), platform.release())),
