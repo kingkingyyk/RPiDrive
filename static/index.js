@@ -135,7 +135,7 @@ function setupSearch() {
                         searchInputM.updateData(data);
                     }, null);
                 }
-            }
+            } else loadDirectory(currentDirectory);
         });
         searchInput.click(function() {
             searchInput.keyup();
@@ -148,9 +148,6 @@ function setupSearch() {
 
 function initUI() {
     M.AutoInit();
-    M.FloatingActionButton.init($(".fixed-action-btn"), {
-      direction: 'left',
-    });
     setupSearch();
 }
 

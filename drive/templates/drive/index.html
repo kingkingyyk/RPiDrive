@@ -12,6 +12,8 @@
       <div class="tasks">
           <h6 class="red-text lighten-1"><b>Tasks</b></h6>
           <div class="collection">
+              <a class="collection-item small grey-text darken-1" onclick="openUploadDialog()" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">cloud_upload</i>  New File Upload</a>
+              <a class="collection-item small grey-text darken-1" onclick="openNewFolderDialog()" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">create_new_folder</i>  Create New Folder</a>
               <a class="collection-item small grey-text darken-1" onclick="openDownloadFileDialog()" style="cursor:pointer"><i class="material-icons" style="vertical-align: bottom">file_download</i>  Download File from URL</a>
               <a class="collection-item small grey-text darken-1" style="cursor:pointer" href="{% url 'manage_storage' %}"><i class="material-icons" style="vertical-align: bottom">storage</i>  Manage Storage</a>
               <a class="collection-item small grey-text darken-1" style="cursor:pointer" href="{% url 'downloads' %}"><i class="material-icons" style="vertical-align: bottom">cloud_download</i>  Manage Downloads</a>
@@ -83,6 +85,11 @@
                 </a>
             </li>
             <li>
+                <a class="waves-effect waves-light red lighten-1 btn-floating disabled file-actions file-actions-single tooltipped" onclick="copyShareLink()" data-tooltip="Share" data-position="left">
+                    <i class="material-icons right">share</i>
+                </a>
+            </li>
+            <li>
                 <a class="waves-effect waves-light red lighten-1 btn-floating disabled file-actions file-actions-single file-actions-many tooltipped" onclick="openMoveDialog()" data-tooltip="Move" data-position="left">
                     <i class="material-icons right">local_shipping</i>
                 </a>
@@ -90,21 +97,6 @@
             <li>
                 <a class="waves-effect waves-light red lighten-1 btn-floating disabled file-actions file-actions-single tooltipped" onclick="openRenameDialog()" data-tooltip="Rename" data-position="left">
                     <i class="material-icons right">dehaze</i>
-                </a>
-            </li>
-            <li>
-                <a class="waves-effect waves-light red lighten-1 btn-floating disabled file-actions file-actions-single tooltipped" onclick="copyShareLink()" data-tooltip="Share" data-position="left">
-                    <i class="material-icons right">share</i>
-                </a>
-            </li>
-            <li>
-                <a class="waves-effect waves-light btn-floating red lighten-1 tooltipped" onclick="openNewFolderDialog()" data-tooltip="New Folder" data-position="left">
-                    <i class="material-icons right">create_new_folder</i>
-                </a>
-            </li>
-            <li>
-                <a class="waves-effect waves-light btn-floating red lighten-1 tooltipped" onclick="openUploadDialog()" data-tooltip="Upload files" data-position="left">
-                    <i class="material-icons right">cloud_upload</i>
                 </a>
             </li>
         </ul>
