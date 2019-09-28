@@ -4,7 +4,7 @@ function getCurrentURL() {
 }
 
 function getLoaderCode(size) {
-    return `<div class="preloader-wrapper "+size+" active">
+    return `<div class="preloader-wrapper `+size+` active">
             <div class="spinner-layer spinner-red-only">
               <div class="circle-clipper left">
                 <div class="circle"></div>
