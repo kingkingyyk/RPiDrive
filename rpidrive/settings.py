@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drive.apps.DriveConfig',
+    'drive.templatetags.file_view',
 ]
 
 MIDDLEWARE = [

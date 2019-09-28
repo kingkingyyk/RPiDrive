@@ -15,6 +15,8 @@ urlpatterns = [
     path('move', views.move_file_object, name='move_file_objects'),
     path('delete', views.delete_file_objects, name='delete_file_objects'),
     path('list-folders/<str:folder_id>', views.list_folders, name='list_folders'),
+    path('search-hint', views.search_hint, name='search_hint'),
+    path('search', views.search, name='search'),
 
     path('downloads', views_downloader.list, name='downloads'),
     path('downloader/add', views_downloader.add, name='downloader_add'),

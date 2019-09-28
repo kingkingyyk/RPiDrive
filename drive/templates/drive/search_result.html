@@ -1,34 +1,15 @@
 {% load file_view %}
-<div class="row">
-  <span>
-      {% if curr_folder.parent_folder != None %}
-        <a class="waves-effect waves-light red-text lighten-1" onclick="loadDirectory('{{curr_folder.parent_folder.id}}')"><i class="material-icons inline-icon">arrow_back</i></a>
-      {% endif %}
-      <a class="waves-effect waves-light red-text lighten-1" onclick="loadDirectory('{{curr_folder.id}}')"><i class="material-icons inline-icon">cached</i></a>
-      &#8205;&#8205;&#8205;&#8205;
-      <a href="{% url 'index' %}"><span class="red-text lighten-1" style="font-size: 20px">My Drive</span></a>
-      {% if ancestors|length > 0 %}
-          <i class="inline-icon material-icons grey-text">navigate_next</i>
-          <a class='dropdown-trigger white red-text lighten-1' href='#' data-target='path-dropdown'>...</a>
-
-          <ul id='path-dropdown' class='dropdown-content'>
-            {% for ancestor in ancestors %}
-                <li><a onclick="loadDirectory('{{ancestor.id}}')">{{ ancestor.name }}</a></li>
-            {% endfor %}
-          </ul>
-      {% endif %}
-      {% if curr_folder.parent_folder != None %}
-          <i class="inline-icon material-icons grey-text">navigate_next</i>
-      {% endif %}
-      <span class="red-text lighten-1" style="font-size: 20px">{{curr_folder.name}}</span>
-  </span>
-</div>
 
 {% if file_objs %}
+    <div class="row">
+        <span class="red-text lighten-1" style="font-size: 20px">Search Result for {{query}}</span>
+    </div>
+
     <table class="highlight file-table">
         <tr>
             <th style="width: 24px"><label><input type="checkbox" class="filled-in checkbox-red" id="fileSelectionAll"/><span>&#8205;</span></label></th>
             <th>Name</th>
+            <th>In Folder</th>
             <th>Last Modified</th>
             <th>Size</th>
         </tr>
@@ -36,7 +17,16 @@
         <tr style="cursor:pointer;" >
             <td><label><input type="checkbox" class="filled-in fileSelectionSingle checkbox-red" file-id="{{ file.id }}" file-name="{{ file.name }}" file-type="{{ file.class_name }}"/><span>&#8205;</span></label></td>
             {% if file.class_name == "Folder" %}
-                <td onclick="loadDirectory('{{file.id}}')"><i class="small material-icons inline-icon">folder</i>  {{ file.name }}</td>
+                <td onclick="loadDirectory('{{file.id}}')">
+                    <i class="small material-icons inline-icon">folder</i>    {{ file.name }}
+                </td>
+                <td>
+                    {% if file.parent_folder.relative_path %}
+                        <i>{{file.parent_folder.relative_path}}</i>
+                    {% else %}
+                        <i>{{path_sep}}</i>
+                    {% endif %}
+                </td>
                 <td onclick="loadDirectory('{{file.id}}')">{{ file.last_modified_natural }}</td>
                 <td onclick="loadDirectory('{{file.id}}')">{{ file.size_natural }}</td>
             {% else %}
@@ -47,6 +37,13 @@
                     {% endif %}
                     {{ file.name }}
                 </td>
+                <td>
+                    {% if file.parent_folder.relative_path %}
+                        <i>{{path_sep}}{{file.parent_folder.relative_path}}</i>
+                    {% else %}
+                        <i>{{path_sep}}</i>
+                    {% endif %}
+                </td>
                 <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.last_modified_natural }}</td>
                 <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.size_natural }}</td>
             {% endif %}
@@ -54,16 +51,14 @@
         {% endfor %}
     </table>
 {% else %}
-    <div style="width: 100%; text-align: center; opacity: 0.5; border-style: dashed;">
-        <h4>It is empty here,</h4>
-        <h4>why not upload something now?</h4>
+    <div style="width: 100%; text-align: center; opacity: 0.5;">
+        <h1>:(</h1>
+        <h4>Too bad, we can't find any file named as {{query}}!</h4>
     </div>
+
 {% endif %}
 
 <script>
     initUI();
     setupFileSelection();
-    {% if not file_objs %}
-        M.FloatingActionButton.getInstance($(".fixed-action-btn")).open();
-    {% endif %}
 </script>

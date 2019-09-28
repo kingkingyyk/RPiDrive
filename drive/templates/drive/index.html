@@ -104,16 +104,19 @@
             </li>
             <li>
                 <a class="waves-effect waves-light btn-floating red lighten-1 tooltipped" onclick="openUploadDialog()" data-tooltip="Upload files" data-position="left">
-                    <i class="material-icons right">add_to_queue</i>
+                    <i class="material-icons right">cloud_upload</i>
                 </a>
             </li>
         </ul>
     </div>
+
+
 {% endblock %}
 
 {% block js %}
   <script>
         csrf_token = "{{ csrf_token }}";
+        rootDirectory = "{{ curr_folder.id }}";
         currentDirectory = "{{ curr_folder.id }}";
   </script>
   <script src="static/index.js"></script>

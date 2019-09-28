@@ -1,11 +1,21 @@
-<div class="top-bar row">
-  <span>
-    <img class="logo" src="static/images/logo.png"/>
-    <span class="top-bar-title"><a href="/drive" style="color: #616161">{{ drive.name }}</a></span>
-  </span>
-  <span style="right: 0px; float: right;">
-      <a href="https://github.com/kingkingyyk/RPiDrive" target="_blank" class="btn-flat waves-effect waves-red red-text">GitHub</a>
-      <a href="{% url 'system_status' %}" class="btn-flat waves-effect waves-red red-text">Status</a>
-      <a href="{% url 'logout' %}" class="btn-flat waves-effect waves-red red-text">Logout</a>
-  </span>
-</div>
+<nav class="white">
+    <div class="nav-wrapper">
+        <span class="brand-logo" style="padding-left: 20px">
+            <img class="logo" src="static/images/logo.png"/>
+            <a href="/drive" class="top-bar-title" style="color: #616161">{{ drive.name }}</a>
+        </span>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li>
+                <div class="row">
+                    <div class="input-field col s6 s12 red-text">
+                        <i class="red-text material-icons prefix">search</i>
+                        <input type="text" placeholder="Search file/folder" id="search-text-input" class="autocomplete" >
+                    </div>
+                </div>
+            </li>
+            <li><a href="https://github.com/kingkingyyk/RPiDrive" target="_blank" class="btn-flat red-text">GitHub</a></li>
+            <li><a href="{% url 'system_status' %}" class="btn-flat red-text">Status</a></li>
+            <li><a href="{% url 'logout' %}" class="btn-flat red-text">Logout</a></li>
+        </ul>
+    </div>
+</nav>

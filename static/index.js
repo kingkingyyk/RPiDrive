@@ -98,9 +98,71 @@ function clearPreview() {
     $("#preview-screen").html("");
 }
 
-$(function() {
+function requestSearchResultAutoComplete(val, success, failure) {
+    $.get("search-hint", {"name":val})
+    .done(success)
+    .fail(failure);
+}
+
+function displaySearchResult(val) {
+    $(".file-list").html(getLoaderCode("big"));
+    updateFileActionButtons();
+    $.get("search", {"name":val})
+    .done(function(data) {
+        $(".file-list").html(data);
+        updateFileActionButtons();
+    })
+    .fail(function(data) {
+        $(".file-list").html("<h2>Load failed!</h2>");
+    });
+    window.history.pushState('', '', getCurrentURL()+'?search='+val);
+}
+
+
+function setupSearch() {
+    searchInput = $("#search-text-input");
+    if (searchInput.attr("registered") == null) {
+        searchInput.attr("registered", 1);
+        searchInput.keyup(function(e) {
+            if (e.keyCode == 8 || (e.keyCode >= 35 && e.keyCode <= 40)) return;
+            val = searchInput.val();
+            if (val != null && val.length > 0) {
+                if (e.key == "Enter") displaySearchResult(val);
+                else {
+                    var searchInputM = M.Autocomplete.getInstance(searchInput);
+                    searchInputM.open();
+                    requestSearchResultAutoComplete(searchInput.val(), function(data) {
+                        searchInputM.updateData(data);
+                    }, null);
+                }
+            }
+        });
+        searchInput.click(function() {
+            searchInput.keyup();
+        })
+    }
+    M.Autocomplete.getInstance(searchInput).options.onAutocomplete = function(val) {
+        displaySearchResult(val);
+    };
+}
+
+function initUI() {
     M.AutoInit();
-    loadDirectory(currentDirectory);
+    M.FloatingActionButton.init($(".fixed-action-btn"), {
+      direction: 'left',
+    });
+    setupSearch();
+}
+
+$(function() {
+    $.ajaxSetup({ cache: false });
+    //Fix back button not working due to push state
+    $(window).bind('popstate', function(){
+        window.location.href = window.location.href;
+    });
+
+    initUI();
+    loadDirectory(rootDirectory);
 });
 
 

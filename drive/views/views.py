@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.http import HttpResponseBadRequest, StreamingHttpResponse, HttpResponse
+from django.http import HttpResponseBadRequest, StreamingHttpResponse, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from wsgiref.util import FileWrapper
 from drive.features.downloader import *
@@ -259,3 +259,29 @@ def upload_files(request, folder_id):
             with open(f_real_path, 'wb+') as f:
                 shutil.copyfileobj(temp_file_obj.file, f, 10485760)
     return redirect(reverse('index')+'?folder='+folder_id)
+
+
+@login_required
+def search_hint(request):
+    name = request.GET['name'].lower()
+    folders = Folder.objects.filter(relative_path__icontains=name).all()
+    files = File.objects.filter(relative_path__icontains=name).all()
+    context = { **{x.name: None for x in folders if name in x.name.lower()},
+                **{x.name: None for x in files if name in x.name.lower()}}
+    return JsonResponse(context)
+
+
+@login_required
+def search(request):
+    name = request.GET['name']
+    name_lower = name.lower()
+    folders = Folder.objects.filter(relative_path__icontains=name).all()
+    files = File.objects.filter(relative_path__icontains=name).all()
+    result = [x for x in folders if name_lower in x.name.lower()] + [x for x in files if name_lower in x.name.lower()]
+    result.sort(key=lambda x : x.last_modified)
+    context = {
+        'path_sep': os.path.sep,
+        'query': name,
+        'file_objs': result,
+    }
+    return render(request, 'drive/search_result.html', context)

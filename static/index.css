@@ -3,16 +3,8 @@ html {
   height: 100%;
 }
 
-.top-bar {
-  width: 100%;
-  padding: 10px 30px;
-  border-style: solid;
-  border-color: #e0e0e0;
-  border-width: 0px 0px 1px 0px;
-}
-
 .logo {
-  height: 30px;
+  height: 25px;
 }
 
 .top-bar-title {
@@ -71,5 +63,9 @@ input:focus {
 }
 
 label.active {
+  color: #ef5350;
+}
+
+.dropdown-content li>a, .dropdown-content li>span {
   color: #ef5350;
 }
