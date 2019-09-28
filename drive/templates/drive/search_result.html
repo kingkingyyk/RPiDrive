@@ -37,7 +37,7 @@
                     {% endif %}
                     {{ file.name }}
                 </td>
-                <td>
+                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">
                     {% if file.parent_folder.relative_path %}
                         <i>{{path_sep}}{{file.parent_folder.relative_path}}</i>
                     {% else %}
