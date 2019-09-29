@@ -138,7 +138,7 @@ function setupSearch() {
             } else loadDirectory(currentDirectory);
         });
         searchInput.click(function() {
-            searchInput.keyup();
+            if (val != null && val.length > 0) searchInput.keyup();
         })
     }
     M.Autocomplete.getInstance(searchInput).options.onAutocomplete = function(val) {
