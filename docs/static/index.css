@@ -1,0 +1,43 @@
+@keyframes fade-in {
+  0%   {opacity: 0.0;}
+  100% {opacity: 1.0;}
+}
+
+body {
+    margin: 20px;
+}
+
+h1 {
+    opacity: 0.0;
+    animation-name: fade-in;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    animation-delay: 0.2s;
+}
+
+#preview-img {
+    opacity: 0.0;
+    margin-left: 25%;
+    margin-right: 25%;
+    width: 50%;
+    animation-name: fade-in;
+    animation-duration: 0.5s;
+    animation-delay: 0.5s;
+    animation-fill-mode: forwards;
+}
+
+h4 {
+    opacity: 0.0;
+    animation-name: fade-in;
+    animation-duration: 0.5s;
+    animation-delay: 0.8s;
+    animation-fill-mode: forwards;
+}
+
+#btn-home-page {
+    opacity: 0.0;
+    animation-name: fade-in;
+    animation-duration: 0.5s;
+    animation-delay: 0.8s;
+    animation-fill-mode: forwards;
+}

@@ -56,9 +56,10 @@ html {
 }
 
 .file-table {
-  opacity: 0%;
+  opacity: 0.0;
   animation-name: fade-in;
   animation-duration: 0.3s;
+  animation-fill-mode: forwards;
 }
 
 table {
