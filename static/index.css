@@ -14,6 +14,10 @@ html {
   padding-left: 10px;
 }
 
+.task-item {
+    cursor:pointer;
+}
+
 .content {
   width: 100%;
   height: 100%;
@@ -30,7 +34,20 @@ html {
   width: 75%;
   height: 100%;
   padding: 15px;
+}
 
+@media only screen and (max-width: 992px)
+{
+    .file-list {
+        width: 100%;
+    }
+    .content {
+      display: inline;
+    }
+    .tasks {
+        width: 100%;
+        height: auto;
+    }
 }
 
 @keyframes fade-in {

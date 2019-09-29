@@ -1,5 +1,13 @@
 <nav class="white">
     <div class="nav-wrapper">
+        <a class="dropdown-trigger btn-light hide-on-large show-on-med-and-down red-text" data-target="dropdown-topbar">
+            <i class="material-icons inline-icon" style="display: unset; padding-left: 10px">dehaze</i>
+        </a>
+        <ul id="dropdown-topbar" class="dropdown-content">
+            <li><a href="https://github.com/kingkingyyk/RPiDrive" target="_blank" class="red-text">GitHub</a></li>
+            <li><a href="{% url 'system_status' %}" class="red-text">Status</a></li>
+            <li><a href="{% url 'logout' %}" class="red-text">Logout</a></li>
+        </ul>
         <span class="brand-logo" style="padding-left: 20px">
             <img class="logo" src="static/images/logo.png"/>
             <a href="/drive" class="top-bar-title" style="color: #616161">{{ drive.name }}</a>

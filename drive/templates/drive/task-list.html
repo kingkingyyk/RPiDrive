@@ -1,0 +1,49 @@
+<div class="tasks {{view_type}}">
+    {% if mode == "full" %}
+    <h6 class="red-text lighten-1"><b>Tasks</b></h6>
+    <div class="collection">
+        <a class="collection-item small grey-text darken-1 task-item" onclick="openUploadDialog()" ><i class="material-icons" style="vertical-align: bottom">cloud_upload</i>  New File Upload</a>
+        <a class="collection-item small grey-text darken-1 task-item" onclick="openNewFolderDialog()"><i class="material-icons" style="vertical-align: bottom">create_new_folder</i>  Create New Folder</a>
+        <a class="collection-item small grey-text darken-1 task-item" onclick="openDownloadFileDialog()"><i class="material-icons" style="vertical-align: bottom">file_download</i>  Download File from URL</a>
+        <a class="collection-item small grey-text darken-1 task-item" href="{% url 'manage_storage' %}"><i class="material-icons" style="vertical-align: bottom">storage</i>  Manage Storage</a>
+        <a class="collection-item small grey-text darken-1 task-item" href="{% url 'downloads' %}"><i class="material-icons" style="vertical-align: bottom">cloud_download</i>  Manage Downloads</a>
+    </div>
+    {% else %}
+        <a class="dropdown-trigger btn red lighten-1 center-align" data-target="dropdown-tasks" style="width: 100%;">Tasks</a>
+        <ul id="dropdown-tasks" class="dropdown-content">
+            <li><a class="collection-item small grey-text darken-1 task-item" onclick="openUploadDialog()" ><i class="material-icons" style="vertical-align: bottom">cloud_upload</i>  New File Upload</a></li>
+            <li><a class="collection-item small grey-text darken-1 task-item" onclick="openNewFolderDialog()"><i class="material-icons" style="vertical-align: bottom">create_new_folder</i>  Create New Folder</a></li>
+            <li><a class="collection-item small grey-text darken-1 task-item" onclick="openDownloadFileDialog()"><i class="material-icons" style="vertical-align: bottom">file_download</i>  Download File from URL</a></li>
+            <li><a class="collection-item small grey-text darken-1 task-item" href="{% url 'manage_storage' %}"><i class="material-icons" style="vertical-align: bottom">storage</i>  Manage Storage</a></li>
+            <li><a class="collection-item small grey-text darken-1 task-item" href="{% url 'downloads' %}"><i class="material-icons" style="vertical-align: bottom">cloud_download</i>  Manage Downloads</a></li>
+        </ul>
+    {% endif %}
+
+    {% if mode == "full" %}
+        <h6 class="red-text lighten-1"><b>Storage</b></h6>
+        <div class="collection">
+            {% for storage in storages %}
+            <a class="collection-item small grey-text darken-1 tooltipped" data-tooltip="{{ storage.base_path }}">
+                    <div class="black-text"><b>
+                    {% if storage.primary %}
+                        Primary
+                    {% else %}
+                        Redundancy
+                    {% endif %}
+                    </b></div>
+                    <div class="truncate">{{ storage.base_path }}</div>
+                    {% if storage.available %}
+                    <div style="width:100%;height: 3px;background-color: grey">
+                        <div style="width: {{storage.usage_percentage}}%;height: 3px" class="red lighten-1"></div>
+                    </div>
+                    <div>{{ storage.ui_text_natural }}</div>
+                {% else %}
+                    <div class="red-text"><i class="material-icons inline-icon">disc_full</i><b>Offline!</b></div>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        <h6 class="red-text lighten-1"><b>Ongoing Tasks</b></h6>
+        <div id="ongoing-tasks"></div>
+    {% endif %}
+</div>
