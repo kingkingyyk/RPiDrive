@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block head %}
+    <link type="text/css" rel="stylesheet" href="static/global.css" />
     <link type="text/css" rel="stylesheet" href="static/index.css" />
 {% endblock %}
 
@@ -14,9 +15,14 @@
         <h4 class="red-text lighten-1">Network</h4>
         <div style="padding-left: 20px; padding-right: 20px; padding-bottom: 20px; width: 100%">
             <div id="network-usage-chart" style="height: 300px;">
-              <div class="progress" style="background-color: red">
-                  <div class="indeterminate" style="background-color: grey"></div>
-              </div>
+                <div class="progress" style="background-color: red">
+                    <div class="indeterminate" style="background-color: grey"></div>
+                </div>
+            </div>
+            <div id="network-speed-chart" style="height: 300px;">
+                <div class="progress" style="background-color: red">
+                    <div class="indeterminate" style="background-color: grey"></div>
+                </div>
             </div>
             <table style="width: 100%">
                 <tr>
@@ -46,45 +52,7 @@
 
 {% block js %}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(retrieveNetworkDataAndUpdate);
-        var animationTime = 500;
-        var network_usage_result;
-        var network_usage_chart_options = {
-            title: 'Bandwidth (KB/s)',
-            animation:{
-                duration: animationTime,
-                easing: 'inAndOut',
-                startup: true,
-            },
-            legend: { position: 'none' },
-            vAxis: {minValue: 0}
-        };
-        var network_usage_chart;
-
-        function retrieveNetworkDataAndUpdate() {
-            $.get('system-status/network', function(data) {
-                if (!network_usage_result) {
-                    network_usage_result = new google.visualization.DataTable();
-                    network_usage_result.addColumn('date', 'Time');
-                    network_usage_result.addColumn('number', 'Download');
-                    network_usage_result.addColumn('number', 'Upload');
-
-                    network_usage_chart = new google.visualization.LineChart(document.getElementById('network-usage-chart'));
-                }
-                while (network_usage_result.getNumberOfRows() > 30)
-                {
-                    network_usage_result.removeRow(0);
-                }
-                network_usage_result.addRow([new Date(), data['download-speed'], data['upload-speed']]);
-                network_usage_chart.draw(network_usage_result, network_usage_chart_options);
-                $("#network-usage-download-value-display").text('Download Speed : '+data['download-speed-natural']);
-                $("#network-usage-upload-value-display").text('Upload Speed : '+data['upload-speed-natural']);
-                setTimeout(retrieveNetworkDataAndUpdate, 1000);
-            });
-        }
-    </script>
+    <script type="text/javascript" src="static/system-status.js"></script>
     <script>
         M.AutoInit();
     </script>

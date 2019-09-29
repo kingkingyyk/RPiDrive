@@ -66,10 +66,15 @@ def network_status(request):
     download_speed = ((network_after.bytes_recv - network_before.bytes_recv)*2)
     upload_speed = ((network_after.bytes_sent - network_before.bytes_sent)*2)
 
+    total_downloads = network_after.bytes_recv/(1024*1024)
+    total_uploads = network_after.bytes_sent/(1024*1024)
+
     network_data = {'upload-speed': download_speed/1024,
                     'download-speed': upload_speed/1024,
                     'upload-speed-natural': natural_bandwidth(upload_speed),
                     'download-speed-natural': natural_bandwidth(download_speed),
+                    'total-downloads': total_downloads,
+                    'total-uploads': total_uploads,
                     }
     return HttpResponse(json.dumps(network_data), content_type='application/json')
 

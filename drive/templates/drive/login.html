@@ -3,12 +3,12 @@
 {% block page_title %}{{ drive.name }}{% endblock %}
 
 {% block head %}
-    <link type="text/css" rel="stylesheet" href="static/index.css" />
+    <link type="text/css" rel="stylesheet" href="static/global.css" />
+    <link type="text/css" rel="stylesheet" href="static/login.css" />
 {% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div style="width: 50%; height: 50%; margin-left: auto; margin-right: auto; margin-top: 15%; padding: 30px" class="card grey lighten-3">
+    <div class="card grey lighten-3 center">
         <img class="logo" src="/drive/static/images/logo.png"/>
         <span class="top-bar-title">{{ drive.name }} - Login</span>
         <form method="post">
@@ -17,6 +17,5 @@
             <span><button type="submit" class="btn waves-effect waves-light red lighten-1">Login</button><span class="red-text"><b>        {{ error_message }}</b></span></span>
         </form>
     </div>
-  </div>
 {% endblock %}
 <body>

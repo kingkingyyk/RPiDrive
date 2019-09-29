@@ -1,0 +1,20 @@
+.logo {
+  height: 25px;
+}
+
+.center {
+  margin: auto;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 30px;
+}
+
+.top-bar-title {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 25px;
+  color: #616161;
+  padding-left: 10px;
+}
