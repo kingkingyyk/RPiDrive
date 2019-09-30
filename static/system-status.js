@@ -2,8 +2,8 @@ google.charts.load("current", {"packages":["corechart"]});
 google.charts.setOnLoadCallback(retrieveRealtimeUpdate);
 
 var animationTime = 50;
-var network_speed_result;
-var network_speed_chart_options = {
+var networkSpeedResult;
+var networkSpeedChartOpt = {
     title: "Bandwidth (KB/s)",
     animation:{
         duration: animationTime,
@@ -18,15 +18,15 @@ var network_speed_chart_options = {
     fontName: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif",
     interpolateNulls: true,
 };
-var network_speed_chart;
+var networkSpeedChart;
 
-var network_usage_result;
-var network_usage_chart_options = {
+var networkUsageResult;
+var networkUsageChartOpt = {
     title: "Total Network Usage",
     focusTarget: "category",
     tooltip: { isHtml: true }
 };
-var network_usage_chart;
+var networkUsageChart;
 
 
 function generateNetworkUsageTooltip(category, value) {
@@ -41,42 +41,51 @@ function generateNetworkUsageTooltip(category, value) {
 }
 
 function updateNetworkData(data) {
-    if (!network_speed_result) {
-        network_speed_result = new google.visualization.DataTable();
-        network_speed_result.addColumn("date", "Time");
-        network_speed_result.addColumn("number", "Download");
-        network_speed_result.addColumn("number", "Upload");
+    if (!networkSpeedResult) {
+        networkSpeedResult = new google.visualization.DataTable();
+        networkSpeedResult.addColumn("date", "Time");
+        networkSpeedResult.addColumn("number", "Download");
+        networkSpeedResult.addColumn("number", "Upload");
 
-        network_speed_chart = new google.visualization.LineChart(document.getElementById("network-speed-chart"));
+        networkSpeedChart = new google.visualization.LineChart(document.getElementById("network-speed-chart"));
     }
-    while (network_speed_result.getNumberOfRows() > 30)
+    while (networkSpeedResult.getNumberOfRows() > 30)
     {
-        network_speed_result.removeRow(0);
+        networkSpeedResult.removeRow(0);
     }
-    network_speed_result.addRow([new Date(), data["download-speed"], data["upload-speed"]]);
-    network_speed_chart.draw(network_speed_result, network_speed_chart_options);
+    networkSpeedResult.addRow([new Date(), data["download-speed"], data["upload-speed"]]);
+    networkSpeedChart.draw(networkSpeedResult, networkSpeedChartOpt);
     $("#network-usage-download-value-display").text("Download Speed : "+data["download-speed-natural"]);
     $("#network-usage-upload-value-display").text("Upload Speed : "+data["upload-speed-natural"]);
 
-    if (!network_usage_result) {
-        network_usage_result = new google.visualization.DataTable();
-        network_usage_result.addColumn("string", "Type");
-        network_usage_result.addColumn("number", "Size");
-        network_usage_result.addColumn({type: "string", role: "tooltip", "p": {"html": true}});
-        network_usage_chart = new google.visualization.PieChart(document.getElementById("network-usage-chart"));
+    if (!networkUsageResult) {
+        networkUsageResult = new google.visualization.DataTable();
+        networkUsageResult.addColumn("string", "Type");
+        networkUsageResult.addColumn("number", "Size");
+        networkUsageResult.addColumn({type: "string", role: "tooltip", "p": {"html": true}});
+        networkUsageChart = new google.visualization.PieChart(document.getElementById("network-usage-chart"));
     } else {
-        while (network_usage_result.getNumberOfRows() > 0) network_usage_result.removeRow(0);
+        while (networkUsageResult.getNumberOfRows() > 0) networkUsageResult.removeRow(0);
     }
-    network_usage_result.addRow(["Download", data["total-downloads"], generateNetworkUsageTooltip("Download", data["total-downloads"])]);
-    network_usage_result.addRow(["Upload", data["total-uploads"], generateNetworkUsageTooltip("Upload", data["total-uploads"])]);
+    networkUsageResult.addRow(["Download", data["total-downloads"], generateNetworkUsageTooltip("Download", data["total-downloads"])]);
+    networkUsageResult.addRow(["Upload", data["total-uploads"], generateNetworkUsageTooltip("Upload", data["total-uploads"])]);
 
-    network_usage_chart.draw(network_usage_result, network_usage_chart_options);
+    networkUsageChart.draw(networkUsageResult, networkUsageChartOpt);
 
 }
 
 function updateSystemData(data) {
-
+    for (var category in data) {
+        if (data.hasOwnProperty(category)) {
+            data[category].forEach(function(item){
+                tdKey = "#status-"+item[0];
+                tdValue = item[2];
+                $(tdKey).html(tdValue);
+            });
+        }
+    }
 }
+
 function retrieveRealtimeUpdate() {
     $.get("system-status/update", function(data) {
         updateNetworkData(data["network_data"]);

@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from ..models import *
 from ..enum import *
-import psutil, humanize, time, json, platform, sys
+import psutil, humanize, time, platform, sys
 
 
 @login_required
@@ -31,27 +31,30 @@ def retrieve_system_info(cpu=True, memory=True, sensors=True, env=True, network=
     system_data = {}
 
     if cpu:
+        cpu_cores = psutil.cpu_count() if psutil.cpu_count(False) is None else psutil.cpu_count(False)
+        cpu_threads = psutil.cpu_count(True)
+
         system_data['CPU'] = [
-            ('Cores', '{} cores, {} threads'.format(psutil.cpu_count(False), psutil.cpu_count(True))),
-            ('Clock', ', '.join([str(x.current)+'MHz' for x in psutil.cpu_freq(percpu=True)])),
-            ('Usage', '{}%'.format(psutil.cpu_percent())),
+            ['cpu-core', 'Cores', '{} cores, {} threads'.format(cpu_cores, cpu_threads)],
+            ['cpu-clock', 'Clock', ', '.join([str(x.current)+' MHz' for x in psutil.cpu_freq(percpu=True)])],
+            ['cpu-usage', 'Usage', '{}%'.format(psutil.cpu_percent())],
         ]
 
     if memory:
         memory = psutil.virtual_memory()
         system_data['Memory'] = [
-            ('Total', humanize.naturalsize(memory.total)),
-            ('Used',  humanize.naturalsize(memory.used)),
-            ('Free', humanize.naturalsize(memory.available)),
+            ['memory-total', 'Total', humanize.naturalsize(memory.total)],
+            ['memory-used', 'Used',  humanize.naturalsize(memory.used)],
+            ['memory-free', 'Free', humanize.naturalsize(memory.available)],
         ]
 
     if sensors and 'sensors_temperatures' in psutil.__dict__:
-        system_data['Sensors'] = [('CPU Temperature', '{}°C'.format(psutil.sensors_temperatures(False)['cpu-thermal'][0].current))]
+        system_data['Sensors'] = [['sensor-cpu', 'CPU Temperature', '{}°C'.format(psutil.sensors_temperatures(False)['cpu-thermal'][0].current)]]
 
     if env:
         system_data['Environment'] = [
-            ('OS', '{} {}'.format(platform.system(), platform.release())),
-            ('Python Version', sys.version)
+            ['env-os', 'OS', '{} {}'.format(platform.system(), platform.release())],
+            ['env-py', 'Python Version', sys.version],
         ]
 
     if network:
