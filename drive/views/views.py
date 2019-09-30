@@ -85,7 +85,7 @@ def download(request, file_id):
 
     download_of_file = Download.objects.filter(file=file).first()
     if download_of_file is not None and not download_of_file.operation_done:
-        return HttpResponseBadRequest(json.dumps({'error': 'File is being downloaded!'}), content_type='application/json')
+        return JsonResponse({'error': 'File is being downloaded!'}, status=HttpResponseBadRequest.status_code)
 
     f_real_path = os.path.join(storage.base_path, file.relative_path)
 
@@ -121,7 +121,7 @@ def create_folder(request, folder_id):
     new_folder_rel_path = os.path.join(folder.relative_path, new_folder_name)
     new_folder_real_path = os.path.join(storage.base_path, new_folder_rel_path)
     if os.path.exists(new_folder_real_path):
-        return HttpResponseBadRequest(json.dumps({'error': 'Folder already exists'}), content_type='application/json')
+        return JsonResponse({'error': 'Folder already exists'}, status=HttpResponseBadRequest.status_code)
 
     try:
         os.mkdir(new_folder_real_path)
@@ -129,9 +129,9 @@ def create_folder(request, folder_id):
                 parent_folder=folder
                 ).save()
         f = Folder.objects.get(relative_path=new_folder_rel_path)
-        return HttpResponse(json.dumps({'id': str(f.id)}), content_type='application/json')
+        return JsonResponse({'id': str(f.id)})
     except:
-        return HttpResponseBadRequest(json.dumps({'error': str(traceback.format_exc())}), content_type='application/json')
+        return JsonResponse({'error': str(traceback.format_exc())}, status=HttpResponseBadRequest.status_code)
 
 
 @login_required
@@ -148,9 +148,9 @@ def delete_file_objects(request):
                 FileUtils.delete_file_or_dir(os.path.join(storage.base_path, f.relative_path))
                 f.delete()
 
-        return HttpResponse('{}', content_type='application/json')
+        return JsonResponse({})
     except:
-        return HttpResponseBadRequest(json.dumps({'error': str(traceback.format_exc())}), content_type='application/json')
+        return JsonResponse({'error': str(traceback.format_exc())}, status=HttpResponseBadRequest.status_code)
 
 
 @login_required
@@ -159,17 +159,18 @@ def rename_file_object(request, file_obj_id):
     storage = ModelUtils.get_storage()
     file_obj = FileObject.objects.filter(id=file_obj_id).first()
     if file_obj is None:
-        return HttpResponseBadRequest(json.dumps({'error': 'Item not exists.'}), content_type='application/json')
+        return JsonResponse({'error': 'Item not exists.'}, status=HttpResponseBadRequest.status_code)
 
     file_obj_rel_path = file_obj.relative_path
     file_obj_real_path = os.path.join(storage.base_path, file_obj_rel_path)
     if not os.path.exists(file_obj_real_path):
-        return HttpResponseBadRequest(json.dumps({'error': 'Item not exists.'}), content_type='application/json')
+        return JsonResponse({'error': 'Item not exists.'}, status=HttpResponseBadRequest.status_code)
 
     file_obj_new_rel_path = os.path.join(file_obj.parent_folder.relative_path, new_name)
     file_obj_new_real_path = os.path.join(storage.base_path, file_obj_new_rel_path)
     if os.path.exists(file_obj_new_real_path):
-        return HttpResponseBadRequest(json.dumps({'error': 'Another file with name ' + new_name + ' already exists.'}), content_type='application/json')
+        return JsonResponse({'error': 'Another file with name ' + new_name + ' already exists.'},
+                            status=HttpResponseBadRequest.status_code)
 
     try:
         os.rename(file_obj_real_path, file_obj_new_real_path)
@@ -180,10 +181,9 @@ def rename_file_object(request, file_obj_id):
             for f in FileObject.objects.filter(relative_path__startswith=file_obj_rel_path+os.path.sep).all():
                 f.relative_path = file_obj_new_rel_path + f.relative_path[len(file_obj_rel_path):]
                 f.save()
-        return HttpResponse('{}', content_type='application/json')
+        return JsonResponse({})
     except:
-        return HttpResponseBadRequest(json.dumps({'error': str(traceback.format_exc())}),
-                                      content_type='application/json')
+        return JsonResponse({'error': str(traceback.format_exc())}, status=HttpResponseBadRequest.status_code)
 
 
 @login_required
@@ -208,8 +208,7 @@ def move_file_object(request):
                 prohibited_folders.append(folder)
 
         if destination_folder in prohibited_folders:
-            return HttpResponseBadRequest(json.dumps({'error': 'Destination folder cannot be the selected folder and the subfolders!'}),
-                                          content_type='application/json')
+            return JsonResponse({'error': 'Destination folder cannot be the selected folder and the subfolders!'}, status=HttpResponseBadRequest.status_code)
 
         for file_obj in file_objs:
             file_obj_old_rel_path = file_obj.relative_path
@@ -232,9 +231,9 @@ def move_file_object(request):
                         relative_path__startswith=file_obj_old_rel_path + os.path.sep).all():
                     f.relative_path = file_obj.relative_path + f.relative_path[len(file_obj_old_rel_path):]
                     f.save()
-        return HttpResponse('{}', content_type='application/json')
+        return JsonResponse({})
     except:
-        return HttpResponseBadRequest(json.dumps({'error': str(traceback.format_exc())}), content_type='application/json')
+        return JsonResponse({'error': str(traceback.format_exc())}, status=HttpResponseBadRequest.status_code)
 
 
 @login_required
@@ -284,4 +283,4 @@ def search(request):
         'query': name,
         'file_objs': result,
     }
-    return render(request, 'drive/search_result.html', context)
+    return render(request, 'drive/search-result.html', context)

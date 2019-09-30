@@ -24,5 +24,5 @@ urlpatterns = [
 
     path('storage', views_maintenance.manage_storage, name='manage_storage'),
     path('system-status', views_maintenance.system_status, name='system_status'),
-    path('system-status/network', views_maintenance.network_status, name='network_status'),
+    path('system-status/update', views_maintenance.system_status_update, name='system_status_update'),
 ]

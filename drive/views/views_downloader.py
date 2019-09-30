@@ -1,7 +1,7 @@
 from drive.models import *
 from drive.utils.model_utils import ModelUtils
 from drive.features.downloader import Downloader
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -18,19 +18,18 @@ def add(request):
     destination_folder = request.POST['destination-folder']
 
     if len(url) == 0:
-        return HttpResponseBadRequest(json.dumps({'error': 'URL cannot be empty!'}), content_type='application/json')
+        return JsonResponse({'error': 'URL cannot be empty!'}, status=HttpResponseBadRequest.status_code)
 
     if auth:
         if len(auth_user) == 0:
-            return HttpResponseBadRequest(json.dumps({'error': 'Username cannot be empty!'}),
-                                          content_type='application/json')
+            return JsonResponse({'error': 'Username cannot be empty!'}, status=HttpResponseBadRequest.status_code)
+
         if len(auth_password) == 0:
-            return HttpResponseBadRequest(json.dumps({'error': 'Password cannot be empty!'}),
-                                          content_type='application/json')
+            return JsonResponse({'error': 'Password cannot be empty!'}, status=HttpResponseBadRequest.status_code)
 
     destination_folder = Folder.objects.filter(id=destination_folder).first()
     if destination_folder is None:
-        return HttpResponseBadRequest(json.dumps({'error': 'Destination folder doesn\'t exist!'}), content_type='application/json')
+        return JsonResponse({'error': 'Destination folder doesn\'t exist!'}, status=HttpResponseBadRequest.status_code)
 
     extension = ""
     if filename == "":
@@ -53,9 +52,11 @@ def add(request):
                     if extension is None:
                         extension = ""
             else:
-                return HttpResponseBadRequest(json.dumps({'error': 'File not found!'}), content_type='application/json')
+                return JsonResponse({'error': 'File not found!'},
+                                    status=HttpResponseBadRequest.status_code)
         except:
-            return HttpResponseBadRequest(json.dumps({'error': 'File not found!'}), content_type='application/json')
+            return JsonResponse({'error': 'File not found!'},
+                                status=HttpResponseBadRequest.status_code)
 
         if len(filename) == 0:
             filename = url.split("/")[-1]
@@ -74,7 +75,8 @@ def add(request):
         os.remove(real_path)
         f = File.objects.get(relative_path=rel_path)
         if Download.objects.filter(file=f).exists():
-            return HttpResponseBadRequest(json.dumps({'error': 'The file is associated with download!'}), content_type='application/json')
+            return JsonResponse({'error': 'The file is associated with download!'},
+                                status=HttpResponseBadRequest.status_code)
         open(real_path, 'w+').close()
     else:
         now = datetime.now(tz=get_current_timezone())
@@ -92,7 +94,8 @@ def add(request):
                 real_path = os.path.join(ModelUtils.get_storage().base_path, destination_folder.relative_path, filename)
 
         if not flag:
-            return HttpResponseBadRequest(json.dumps({'error': 'Failed to write file on storage!'}), content_type='application/json')
+            return JsonResponse({'error': 'Failed to write file on storage!'},
+                                status=HttpResponseBadRequest.status_code)
 
         f = File(relative_path=rel_path,
                  parent_folder=destination_folder)
@@ -110,8 +113,7 @@ def add(request):
                   add_time=datetime.now(tz=get_current_timezone()),
                   downloader_status=None)
     dl.save()
-
-    return HttpResponse('{}', content_type='application/json')
+    return JsonResponse({})
 
 
 @login_required
@@ -119,10 +121,11 @@ def cancel(request):
     download_id = request.POST['id']
     download = Download.objects.filter(id=download_id).first()
     if download is None:
-        return HttpResponseBadRequest(json.dumps({'error': 'Download doesn\'t exist'}), content_type='application/json')
+        return JsonResponse({'error': 'Download doesn\'t exist.'},
+                            status=HttpResponseBadRequest.status_code)
     else:
         Downloader.interrupt(download)
-    return HttpResponse('{}', content_type='application/json')
+    return JsonResponse({})
 
 
 @login_required
