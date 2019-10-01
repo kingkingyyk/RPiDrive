@@ -167,6 +167,10 @@ function openUploadDialog() {
                                 }
                         }).done(function() {
                             loadDirectory(currentDirectory);
+                        }).fail(function(data) {
+                            $("#file-operation-error").text(data["responseJSON"]["error"]);
+                        }).error(function(req, status, error) {
+                            $("#file-operation-error").text("Error : "+status);
                         });
                     }
                 );
