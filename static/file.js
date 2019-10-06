@@ -167,10 +167,13 @@ function openUploadDialog() {
                                 }
                         }).done(function() {
                             loadDirectory(currentDirectory);
-                        }).fail(function(data) {
-                            $("#file-operation-error").text(data["responseJSON"]["error"]);
-                        }).error(function(req, status, error) {
-                            $("#file-operation-error").text("Error : "+status);
+                        }).fail(function(data, textStatus, errorThrown) {
+                            errorText = errorThrown;
+                            if (data["responseJSON"] != null) errorText = data["responseJSON"]["error"];
+                            $("#file-operation-info").html("");
+                            $("#file-operation-error").text(errorText);
+                        }).always(function() {
+                            $("#file-operation-name").removeClass("disabled");
                         });
                     }
                 );
