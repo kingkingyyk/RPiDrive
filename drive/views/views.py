@@ -3,7 +3,7 @@ from django.http import HttpResponseBadRequest, StreamingHttpResponse, HttpRespo
 from django.contrib.auth.decorators import login_required
 from wsgiref.util import FileWrapper
 from drive.features.downloader import *
-import os, mimetypes, traceback
+import os, traceback
 from ..utils.model_utils import ModelUtils
 from ..utils.file_utils import FileUtils
 from ..utils.connection_utils import range_re, RangeFileWrapper
@@ -40,8 +40,9 @@ def navigate(request, folder_id):
     ModelUtils.sync_folder(storage, folder)
 
     #Prepare template data
-    file_objs = [x for x in Folder.objects.filter(parent_folder=folder).order_by('name').all()] + \
-                [x for x in File.objects.filter(parent_folder=folder).select_related('download').order_by('name').all()]
+    folders = list(x for x in Folder.objects.filter(parent_folder=folder).order_by('name').all())
+    files = list(x for x in File.objects.filter(parent_folder=folder).select_related('download').order_by('name').all())
+
     ancestors = []
     ancestor_folder = folder
     while ancestor_folder is not None:
@@ -52,7 +53,9 @@ def navigate(request, folder_id):
 
     context = {
         'curr_folder': folder,
-        'file_objs': file_objs,
+        'size': len(folders) + len(files),
+        'folders': folders,
+        'files': files,
         'ancestors': ancestors,
     }
     return render(request, 'drive/navigate.html', context)
@@ -70,8 +73,6 @@ def download(request, file_id):
     range_header = request.META.get('HTTP_RANGE', '').strip()
     range_match = range_re.match(range_header)
     size = os.path.getsize(f_real_path)
-    content_type, encoding = mimetypes.guess_type(f_real_path)
-    content_type = content_type or 'application/octet-stream'
     if range_match:
         first_byte, last_byte = range_match.groups()
         first_byte = int(first_byte) if first_byte else 0
@@ -79,11 +80,11 @@ def download(request, file_id):
         if last_byte >= size:
             last_byte = size - 1
         length = last_byte - first_byte + 1
-        resp = StreamingHttpResponse(RangeFileWrapper(open(f_real_path, 'rb'), offset=first_byte, length=length), status=206, content_type=content_type)
+        resp = StreamingHttpResponse(RangeFileWrapper(open(f_real_path, 'rb'), offset=first_byte, length=length), status=206, content_type=file.content_type)
         resp['Content-Length'] = str(length)
         resp['Content-Range'] = 'bytes %s-%s/%s' % (first_byte, last_byte, size)
     else:
-        resp = StreamingHttpResponse(FileWrapper(open(f_real_path, 'rb')), content_type=content_type)
+        resp = StreamingHttpResponse(FileWrapper(open(f_real_path, 'rb')), content_type=file.content_type)
         resp['Content-Length'] = str(size)
     resp['Content-Disposition'] = 'filename='+file.name
     resp['Accept-Ranges'] = 'bytes'

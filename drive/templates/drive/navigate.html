@@ -24,7 +24,7 @@
   </span>
 </div>
 
-{% if file_objs %}
+{% if size > 0 %}
     <table class="highlight file-table">
         <tr>
             <th style="width: 24px"><label><input type="checkbox" class="filled-in checkbox-red" id="fileSelectionAll"/><span>&#8205;</span></label></th>
@@ -32,24 +32,36 @@
             <th>Last Modified</th>
             <th>Size</th>
         </tr>
-        {% for file in file_objs %}
+        {% for folder in folders %}
         <tr style="cursor:pointer;" >
-            <td><label><input type="checkbox" class="filled-in fileSelectionSingle checkbox-red" file-id="{{ file.id|safe }}" file-name="{{ file.name }}" file-type="{{ file.class_name|safe }}"/><span>&#8205;</span></label></td>
-            {% if file.class_name == "Folder" %}
-                <td onclick="loadDirectory('{{file.id|safe}}')"><i class="small material-icons inline-icon">folder</i>  {{ file.name }}</td>
-                <td onclick="loadDirectory('{{file.id|safe}}')">{{ file.last_modified_natural|safe }}</td>
-                <td onclick="loadDirectory('{{file.id|safe}}')">{{ file.size_natural|safe }}</td>
-            {% else %}
-                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">
-                    <i class="small material-icons inline-icon">{{ file|file_ext_to_icon|safe }}</i>
-                    {% if file.download and not file.download.operation_done  %}
-                        <i class="small material-icons inline-icon">cloud_download</i>
-                    {% endif %}
-                    {{ file.name }}
-                </td>
-                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.last_modified_natural|safe }}</td>
-                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.size_natural|safe }}</td>
-            {% endif %}
+            <td>
+                <label>
+                    <input type="checkbox" class="filled-in fileSelectionSingle checkbox-red" file-id="{{ folder.id|safe }}" file-name="{{ folder.name }}" file-type="{{ folder.class_name|safe }}"/>
+                    <span>&#8205;</span>
+                </label>
+            </td>
+            <td onclick="loadDirectory('{{folder.id|safe}}')"><i class="small material-icons inline-icon">folder</i>  {{ folder.name }}</td>
+            <td onclick="loadDirectory('{{folder.id|safe}}')">{{ folder.last_modified_natural|safe }}</td>
+            <td onclick="loadDirectory('{{folder.id|safe}}')">{{ folder.size_natural|safe }}</td>
+        </tr>
+        {% endfor %}
+        {% for file in files %}
+        <tr style="cursor:pointer;" >
+            <td>
+                <label>
+                    <input type="checkbox" class="filled-in fileSelectionSingle checkbox-red" file-id="{{ file.id|safe }}" file-name="{{ file.name }}" file-type="{{ file.class_name|safe }}"/>
+                    <span>&#8205;</span>
+                </label>
+            </td>
+            <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}', '{{ file.content_type}}')">
+                <i class="small material-icons inline-icon">{{ file|file_ext_to_icon|safe }}</i>
+                {% if file.download and not file.download.operation_done  %}
+                    <i class="small material-icons inline-icon">cloud_download</i>
+                {% endif %}
+                {{ file.name }}
+            </td>
+            <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}', '{{ file.content_type}}')">{{ file.last_modified_natural|safe }}</td>
+            <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}'), '{{ file.content_type}}')">{{ file.size_natural|safe }}</td>
         </tr>
         {% endfor %}
     </table>
@@ -63,7 +75,4 @@
 <script>
     initUI();
     setupFileSelection();
-    {% if not file_objs %}
-        M.FloatingActionButton.getInstance($(".fixed-action-btn")).open();
-    {% endif %}
 </script>

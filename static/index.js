@@ -32,17 +32,26 @@ function loadDirectory(folderId) {
     window.history.pushState('', '', getCurrentURL()+'?folder='+folderId);
 }
 
-function loadFile(fileId, fileName, fileType) {
-    url = getCurrentURL() + 'download/'+fileId;
+mediaCastURL = "";
+mediaCastMime = "";
+castHTML = "<button is='google-cast-button' style='height: 32px; width: 32px'></button>";
+function loadFile(fileId, fileName, fileType, mimeType) {
+    url = getCurrentURL() + "download/"+fileId;
     var previewableTypes = ["movie", "music", "picture", "code"];
     if (previewableTypes.indexOf(fileType)>=0) {
         $("#preview-title").html(fileName);
         if (fileType == "movie") {
-            $("#preview-screen").html("<video class='responsive-video' controls autoplay><source src='"+url+"'></video>");
+            mediaCastURL = url;
+            mediaCastMime = mimeType;
+            $("#preview-screen").html("<video class='responsive-video' controls autoplay><source src='"+url+"'></video>"+castHTML);
         } else if (fileType == "music") {
-            $("#preview-screen").html("<audio class='responsive-video' controls autoplay><source src='"+url+"'></audio>");
+            $("#preview-screen").html("<audio class='responsive-video' controls autoplay><source src='"+url+"'></audio>"+castHTML);
+            mediaCastURL = url;
+            mediaCastMime = mimeType;
         } else if (fileType == "picture") {
-            $("#preview-screen").html("<img style='width:100%' src='"+url+"'>");
+            mediaCastURL = url;
+            mediaCastMime = mimeType;
+            $("#preview-screen").html("<img style='width:100%' src='"+url+"'>"+castHTML);
         } else if (fileType == "code") {
             $("#preview-screen").html(getLoaderCode("big"));
             $.get(url, function(data) {
@@ -52,7 +61,8 @@ function loadFile(fileId, fileName, fileType) {
         }
 
         $("#btnDownloadFromPreview").attr('href', url);
-        M.Modal.getInstance($('#preview')).onCloseEnd = () => {
+
+        M.Modal.getInstance($('#preview')).options.onCloseEnd = function() {
             clearPreview();
         };
         M.Modal.getInstance($('#preview')).open();
@@ -164,3 +174,31 @@ $(function() {
 });
 
 
+window.__onGCastApiAvailable = function(isAvailable){
+    if(! isAvailable){
+        return false;
+    }
+
+    var castContext = cast.framework.CastContext.getInstance();
+
+    castContext.setOptions({
+        autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+        receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
+    });
+
+    var stateChanged = cast.framework.CastContextEventType.CAST_STATE_CHANGED;
+    castContext.addEventListener(stateChanged, function(event){
+        var castSession = castContext.getCurrentSession();
+        var media = new chrome.cast.media.MediaInfo(mediaCastURL, mediaCastMime);
+        var request = new chrome.cast.media.LoadRequest(media);
+
+        castSession && castSession
+            .loadMedia(request)
+            .then(function(){
+                console.log('Success');
+            })
+            .catch(function(error){
+                console.log('Error: ' + error);
+            });
+    });
+};

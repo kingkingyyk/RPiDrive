@@ -151,6 +151,7 @@ class FileType:
 
 class File(FileObject):
     file_extension = models.TextField()
+    content_type = models.TextField(default='application/octet-stream')
 
     @staticmethod
     def extract_file_extension(f):
