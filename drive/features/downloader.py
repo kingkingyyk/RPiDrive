@@ -26,6 +26,7 @@ class Downloader:
 
     @staticmethod
     def downloader_loop():
+        print('Downloader started.')
         while True:
             download_to_do = Download.objects\
                             .filter(status=DownloadStatus.downloading.value)\
@@ -131,18 +132,13 @@ class Downloader:
     @transaction.atomic
     def start():
         if Storage.objects.count() > 0:
-            curr_time = datetime.now(tz=get_current_timezone())
-            drive = Drive.objects.first()
-            if drive is not None and curr_time - drive.downloader_start > timedelta(seconds=3):
-                drive.downloader_start = curr_time
-                drive.save()
+            print('Starting downloader...')
+            global downloader_thread
+            Downloader.onstart_cleanup()
 
-                global downloader_thread
-                Downloader.onstart_cleanup()
-
-                downloader_thread = Thread(target=Downloader.downloader_loop)
-                downloader_thread.daemon = True
-                downloader_thread.start()
+            downloader_thread = Thread(target=Downloader.downloader_loop)
+            downloader_thread.daemon = True
+            downloader_thread.start()
 
     @staticmethod
     def interrupt(download):
