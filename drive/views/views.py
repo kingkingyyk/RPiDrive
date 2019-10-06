@@ -260,7 +260,7 @@ def search_hint(request):
 @login_required
 def search(request):
     name = request.GET['name']
-    result = Folder.objects.filter(name__icontains=name).all() + File.objects.filter(name__icontains=name).all()
+    result = list(Folder.objects.filter(name__icontains=name).all()) + list(File.objects.filter(name__icontains=name).all())
     result.sort(key=lambda x : x.last_modified)
     context = {
         'path_sep': os.path.sep,
