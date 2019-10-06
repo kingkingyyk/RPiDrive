@@ -3,3 +3,4 @@ django
 requests
 psutil
 django-htmlmin
+psycopg2
