@@ -11,7 +11,7 @@ class DriveConfig(AppConfig):
             self.ready_executed = True
             import drive.signals
 
-            if sys.argv[1] not in ['migrate', 'makemigrations']:
+            if sys.argv[1] not in ['migrate', 'makemigrations', 'createsuperuser']:
                 from drive.features.downloader import Downloader
                 Downloader.start()
 
