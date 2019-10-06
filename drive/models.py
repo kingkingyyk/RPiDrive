@@ -87,10 +87,7 @@ class FileObject(models.Model):
     relative_path = models.TextField(unique=True)
     permissions = models.ManyToManyField('Permission')
     parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
-
-    @property
-    def name(self):
-        return self.relative_path.split(os.path.sep)[-1]
+    name = models.TextField()
 
     @property
     def size_natural(self):
@@ -98,8 +95,9 @@ class FileObject(models.Model):
 
     @property
     def last_modified_natural(self):
-        delta = datetime.now(tz=get_current_timezone()) - self.last_modified
-        return humanize.naturaldelta(delta)+' ago' if delta < timedelta(days=2) else humanize.naturalday(self.last_modified)
+        last_m = self.last_modified
+        delta = datetime.now() - last_m
+        return humanize.naturaldelta(delta)+' ago' if delta < timedelta(days=2) else humanize.naturalday(last_m)
 
     @property
     def class_name(self):
@@ -107,8 +105,7 @@ class FileObject(models.Model):
 
     @property
     def last_modified(self):
-        return datetime.strptime(time.ctime(os.path.getmtime(self.real_path)),
-                                 "%a %b %d %H:%M:%S %Y").astimezone()
+        return datetime.fromtimestamp(os.path.getmtime(self.real_path))
 
     @property
     def size(self):
@@ -130,69 +127,71 @@ class Folder(FileObject):
         return '-'
 
 
+class FileType:
+    lookup_type_to_ext = {
+        'movie': ['mp4', 'webm'],
+        'music': ('mp3', 'm4a', 'ogg'),
+        'picture': ('jpg', 'bmp', 'gif', 'png'),
+        'code': ('cpp', 'java', 'py', 'php', 'cs', 'txt'),
+        'compressed': ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
+                                       'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx'),
+        'executable': ('exe', 'sh', 'bat'),
+        'library': ('dll', 'so'),
+        'book': ('epub', 'mobi', 'pdf')
+
+    }
+    lookup_ext_to_type = {}
+    for key, values in lookup_type_to_ext.items():
+        for val in values:
+            lookup_ext_to_type[val] = key
+
+
 class File(FileObject):
+    file_extension = models.TextField()
+
+    @staticmethod
+    def extract_file_extension(f):
+        return f.split(os.path.sep)[-1].split('.')[-1].lower()
 
     @property
     def size_natural(self):
         return Storage.natural_space(self.size)
 
     @property
-    def file_extension(self):
-        name = self.relative_path.split(os.path.sep)[-1]
-        return name.split('.')[-1].lower()
-
-    @property
     def is_movie(self):
-        return self.file_extension == 'mp4'
+        return self.file_extension in FileType.lookup_type_to_ext['movie']
 
     @property
     def is_music(self):
-        return self.file_extension in ('mp3', 'm4a')
+        return self.file_extension in FileType.lookup_type_to_ext['music']
 
     @property
     def is_picture(self):
-        return self.file_extension in ('jpg', 'bmp', 'gif', 'png')
+        return self.file_extension in FileType.lookup_type_to_ext['picture']
 
     @property
     def is_code(self):
-        return self.file_extension in ('cpp', 'java', 'py', 'php', 'cs', 'txt')
+        return self.file_extension in FileType.lookup_type_to_ext['code']
 
     @property
     def is_compressed(self):
-        return self.file_extension in ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
-                                       'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx')
+        return self.file_extension in FileType.lookup_type_to_ext['compressed']
 
     @property
     def is_executable(self):
-        return self.file_extension in ('exe', 'sh', 'bat')
+        return self.file_extension in FileType.lookup_type_to_ext['executable']
 
     @property
     def is_library(self):
-        return self.file_extension in ('dll', 'so')
+        return self.file_extension in FileType.lookup_type_to_ext['library']
 
     @property
     def is_book(self):
-        return self.file_extension in ('epub', 'mobi', 'pdf')
+        return self.file_extension in FileType.lookup_type_to_ext['book']
 
     @property
     def preview_type(self):
-        if self.is_movie:
-            return 'movie'
-        elif self.is_music:
-            return 'music'
-        elif self.is_picture:
-            return 'picture'
-        elif self.is_code:
-            return 'text'
-        elif self.is_compressed:
-            return 'compressed'
-        elif self.is_executable:
-            return 'executable'
-        elif self.is_library:
-            return 'library'
-        elif self.is_book:
-            return 'book'
-        return 'none'
+        return FileType.lookup_ext_to_type.get(self.file_extension, 'none')
 
 
 class Permission(models.Model):

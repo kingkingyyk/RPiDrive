@@ -16,7 +16,7 @@ class ModelUtils:
             folder = None
         if folder is None:
             try:
-                folder = Folder.objects.get(relative_path='')
+                folder = Folder.objects.select_related('parent_folder').get(relative_path='')
             except:
                 folder = Folder(relative_path='')
                 folder.save()

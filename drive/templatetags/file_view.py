@@ -16,10 +16,8 @@ file_ext_icon_dict = {
 
 
 def file_ext_to_icon(file):
-    for attr in file_ext_icon_dict.keys():
-        if getattr(file, attr):
-            return file_ext_icon_dict[attr]
-    return 'insert_drive_file'
+    attr = next((x for x in file_ext_icon_dict.keys() if getattr(file, x)), None)
+    return file_ext_icon_dict.get(attr, 'insert_drive_file')
 
 
 register.filter('file_ext_to_icon', file_ext_to_icon)

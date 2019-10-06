@@ -3,10 +3,11 @@ from django.http import HttpResponseBadRequest, StreamingHttpResponse, HttpRespo
 from django.contrib.auth.decorators import login_required
 from wsgiref.util import FileWrapper
 from drive.features.downloader import *
-import os, mimetypes, traceback, json
+import os, mimetypes, traceback
 from ..utils.model_utils import ModelUtils
 from ..utils.file_utils import FileUtils
 from ..utils.connection_utils import range_re, RangeFileWrapper
+
 
 @login_required
 def index(request):
@@ -37,31 +38,33 @@ def navigate(request, folder_id):
     storage = ModelUtils.get_storage()
     folder = ModelUtils.get_folder_by_id(folder_id)
 
-    #Lazy create file record if needed
     real_path = os.path.join(storage.base_path, folder.relative_path)
-    for f in os.listdir(real_path):
-        f_real_path = os.path.join(real_path, f)
-        cls = File if os.path.isfile(f_real_path) else Folder
-        f_obj = cls.objects.filter(relative_path=os.path.join(folder.relative_path, f)).first()
-        if f_obj is None:
-            cls(relative_path=os.path.join(folder.relative_path, f),
-                parent_folder=folder
-                ).save()
+    db_folders = [x for x in Folder.objects.filter(parent_folder=folder).all()]
+    db_files = [x for x in File.objects.filter(parent_folder=folder).all()]
+    fs_folder_names = [x for x in os.listdir(real_path) if os.path.isdir(os.path.join(real_path, x))]
+    fs_file_names = [x for x in os.listdir(real_path) if os.path.isfile(os.path.join(real_path, x))]
 
     #Lazy delete file record if needed
-    folders_in_fs = [x for x in os.listdir(real_path) if os.path.isdir(os.path.join(real_path, x))]
-    folder_objs = [x for x in Folder.objects.filter(parent_folder=folder).all()]
-    for f in [x for x in folder_objs if x.name not in folders_in_fs]:
+    for f in [x for x in db_folders if x.name not in fs_folder_names]:
         f.delete()
 
-    files_in_fs = [x for x in os.listdir(real_path) if os.path.isfile(os.path.join(real_path, x))]
-    file_objs = [x for x in File.objects.filter(parent_folder=folder).all()]
-    for f in [x for x in file_objs if x.name not in files_in_fs]:
+    for f in [x for x in db_files if x.name not in fs_file_names]:
         f.delete()
+
+    #Lazy create file record if needed
+    db_folder_names = [x.name for x in db_folders]
+    [Folder(relative_path=os.path.join(folder.relative_path, x),
+            parent_folder=folder).save()
+    for x in fs_folder_names if x not in db_folder_names]
+
+    db_file_names = [x.name for x in db_files]
+    [File(relative_path=os.path.join(folder.relative_path, x),
+          parent_folder=folder).save()
+    for x in fs_file_names if x not in db_file_names]
 
     #Prepare template data
-    file_objs = sorted([x for x in Folder.objects.filter(parent_folder=folder).all()], key=lambda x: x.name) + \
-                sorted([x for x in File.objects.filter(parent_folder=folder).all()], key=lambda x: x.name)
+    file_objs = [x for x in Folder.objects.filter(parent_folder=folder).order_by('name').all()] + \
+                [x for x in File.objects.filter(parent_folder=folder).select_related('download').order_by('name').all()]
     ancestors = []
     ancestor_folder = folder
     while ancestor_folder is not None:

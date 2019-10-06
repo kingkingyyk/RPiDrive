@@ -34,21 +34,21 @@
         </tr>
         {% for file in file_objs %}
         <tr style="cursor:pointer;" >
-            <td><label><input type="checkbox" class="filled-in fileSelectionSingle checkbox-red" file-id="{{ file.id }}" file-name="{{ file.name }}" file-type="{{ file.class_name }}"/><span>&#8205;</span></label></td>
+            <td><label><input type="checkbox" class="filled-in fileSelectionSingle checkbox-red" file-id="{{ file.id|safe }}" file-name="{{ file.name }}" file-type="{{ file.class_name|safe }}"/><span>&#8205;</span></label></td>
             {% if file.class_name == "Folder" %}
-                <td onclick="loadDirectory('{{file.id}}')"><i class="small material-icons inline-icon">folder</i>  {{ file.name }}</td>
-                <td onclick="loadDirectory('{{file.id}}')">{{ file.last_modified_natural }}</td>
-                <td onclick="loadDirectory('{{file.id}}')">{{ file.size_natural }}</td>
+                <td onclick="loadDirectory('{{file.id|safe}}')"><i class="small material-icons inline-icon">folder</i>  {{ file.name }}</td>
+                <td onclick="loadDirectory('{{file.id|safe}}')">{{ file.last_modified_natural|safe }}</td>
+                <td onclick="loadDirectory('{{file.id|safe}}')">{{ file.size_natural|safe }}</td>
             {% else %}
                 <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">
-                    <i class="small material-icons inline-icon">{{ file|file_ext_to_icon }}</i>
+                    <i class="small material-icons inline-icon">{{ file|file_ext_to_icon|safe }}</i>
                     {% if file.download and not file.download.operation_done  %}
                         <i class="small material-icons inline-icon">cloud_download</i>
                     {% endif %}
                     {{ file.name }}
                 </td>
-                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.last_modified_natural }}</td>
-                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.size_natural }}</td>
+                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.last_modified_natural|safe }}</td>
+                <td onclick="loadFile('{{ file.id }}', '{{ file.name }}', '{{ file.preview_type }}')">{{ file.size_natural|safe }}</td>
             {% endif %}
         </tr>
         {% endfor %}
