@@ -61,10 +61,10 @@ def navigate(request, folder_id):
 @login_required
 def download(request, file_id):
     storage = ModelUtils.get_storage()
-    file = get_object_or_404(File, id=file_id)
+    file = get_object_or_404(File.objects.select_related('download'), id=file_id)
 
     f_real_path = os.path.join(storage.base_path, file.relative_path)
-    if file.download and not file.download.operation_done:
+    if hasattr(file, 'download') and not file.download.operation_done:
         return JsonResponse({'error': 'File is being downloaded!'}, status=HttpResponseBadRequest.status_code)
 
     range_header = request.META.get('HTTP_RANGE', '').strip()
