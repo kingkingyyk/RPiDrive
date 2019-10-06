@@ -251,21 +251,16 @@ def upload_files(request, folder_id):
 
 @login_required
 def search_hint(request):
-    name = request.GET['name'].lower()
-    folders = Folder.objects.filter(relative_path__icontains=name).all()
-    files = File.objects.filter(relative_path__icontains=name).all()
-    context = { **{x.name: None for x in folders if name in x.name.lower()},
-                **{x.name: None for x in files if name in x.name.lower()}}
+    name = request.GET['name']
+    result = list(Folder.objects.filter(name__icontains=name).all()) + list(File.objects.filter(name__icontains=name).all())
+    context = {x.name: None for x in result}
     return JsonResponse(context)
 
 
 @login_required
 def search(request):
     name = request.GET['name']
-    name_lower = name.lower()
-    folders = Folder.objects.filter(relative_path__icontains=name).all()
-    files = File.objects.filter(relative_path__icontains=name).all()
-    result = [x for x in folders if name_lower in x.name.lower()] + [x for x in files if name_lower in x.name.lower()]
+    result = Folder.objects.filter(name__icontains=name).all() + File.objects.filter(name__icontains=name).all()
     result.sort(key=lambda x : x.last_modified)
     context = {
         'path_sep': os.path.sep,
