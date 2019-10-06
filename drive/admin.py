@@ -4,7 +4,6 @@ from .models import *
 # Register your models here.
 admin.site.register(Drive)
 admin.site.register(Storage)
-admin.site.register(FileObject)
 admin.site.register(Folder)
 admin.site.register(File)
 admin.site.register(Permission)

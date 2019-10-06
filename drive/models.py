@@ -86,8 +86,11 @@ class FileObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     relative_path = models.TextField(unique=True)
     permissions = models.ManyToManyField('Permission')
-    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
+    parent_folder = models.ForeignKey('Folder', on_delete=models.CASCADE, null=True)
     name = models.TextField()
+
+    class Meta:
+        abstract = True
 
     @property
     def size_natural(self):
@@ -195,7 +198,7 @@ class File(FileObject):
 
 
 class Permission(models.Model):
-    file_object = models.ForeignKey(FileObject, on_delete=models.CASCADE)
+    folder_obj = models.OneToOneField(Folder, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     type = models.CharField(max_length=100, choices=PermissionType.choices())
 
@@ -223,6 +226,6 @@ class Download(models.Model):
 
 
 class Synchronizer(models.Model):
-    file_object = models.OneToOneField(FileObject, on_delete=models.CASCADE)
+    file = models.OneToOneField(File, on_delete=models.CASCADE)
     day_mask = models.IntegerField(default=0b1111111)
     period = models.IntegerField(default=15)

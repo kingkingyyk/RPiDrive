@@ -4,13 +4,16 @@ import sys
 
 class DriveConfig(AppConfig):
     name = 'drive'
-    executed = False
+    ready_executed = False
 
     def ready(self):
-        from drive.features.downloader import Downloader
+        if not self.ready_executed:
+            self.ready_executed = True
+            import drive.signals
 
-        if not self.executed and sys.argv[1] not in ['migrate', 'makemigrations']:
-            Downloader.start()
-            self.executed = True
+            if sys.argv[1] not in ['migrate', 'makemigrations']:
+                from drive.features.downloader import Downloader
+                Downloader.start()
 
-        import drive.signals
+                from .utils.model_utils import ModelUtils
+                ModelUtils.recursive_sync_folder()
