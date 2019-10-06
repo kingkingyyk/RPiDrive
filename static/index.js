@@ -34,7 +34,7 @@ function loadDirectory(folderId) {
 
 function loadFile(fileId, fileName, fileType) {
     url = getCurrentURL() + 'download/'+fileId;
-    var previewableTypes = ["movie", "music", "picture", "text"];
+    var previewableTypes = ["movie", "music", "picture", "code"];
     if (previewableTypes.indexOf(fileType)>=0) {
         $("#preview-title").html(fileName);
         if (fileType == "movie") {
@@ -43,10 +43,11 @@ function loadFile(fileId, fileName, fileType) {
             $("#preview-screen").html("<audio class='responsive-video' controls autoplay><source src='"+url+"'></audio>");
         } else if (fileType == "picture") {
             $("#preview-screen").html("<img style='width:100%' src='"+url+"'>");
-        } else if (fileType == "text") {
+        } else if (fileType == "code") {
             $("#preview-screen").html(getLoaderCode("big"));
             $.get(url, function(data) {
-                $("#preview-screen").html("<pre style='font-size: 12px'><code>"+data+"</code></pre>");
+                $("#preview-screen").html("<pre style='font-size: 12px;'><code>"+data+"</code></pre>");
+                hljs.highlightBlock($("#preview-screen pre code").get(0));
             });
         }
 
