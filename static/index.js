@@ -159,6 +159,9 @@ function setupSearch() {
 
 function initUI() {
     M.AutoInit();
+    M.Modal.init($('#file-operation-dialog'), {
+        dismissible: false,
+    });
     setupSearch();
 }
 

@@ -11,6 +11,16 @@ function prepareDialog(title, content, buttonName, buttonResponse) {
     M.Modal.getInstance($('#file-operation-dialog')).open();
 }
 
+function enableDialogButtons() {
+    $("#file-operation-name").removeClass("disabled");
+    $("#file-operation-dialog-close").removeClass("disabled");
+}
+
+function disableDialogButtons() {
+    $("#file-operation-name").addClass("disabled");
+    $("#file-operation-dialog-close").addClass("disabled");
+}
+
 
 function openNewFolderDialog() {
     prepareDialog(
@@ -18,7 +28,7 @@ function openNewFolderDialog() {
         `<input type="text" id="new-folder-name">`,
         "Create",
         function () {
-            $("#file-operation-name").addClass("disabled");
+            disableDialogButtons();
             url = getCurrentURL() + 'create-folder/'+currentDirectory;
             $.post( url,
                 { 'name': $("#new-folder-name").val(), 'csrfmiddlewaretoken': csrf_token })
@@ -30,7 +40,7 @@ function openNewFolderDialog() {
                 $("#file-operation-error").text(data["responseJSON"]["error"]);
             })
             .always(function() {
-                $("#file-operation-name").removeClass("disabled");
+                enableDialogButtons();
             });
     });
     $("#new-folder-name").val("New Folder");
@@ -49,7 +59,7 @@ function openRenameDialog() {
                   `<input type="text" id="new-name">`,
                   "Rename",
                   function() {
-                        $("#file-operation-name").addClass("disabled");
+                        disableDialogButtons();
                         url = getCurrentURL() + 'rename/'+selectedFileId;
                         $.post( url,
                             { 'name': $("#new-name").val(), 'csrfmiddlewaretoken': csrf_token })
@@ -61,7 +71,7 @@ function openRenameDialog() {
                             $("#file-operation-error").text(data["responseJSON"]["error"]);
                         })
                         .always(function() {
-                            $("#file-operation-name").removeClass("disabled");
+                            enableDialogButtons();
                         });
                   }
     );
@@ -73,7 +83,7 @@ function openMoveDialog() {
                   getLoaderCode("small"),
                   "Move",
                   function() {
-                        $("#file-operation-name").addClass("disabled");
+                        disableDialogButtons();
                         selectedFileObjIds = "";
                         $(".fileSelectionSingle").each(function() {
                             if ($(this).is(":checked")) {
@@ -93,7 +103,7 @@ function openMoveDialog() {
                                 $("#file-operation-error").text(data["responseJSON"]["error"]);
                             })
                             .always(function() {
-                                $("#file-operation-name").removeClass("disabled");
+                                enableDialogButtons();
                             });
                         }
                   }
@@ -112,7 +122,7 @@ function openDeleteDialog() {
     prepareDialog(  "Confirm to delete selected items?",
                     "", "Delete",
                     function() {
-                        $("#file-operation-name").addClass("disabled");
+                        disableDialogButtons();
                         selectedFileObjIds = "";
                         $(".fileSelectionSingle").each(function() {
                             if ($(this).is(":checked")) {
@@ -132,7 +142,7 @@ function openDeleteDialog() {
                                 $("#file-operation-error").text(data["responseJSON"]["error"]);
                             })
                             .always(function() {
-                                $("#file-operation-name").removeClass("disabled");
+                                enableDialogButtons();
                             });
                         }
                     });
@@ -154,7 +164,7 @@ function openUploadDialog() {
                       </form>`,
                     "Upload",
                     function () {
-                        $("#file-operation-name").addClass("disabled");
+                        disableDialogButtons();
                         $.ajax({
                                 type: "POST",
                                 url: "upload/"+currentDirectory,
@@ -185,7 +195,7 @@ function openUploadDialog() {
                             $("#file-operation-info").html("");
                             $("#file-operation-error").text(errorText);
                         }).always(function() {
-                            $("#file-operation-name").removeClass("disabled");
+                            enableDialogButtons();
                         });
                     }
                 );
