@@ -63,10 +63,6 @@ def download(request, file_id):
     storage = ModelUtils.get_storage()
     file = get_object_or_404(File, id=file_id)
 
-    download_of_file = Download.objects.filter(file=file).first()
-    if download_of_file is not None and not download_of_file.operation_done:
-        return JsonResponse({'error': 'File is being downloaded!'}, status=HttpResponseBadRequest.status_code)
-
     f_real_path = os.path.join(storage.base_path, file.relative_path)
 
     range_header = request.META.get('HTTP_RANGE', '').strip()
