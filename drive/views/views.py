@@ -119,7 +119,7 @@ def delete_file_objects(request):
     try:
         storage = ModelUtils.get_storage()
         delete_ids = request.POST['delete-ids'].split(',')
-        file_obj = FileObject.objects.filter(id__in=delete_ids).all()
+        file_obj = list(Folder.objects.filter(id__in=delete_ids).all()) + list(File.objects.filter(id__in=delete_ids).all())
 
         for f in file_obj:
             if f.size_natural != '-' and Download.objects.filter(file=f).first() and not Download.objects.get(file=f).operation_done:
@@ -137,7 +137,9 @@ def delete_file_objects(request):
 def rename_file_object(request, file_obj_id):
     new_name = request.POST['name']
     storage = ModelUtils.get_storage()
-    file_obj = FileObject.objects.filter(id=file_obj_id).first()
+    file_obj = File.objects.filter(id=file_obj_id).first()
+    if file_obj is None:
+        file_obj = Folder.objects.filter(id=file_obj_id).first()
     if file_obj is None:
         return JsonResponse({'error': 'Item not exists.'}, status=HttpResponseBadRequest.status_code)
 
@@ -158,7 +160,10 @@ def rename_file_object(request, file_obj_id):
         file_obj.save()
 
         if os.path.isdir(file_obj_new_real_path):
-            for f in FileObject.objects.filter(relative_path__startswith=file_obj_rel_path+os.path.sep).all():
+            for f in Folder.objects.filter(relative_path__startswith=file_obj_rel_path+os.path.sep).all():
+                f.relative_path = file_obj_new_rel_path + f.relative_path[len(file_obj_rel_path):]
+                f.save()
+            for f in File.objects.filter(relative_path__startswith=file_obj_rel_path + os.path.sep).all():
                 f.relative_path = file_obj_new_rel_path + f.relative_path[len(file_obj_rel_path):]
                 f.save()
         return JsonResponse({})
@@ -173,7 +178,7 @@ def move_file_object(request):
         to_move_ids = request.POST['to-move-ids'].split(',')
         destination_id = request.POST['destination-id']
 
-        file_objs = FileObject.objects.filter(id__in=to_move_ids).all()
+        file_objs = list(Folder.objects.filter(id__in=to_move_ids).all()) + list(File.objects.filter(id__in=to_move_ids).all())
         destination_folder = ModelUtils.get_folder_by_id(destination_id)
 
         file_obj_rel_paths = [x.relative_path for x in file_objs]
@@ -207,7 +212,11 @@ def move_file_object(request):
             file_obj.save()
 
             if os.path.isdir(file_obj_new_real_path):
-                for f in FileObject.objects.filter(
+                for f in Folder.objects.filter(
+                        relative_path__startswith=file_obj_old_rel_path + os.path.sep).all():
+                    f.relative_path = file_obj.relative_path + f.relative_path[len(file_obj_old_rel_path):]
+                    f.save()
+                for f in File.objects.filter(
                         relative_path__startswith=file_obj_old_rel_path + os.path.sep).all():
                     f.relative_path = file_obj.relative_path + f.relative_path[len(file_obj_old_rel_path):]
                     f.save()
