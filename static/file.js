@@ -28,6 +28,9 @@ function openNewFolderDialog() {
             })
             .fail(function(data) {
                 $("#file-operation-error").text(data["responseJSON"]["error"]);
+            })
+            .always(function() {
+                $("#file-operation-name").removeClass("disabled");
             });
     });
     $("#new-folder-name").val("New Folder");
@@ -56,6 +59,9 @@ function openRenameDialog() {
                         })
                         .fail(function(data) {
                             $("#file-operation-error").text(data["responseJSON"]["error"]);
+                        })
+                        .always(function() {
+                            $("#file-operation-name").removeClass("disabled");
                         });
                   }
     );
@@ -85,6 +91,9 @@ function openMoveDialog() {
                             })
                             .fail(function(data) {
                                 $("#file-operation-error").text(data["responseJSON"]["error"]);
+                            })
+                            .always(function() {
+                                $("#file-operation-name").removeClass("disabled");
                             });
                         }
                   }
@@ -121,6 +130,9 @@ function openDeleteDialog() {
                             })
                             .fail(function(data) {
                                 $("#file-operation-error").text(data["responseJSON"]["error"]);
+                            })
+                            .always(function() {
+                                $("#file-operation-name").removeClass("disabled");
                             });
                         }
                     });
