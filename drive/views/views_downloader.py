@@ -1,11 +1,11 @@
 from drive.models import *
 from drive.utils.model_utils import ModelUtils
 from drive.features.downloader import Downloader
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-import requests, re, os, json, mimetypes
+import requests, re, os, mimetypes
 
 
 @login_required
@@ -58,11 +58,11 @@ def add(request):
             return JsonResponse({'error': 'File not found!'},
                                 status=HttpResponseBadRequest.status_code)
 
-        if len(filename) == 0:
-            filename = url.split("/")[-1]
+        if not filename:
+            filename = url.split('/')[-1]
 
-        if len(extension) == 0:
-            extension = ".download"
+        if not extension:
+            extension = '.'+filename.split('.')[-1] if filename != filename.split('.')[-1] else '.download'
 
         if not filename.endswith(extension):
             filename = filename + extension
@@ -73,8 +73,8 @@ def add(request):
     real_path = os.path.join(ModelUtils.get_storage().base_path, rel_path)
     if os.path.exists(real_path):
         os.remove(real_path)
-        f = File.objects.get(relative_path=rel_path)
-        if Download.objects.filter(file=f).exists():
+        f = File.objects.select_related('download').get(relative_path=rel_path)
+        if f.download:
             return JsonResponse({'error': 'The file is associated with download!'},
                                 status=HttpResponseBadRequest.status_code)
         open(real_path, 'w+').close()
@@ -89,7 +89,7 @@ def add(request):
                 flag = True
                 break
             except:
-                filename = '{}_{:d}{}'.format(test_filename, idx, extension)
+                filename = '{}_{:d}.{}'.format(test_filename, idx, extension)
                 rel_path = os.path.join(destination_folder.relative_path, filename)
                 real_path = os.path.join(ModelUtils.get_storage().base_path, destination_folder.relative_path, filename)
 

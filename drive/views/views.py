@@ -82,7 +82,8 @@ def download(request, file_id):
         resp['Content-Range'] = 'bytes %s-%s/%s' % (first_byte, last_byte, size)
     else:
         resp = StreamingHttpResponse(FileWrapper(open(f_real_path, 'rb')), content_type=content_type)
-        resp['Content-Length'] = str(size)
+        if not file.download and file.download.operation_done:
+            resp['Content-Length'] = str(size)
     resp['Content-Disposition'] = 'filename='+file.name
     resp['Accept-Ranges'] = 'bytes'
     return resp
