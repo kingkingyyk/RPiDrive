@@ -22,7 +22,7 @@ python manage.py runserver
 #### Production Guide
 - Run the steps in Development Guide
 - Deploy PostgreSQL
-  - ```
+  ```
     sudo apt install postgresql libpq-dev postgresql-client postgresql-client-common -y
     sudo su postgres
     createuser someuser -P --interactive
@@ -30,7 +30,7 @@ python manage.py runserver
     create database RPiDrive;
     \q
     exit
-    ```
+  ```
 - In `rpidrive/settings.py`
   - Set DEBUG to False
   - Change the SECRET_KEY (50 characters)
