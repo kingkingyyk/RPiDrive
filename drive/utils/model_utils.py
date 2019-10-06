@@ -50,16 +50,16 @@ class ModelUtils:
 
     @staticmethod
     def recursive_sync_folder(verbose=False):
-        if verbose:
-            print('Start synchronizing data....')
-        storage = ModelUtils.get_storage()
-        root_folder = ModelUtils.get_folder_by_id(None)
-        folder_list = [root_folder]
+        if Storage.objects.count() > 0:
+            if verbose:
+                print('Start synchronizing data....')
+            storage = ModelUtils.get_storage()
+            root_folder = ModelUtils.get_folder_by_id(None)
+            folder_list = [root_folder]
 
-        while folder_list:
-            curr_folder = folder_list.pop()
-            ModelUtils.sync_folder(storage, curr_folder)
-            folder_list += list(curr_folder.folder_set.all())
-        if verbose:
-            print('Done synchronizing data!')
-
+            while folder_list:
+                curr_folder = folder_list.pop()
+                ModelUtils.sync_folder(storage, curr_folder)
+                folder_list += list(curr_folder.folder_set.all())
+            if verbose:
+                print('Done synchronizing data!')

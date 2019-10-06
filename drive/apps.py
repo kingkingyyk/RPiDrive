@@ -16,4 +16,4 @@ class DriveConfig(AppConfig):
                 Downloader.start()
 
                 from .utils.model_utils import ModelUtils
-                ModelUtils.recursive_sync_folder()
+                ModelUtils.recursive_sync_folder(True)

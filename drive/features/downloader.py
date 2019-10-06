@@ -130,18 +130,19 @@ class Downloader:
     @staticmethod
     @transaction.atomic
     def start():
-        curr_time = datetime.now(tz=get_current_timezone())
-        drive = Drive.objects.first()
-        if drive is not None and curr_time - drive.downloader_start > timedelta(seconds=3):
-            drive.downloader_start = curr_time
-            drive.save()
+        if Storage.objects.count() > 0:
+            curr_time = datetime.now(tz=get_current_timezone())
+            drive = Drive.objects.first()
+            if drive is not None and curr_time - drive.downloader_start > timedelta(seconds=3):
+                drive.downloader_start = curr_time
+                drive.save()
 
-            global downloader_thread
-            Downloader.onstart_cleanup()
+                global downloader_thread
+                Downloader.onstart_cleanup()
 
-            downloader_thread = Thread(target=Downloader.downloader_loop)
-            downloader_thread.daemon = True
-            downloader_thread.start()
+                downloader_thread = Thread(target=Downloader.downloader_loop)
+                downloader_thread.daemon = True
+                downloader_thread.start()
 
     @staticmethod
     def interrupt(download):
