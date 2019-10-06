@@ -47,6 +47,7 @@ python manage.py runserver
         }
     }
     ```
+  - Create a temp folder in the drive of your primary storage folder (__not in the primary storage folder!!!__) and set FILE_UPLOAD_TEMP_DIR to it.
 - Disable admin project by commenting out the /admin line in `drive/urls.py`
 - Create `RPiDrive.service` in `/etc/systemd/system` with the following content:
    ```
@@ -94,6 +95,51 @@ python manage.py runserver
     sudo apt-get install certbot python-certbot-nginx -y
     sudo certbot --nginx -d <my domain name / ddns name>
     ```
+- Enable autostart
+    ```
+    sudo systemctl systemctl-reload
+    sudo systemctl enable RPiDrive
+    sudo systemctl start RPiDrive
+    sudo systemctl enable nginx
+    sudo systemctl start nginx
+    ```
+
+#### Common Issues
+- Nginx shows 502 error
+  - Set DEBUG_MODE to True in `drive/settings.py`
+  - Run `sudo systemctl restart RPiDrive`
+  - Refresh your browser
+  - Run `sudo systemctl status RPiDrive` to check for the error
+- Certbot error
+  - Please verify your domain name / ddns can be resolved by others
+- Update to new version
+  - This software is not finalized yet, and subject to cause your production data to void. But typically you can run the following command to update :
+    ```
+    sudo systemctl stop RPiDrive
+    cd <RPiDrive git clone location>
+    git pull //If you run into settings.py conflict, please backup the settings.py to somewhere else, then restore it after git pull)
+    python manage.py makemigrations
+    python manage.py makemigrations drive
+    python manage.py migrate
+    sudo systemctl start RPiDrive
+    ```
+  - If the update step cause your RPiDrive to fail:
+    - Run the commands
+        ```
+        cd <RPiDrive git clone location>
+        sudo rm -R drive/migrations
+        ```
+    - Clear the database
+    - Run the commands
+        ```
+        cd <RPiDrive git clone location>
+        python manage.py makemigrations
+        python manage.py makemigrations drive
+        python manage.py migrate
+        python manage.py createsuperuser
+        python manage.py runserver
+        ```
+    - Then you can follow the remaining steps in Development Guide again.
 
 #### Features to be added
 - Refer to [issues](https://github.com/kingkingyyk/RPiDrive/issues).
