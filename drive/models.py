@@ -8,7 +8,6 @@ import uuid, shutil, os, humanize, time
 
 class Drive(models.Model):
     name = models.CharField(max_length=20)
-    downloader_start = models.DateTimeField()
 
     def __str__(self):
         return self.name
@@ -227,6 +226,10 @@ class Download(models.Model):
 
 
 class Synchronizer(models.Model):
-    file = models.OneToOneField(File, on_delete=models.CASCADE)
-    day_mask = models.IntegerField(default=0b1111111)
+    day_mask = models.IntegerField(default=0b1111111) #Sunday first.
     period = models.IntegerField(default=15)
+    next_sync_time = models.DateTimeField(null=True)
+    active = models.BooleanField(default=False)
+
+    def can_run_on_day(self, wd):
+        return self.day_mask & (1 << (len(weekdays) - 1 - wd))

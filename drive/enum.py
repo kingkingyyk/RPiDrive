@@ -2,8 +2,8 @@ from enum import Enum
 from datetime import timedelta
 import humanize
 
-weekdays = ('Monday', 'Tuesday', 'Wednesday', 'Thursday',
-            'Friday', 'Saturday', 'Sunday')
+weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
+             'Friday', 'Saturday', 'Sunday', ]
 
 storage_sync_period = (15, 30, 60, 2*60, 4*60, 8*60, 12*60, 24*60)
 storage_sync_period = {humanize.naturaldelta(timedelta(minutes=x)):x for x in storage_sync_period}

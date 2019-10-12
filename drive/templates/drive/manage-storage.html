@@ -76,18 +76,25 @@
             </table>
         </div>
         <h4 class="red-text lighten-1">Sync Schedule</h4>
+        {% if sync.next_sync_time %}
+            <h8 class="grey-text" style="padding-left: 10px">Next sync at {{sync.next_sync_time|date:"D d M Y" }}, {{sync.next_sync_time|time:"h:i:s a" }}</h8>
+        {% endif %}
         <div style="padding-left: 20px; padding-right: 20px; padding-top: 20px"></div>
             <div class="row">
                 {% for weekday in weekdays %}
                     <label style="padding: 15px">
-                        <input type="checkbox" class="filled-in" checked="checked" />
+                        <input type="checkbox" class="filled-in sync-schedule-days" day="{{weekday}}"
+                            {% if weekday in sync_days %}
+                               checked
+                            {% endif %}
+                        />
                         <span>{{weekday}}</span>
                     </label>
                 {% endfor %}
             </div>
             <div class="row">
                 <div class="input-field col s12">
-                    <select>
+                    <select id="sync-schedule-period">
                         {% for name, value in storage_sync_period.items %}
                             <option value="{{value}}">{{name}}</option>
                         {% endfor %}
@@ -96,7 +103,7 @@
                 </div>
             </div>
             <div>
-                <a class="waves-effect waves-light btn red lighten-1" style="position: absolute; right: 20px;">Apply</a>
+                <a class="waves-effect waves-light btn red lighten-1" style="position: absolute; right: 20px;" onclick="updateSyncSchedule()">Apply</a>
             </div>
       </label>
     </div>
@@ -104,7 +111,9 @@
 {% endblock %}
 
 {% block js %}
+    <script type="text/javascript" src="static/storage.js"></script>
     <script>
         M.AutoInit();
+        csrf_token = "{{ csrf_token }}";
     </script>
 {% endblock %}

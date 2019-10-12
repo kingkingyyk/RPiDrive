@@ -23,6 +23,8 @@ urlpatterns = [
     path('downloader/cancel', views_downloader.cancel, name='downloader_cancel'),
 
     path('storage', views_maintenance.manage_storage, name='manage_storage'),
+    path('storage/update-sync-schedule', views_maintenance.update_sync_schedule, name='update_sync_schedule'),
+
     path('system-status', views_maintenance.system_status, name='system_status'),
     path('system-status/update', views_maintenance.system_status_update, name='system_status_update'),
 ]

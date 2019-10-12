@@ -129,16 +129,13 @@ class Downloader:
             pass
 
     @staticmethod
-    @transaction.atomic
-    def start():
-        if Storage.objects.count() > 0:
-            print('Starting downloader...')
-            global downloader_thread
-            Downloader.onstart_cleanup()
+    def start_run():
+        global downloader_thread
+        Downloader.onstart_cleanup()
 
-            downloader_thread = Thread(target=Downloader.downloader_loop)
-            downloader_thread.daemon = True
-            downloader_thread.start()
+        downloader_thread = Thread(target=Downloader.downloader_loop)
+        downloader_thread.daemon = True
+        downloader_thread.start()
 
     @staticmethod
     def interrupt(download):

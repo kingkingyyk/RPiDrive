@@ -63,3 +63,8 @@ class ModelUtils:
                 folder_list += list(curr_folder.folder_set.all())
             if verbose:
                 print('Done synchronizing data!')
+
+    @staticmethod
+    def auto_create_drive():
+        if Drive.objects.count() == 0:
+            Drive(name='RPi Drive').save()

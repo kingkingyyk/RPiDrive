@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponseBadRequest
 from ..models import *
 from ..enum import *
-import psutil, humanize, time, platform, sys
+import psutil, humanize, time, platform, sys, traceback
+from datetime import datetime
 
 
 @login_required
@@ -11,13 +13,68 @@ def manage_storage(request):
     drive = Drive.objects.get()
     storages = Storage.objects.all()
 
+    sync = Synchronizer.objects.get()
+    sync_days = []
+    for i in range(len(weekdays)):
+        if sync.day_mask & (1 << (len(weekdays) - i - 1)):
+            sync_days.append(weekdays[i])
     context = {'drive': drive,
                'storages': storages,
                'weekdays': weekdays,
+               'sync_days': sync_days,
+               'sync': sync,
                'storage_sync_period': storage_sync_period,
                }
 
     return render(request, 'drive/manage-storage.html', context)
+
+
+@login_required
+def update_sync_schedule(request):
+    try:
+        days = request.POST['days'].split(',')
+        period = request.POST['period']
+
+        mask = 0
+        for wd in weekdays:
+            mask = mask << 1
+            if wd in days:
+                mask += 1
+
+        sync = Synchronizer.objects.get()
+        sync.day_mask = mask
+        sync.period = int(period)
+
+        if mask > 0:
+            now = datetime.now(tz=get_current_timezone())
+            if sync.can_run_on_day(now.weekday()):
+                sync.next_sync_time = datetime.now(tz=get_current_timezone()) + timedelta(minutes=sync.period)
+            else:
+                sync.next_sync_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                while not sync.can_run_on_day(sync.next_sync_time.weekday()):
+                    sync.next_sync_time = sync.next_sync_time + timedelta(days=1)
+        else:
+            sync.next_sync_time = None
+        sync.save()
+
+        return JsonResponse({})
+    except:
+        return JsonResponse({'error': str(traceback.format_exc())}, status=HttpResponseBadRequest.status_code)
+
+
+@login_required
+def force_sync(request):
+    pass
+
+
+@login_required
+def make_primary(request):
+    pass
+
+
+@login_required
+def remove(request):
+    pass
 
 
 def natural_bandwidth(value):
