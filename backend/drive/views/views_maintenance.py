@@ -69,7 +69,8 @@ def force_sync(request):
 
 @login_required
 def make_primary(request):
-    pass
+    storage_id = request.POST['id']
+    storage = Storage.objects.get(id=storage_id)
 
 
 @login_required
