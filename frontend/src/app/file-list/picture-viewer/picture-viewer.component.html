@@ -1,0 +1,31 @@
+<h1 mat-dialog-title><mat-icon>photo</mat-icon>  {{data.name}}</h1>
+<div mat-dialog-content>
+    <img src="{{fileUrl}}"/>
+    <mat-accordion *ngIf="bodyInfo || lensInfo || exposureInfo">
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              EXIF Infomation
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+            <p *ngIf="bodyInfo">
+                <mat-icon>camera_alt</mat-icon>
+                {{bodyInfo}}
+            </p>
+            <p *ngIf="lensInfo">
+                <mat-icon>camera_enhance</mat-icon>
+                {{lensInfo}}
+            </p>
+            <p *ngIf="exposureInfo">
+                <mat-icon>camera</mat-icon>
+                {{exposureInfo}}
+            </p>
+        </mat-expansion-panel>
+    </mat-accordion>
+
+
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="downloadFile($event)" cdkFocusInitial>Download</button>
+    <button mat-button (click)="onNoClick()">Close</button>
+</div>

@@ -1,0 +1,17 @@
+<head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="mat-typography app-frame mat-app-background">
+    <mat-toolbar color="primary">
+        <mat-toolbar-row>
+        <h1>{{title}}</h1>
+        <span class="menu-spacer"></span>
+        <span class="example-fill-remaining-space"></span>
+        <div >
+            <a mat-button [routerLink]="'/system'">System</a>
+            <a mat-button [routerLink]="'/logout'">Logout</a>
+        </div>
+        </mat-toolbar-row>
+    </mat-toolbar>
+    <router-outlet></router-outlet>
+</body>

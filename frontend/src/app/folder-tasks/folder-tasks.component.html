@@ -1,0 +1,32 @@
+<p class="task-title">Tasks</p>
+<mat-list dense>
+    <mat-list-item><button mat-flat-button class="task-button">
+        <mat-icon matListIcon>cloud_upload</mat-icon>
+        <span>  New File Upload</span>
+    </button></mat-list-item>
+    <mat-list-item><button mat-button class="task-button">
+        <mat-icon matListIcon>create_new_folder</mat-icon>
+        <span>  Create New Folder</span>
+    </button></mat-list-item>
+    <mat-list-item><button mat-button class="task-button">
+        <mat-icon matListIcon>file_download</mat-icon>
+        <span>  Download File From URL</span>
+    </button></mat-list-item>
+</mat-list>
+<mat-divider></mat-divider>
+<p class="task-title">Storage</p>
+<mat-list dense>
+    <mat-list-item *ngFor="let element of storages" matTooltip="{{element['base-path']}}" style="padding-left: 15px; width: 230px">
+        <p matLine *ngIf="element['primary']"><b>Primary</b></p>
+        <p matLine *ngIf="!element['primary']"><b>Secondary</b></p>
+
+        <p matLine style="direction: rtl;">{{element['base-path']}}</p>
+        <p matLine><mat-progress-bar mode="determinate" value="{{element['used-space-percent']}}"></mat-progress-bar></p>
+        <p matLine>{{element['natural-used-space']}} ({{element['used-space-percent']}}%) used of {{element['natural-total-space']}}</p>
+    </mat-list-item>
+</mat-list>
+<mat-divider></mat-divider>
+<p class="task-title">Downloads</p>
+<mat-list dense>
+
+</mat-list>

@@ -1,0 +1,16 @@
+.mat-icon {
+    vertical-align: middle;
+ }
+
+.file-row {
+    cursor: pointer;
+ }
+
+ .path-nav {
+     font-size: large;
+     padding-bottom: 10px;
+ }
+
+ th.mat-sort-header-sorted {
+    color: black;
+  }

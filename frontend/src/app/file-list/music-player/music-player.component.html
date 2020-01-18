@@ -1,0 +1,26 @@
+<h1 mat-dialog-title><mat-icon>music_note</mat-icon>  {{data.title}}</h1>
+<div mat-dialog-content>
+    <table>
+        <tr>
+            <td>Artist</td>
+            <td>{{data.artist}}</td>
+        </tr>
+        <tr>
+            <td>Album</td>
+            <td>{{data.album}}</td>
+        </tr>
+        <tr *ngIf="data.genre">
+            <td>Genre</td>
+            <td>{{data.genre}}</td>
+        </tr>
+    </table>
+    <div style="margin-top: 20px">
+        <audio controls autoplay loop>
+            <source src="{{fileUrl}}">
+        </audio>
+    </div>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="downloadFile($event)" cdkFocusInitial>Download</button>
+    <button mat-button (click)="onNoClick()">Close</button>
+</div>
