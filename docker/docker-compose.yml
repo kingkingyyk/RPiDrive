@@ -1,0 +1,22 @@
+mq:
+  image: "rabbitmq:latest"
+  restart: always
+  hostname: "mq-server"
+  environment:
+    RABBITMQ_DEFAULT_USER: "rpi-drive"
+    RABBITMQ_DEFAULT_PASS: "rpi-drive"
+  ports:
+    - "15672:15672"
+    - "5672:5672"
+  labels:
+    NAME: "mq"
+db:
+  image: "postgres:latest"
+  hostname: "db-server"
+  environment:
+    POSTGRES_PASSWORD: "rpi-drive"
+    POSTGRES_DB: "rpidrive"
+  ports:
+    - "5432:5432"
+  labels:
+    NAME: "db"

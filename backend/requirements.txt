@@ -1,6 +1,8 @@
-humanize
-django
-requests
-psutil
-django-htmlmin
 psycopg2
+django
+djangorestframework
+requests
+pika
+eyed3
+django-annoying
+humanize

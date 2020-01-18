@@ -1,25 +1,23 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.utils.timezone import get_current_timezone
-from .enum import *
+from polymorphic.models import PolymorphicModel
 from datetime import datetime, timedelta
-import uuid, shutil, os, humanize, time
+from django.utils.timezone import get_current_timezone
+import shutil, os, humanize, uuid, humanize
 
-
-class Drive(models.Model):
-    name = models.CharField(max_length=20)
-
-    def __str__(self):
-        return self.name
-
+class Settings(models.Model):
+    name = models.CharField(max_length=50)
 
 class Storage(models.Model):
     base_path = models.TextField()
-    drive = models.ForeignKey(Drive, on_delete=models.CASCADE)
     primary = models.BooleanField()
-    is_synching = models.BooleanField()
-    last_sync_status = models.TextField(blank=True, null=True)
-    last_sync_time = models.DateTimeField(null=True)
+
+    @property
+    def available(self):
+        return os.path.exists(self.base_path)
+
+    def __str__(self):
+        return self.base_path
 
     @staticmethod
     def natural_space(value):
@@ -56,180 +54,88 @@ class Storage(models.Model):
     @property
     def free_space_natural(self):
         return Storage.natural_space(self.free_space)
-
-    @property
-    def ui_text_natural(self):
-        return self.used_space_natural + ' used of ' + self.total_space_natural
-
-    @property
-    def usage_percentage(self):
-        return int(self.used_space * 100 / self.total_space)
-
-    @property
-    def available(self):
-        return os.path.exists(self.base_path)
-
-    @property
-    def last_sync_time_natural(self):
-        if self.last_sync_time is None:
-            return '-'
-        else:
-            delta = datetime.now(tz=get_current_timezone()) - self.last_sync_time
-            return humanize.naturaldelta(delta)+' ago' if delta < timedelta(days=2) else humanize.naturalday(self.last_sync_time)
+        
+class File(PolymorphicModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.TextField()
+    relative_path = models.TextField(unique=True, db_index=True)
+    parent_folder = models.ForeignKey('FolderObject', on_delete=models.CASCADE, null=True)
+    last_modified = models.DateTimeField()
+    content_type = models.TextField(default='application/octet-stream')
 
     def __str__(self):
-        return self.base_path
-
-
-class FileObject(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    relative_path = models.TextField(unique=True)
-    permissions = models.ManyToManyField('Permission')
-    parent_folder = models.ForeignKey('Folder', on_delete=models.CASCADE, null=True)
-    name = models.TextField()
-
-    class Meta:
-        abstract = True
-
-    @property
-    def size_natural(self):
-        pass
-
-    @property
-    def last_modified_natural(self):
-        last_m = self.last_modified
-        delta = datetime.now() - last_m
-        return humanize.naturaldelta(delta)+' ago' if delta < timedelta(days=2) else humanize.naturalday(last_m)
+        return self.relative_path
 
     @property
     def class_name(self):
         return self.__class__.__name__
 
     @property
-    def last_modified(self):
-        return datetime.fromtimestamp(os.path.getmtime(self.real_path))
+    def natural_last_modified(self):
+        last_m = self.last_modified
+        delta = datetime.now(tz=get_current_timezone()) - last_m
+        return humanize.naturaldelta(delta)+' ago' if delta < timedelta(days=2) else humanize.naturalday(last_m)
 
     @property
-    def size(self):
-        return os.path.getsize(self.real_path)
-
-    @property
-    def real_path(self):
-        from .utils.model_utils import ModelUtils
-        return os.path.join(ModelUtils.get_storage().base_path, self.relative_path)
-
-    def __str__(self):
-        return self.relative_path
-
-
-class Folder(FileObject):
-
-    @property
-    def size_natural(self):
+    def natural_size(self):
         return '-'
 
+class FolderObject(File):
+    pass
 
-class FileType:
-    lookup_type_to_ext = {
-        'movie': ['mp4', 'webm'],
-        'music': ('mp3', 'm4a', 'ogg'),
-        'picture': ('jpg', 'bmp', 'gif', 'png'),
-        'code': ('cpp', 'java', 'py', 'php', 'cs', 'txt'),
-        'compressed': ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
-                                       'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx'),
-        'executable': ('exe', 'sh', 'bat'),
-        'library': ('dll', 'so'),
-        'book': ('epub', 'mobi', 'pdf')
-
-    }
-    lookup_ext_to_type = {}
-    for key, values in lookup_type_to_ext.items():
-        for val in values:
-            lookup_ext_to_type[val] = key
-
-
-class File(FileObject):
-    file_extension = models.TextField()
-    content_type = models.TextField(default='application/octet-stream')
-
-    @staticmethod
-    def extract_file_extension(f):
-        return f.split(os.path.sep)[-1].split('.')[-1].lower()
+class FileObject(File):
+    size = models.PositiveIntegerField()
 
     @property
-    def size_natural(self):
+    def natural_size(self):
         return Storage.natural_space(self.size)
 
-    @property
-    def is_movie(self):
-        return self.file_extension in FileType.lookup_type_to_ext['movie']
+class PictureFileObject(FileObject):
+    body_make = models.TextField(blank=True, null=True, db_index=True)
+    body_model = models.TextField(blank=True, null=True, db_index=True)
+    lens_make = models.TextField(blank=True, null=True, db_index=True)
+    lens_model = models.TextField(blank=True, null=True, db_index=True)
+    iso = models.TextField(blank=True, null=True)
+    aperture = models.TextField(blank=True, null=True)
+    shutter_speed = models.TextField(blank=True, null=True)
+    focal_length = models.TextField(blank=True, null=True)
 
-    @property
-    def is_music(self):
-        return self.file_extension in FileType.lookup_type_to_ext['music']
+class MusicFileObject(FileObject):
+    title = models.TextField()
+    artist = models.TextField(default="Unknown Artist", db_index=True)
+    album = models.TextField(default="Unknown Album", db_index=True)
+    genre = models.TextField(default="", blank=True, db_index=True)
 
-    @property
-    def is_picture(self):
-        return self.file_extension in FileType.lookup_type_to_ext['picture']
+class FileTypes:
+    PICTURE = "PICTURE"
+    MUSIC = "MUSIC"
+    VIDEO = "VIDEO"
+    COMPRESSED = "COMPRESSED"
+    CODE = "CODE"
+    EXECUTABLE = "EXECUTABLE"
+    LIBRARY = "LIBRARY"
+    BOOK = "BOOK"
+    OTHER = "OTHER"
 
-    @property
-    def is_code(self):
-        return self.file_extension in FileType.lookup_type_to_ext['code']
-
-    @property
-    def is_compressed(self):
-        return self.file_extension in FileType.lookup_type_to_ext['compressed']
-
-    @property
-    def is_executable(self):
-        return self.file_extension in FileType.lookup_type_to_ext['executable']
-
-    @property
-    def is_library(self):
-        return self.file_extension in FileType.lookup_type_to_ext['library']
-
-    @property
-    def is_book(self):
-        return self.file_extension in FileType.lookup_type_to_ext['book']
-
-    @property
-    def preview_type(self):
-        return FileType.lookup_ext_to_type.get(self.file_extension, 'none')
-
-
-class Permission(models.Model):
-    folder_obj = models.OneToOneField(Folder, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    type = models.CharField(max_length=100, choices=PermissionType.choices())
-
-
-class Download(models.Model):
-    file = models.OneToOneField(File, on_delete=models.CASCADE)
-    source_url = models.URLField()
-    auth = models.BooleanField()
-    username = models.TextField(blank=True, null=True)
-    password = models.TextField(blank=True, null=True)
-    progress = models.FloatField()
-    status = models.TextField()
-    detailed_status = models.TextField(blank=True, null=True)
-    to_stop = models.BooleanField()
-    to_delete_file = models.BooleanField()
-    add_time = models.DateTimeField()
-    downloader_status = models.TextField(blank=True, null=True)
-
-    @property
-    def operation_done(self):
-        return self.status not in [DownloadStatus.queue.value, DownloadStatus.downloading.value]
-
-    def __str__(self):
-        return self.source_url + ' -> ' + str(self.file)
-
-
-class Synchronizer(models.Model):
-    day_mask = models.IntegerField(default=0b1111111) #Sunday first.
-    period = models.IntegerField(default=15)
-    next_sync_time = models.DateTimeField(null=True)
-    active = models.BooleanField(default=False)
-
-    def can_run_on_day(self, wd):
-        return self.day_mask & (1 << (len(weekdays) - 1 - wd))
+    @staticmethod
+    def get_type(file_path):
+        file_path = os.path.basename(file_path).lower()
+        file_ext = file_path.split('.')[-1]
+        if file_ext in ("mp4", "webm"):
+            return FileTypes.VIDEO
+        elif file_ext in ("mp3", "m4a", "ogg"):
+            return FileTypes.MUSIC
+        elif file_ext in ("jpg", "bmp", "gif", "png"):
+            return FileTypes.PICTURE
+        elif file_ext in ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
+                                       'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx'):
+            return FileTypes.COMPRESSED
+        elif file_ext in ('cpp', 'java', 'py', 'php', 'cs', 'txt'):
+            return FileTypes.CODE
+        elif file_ext in ('exe', 'sh', 'bat'):
+            return FileTypes.EXECUTABLE
+        elif file_ext in ('dll', 'so'):
+            return FileTypes.LIBRARY
+        elif file_ext in ('epub', 'mobi', 'pdf'):
+            return FileTypes.BOOK
+        return FileTypes.OTHER
