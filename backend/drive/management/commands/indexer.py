@@ -52,7 +52,7 @@ class Indexer(Thread):
 
 
     def update_folder(self, base_path, parent_folder, full_path):
-        name = os.path.basename(full_path)
+        name = os.path.basename(full_path) if parent_folder else 'My Drive'
         rp = full_path[len(base_path)+1:]
         last_modified = datetime.fromtimestamp(os.path.getmtime(full_path), tz=get_current_timezone())
 

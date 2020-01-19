@@ -1,6 +1,18 @@
 <mat-progress-bar *ngIf="!loaded" mode="query"></mat-progress-bar>
 <ng-container *ngIf="loaded">
     <h1>Network</h1>
+    <div style="width: 100%">
+        <google-chart #chart
+        [title]="title"
+        [type]="type"
+        [data]="data"
+        [columnNames]="columnNames"
+        [options]="options"
+        [width]="width"
+        [height]="height">
+        </google-chart>
+    </div>
+
     <mat-list>
         <mat-list-item>
             <mat-icon mat-list-icon>network_check</mat-icon>

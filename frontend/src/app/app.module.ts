@@ -29,6 +29,7 @@ import { FileTasksComponent } from './folder-view/file-tasks/file-tasks.componen
 import { FileService } from './service/file.service'
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFileUploadModule } from 'angular-material-fileupload';
+import { GoogleChartsModule } from 'angular-google-charts';
 
 export function getHighlightLanguages() {
   return {
@@ -95,6 +96,7 @@ export function getHighlightLanguages() {
     FormsModule,
     ReactiveFormsModule,
     MatFileUploadModule,
+    GoogleChartsModule,
   ],
   providers: [
     {
