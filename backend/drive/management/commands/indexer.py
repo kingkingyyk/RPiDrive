@@ -1,13 +1,13 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import get_current_timezone
 from annoying.functions import get_object_or_None
-from drive.models import Storage, FolderObject, FileObject, FileTypes, PictureFileObject, MusicFileObject, File
+from drive.models import Storage, FolderObject, FileObject, FileTypes, PictureFileObject, MusicFileObject, File, FolderObject
 from threading import Thread
 from queue import SimpleQueue
 from datetime import datetime
 from exif import Image
 from ...mq.mq import MQUtils, MQChannels
-import os, time, eyed3, traceback, mimetypes
+import os, time, eyed3, traceback, mimetypes, json
 
 class Command(BaseCommand):
     help = 'Run indexer service'
@@ -34,8 +34,13 @@ class Indexer(Thread):
         queue.put(start_folder)
         while not queue.empty():
             curr_folder = queue.get()
-            curr_folder_obj = FolderObject.objects.get(relative_path=curr_folder[len(base_path):])
+            curr_folder_obj = FolderObject.objects.get(relative_path=curr_folder[len(base_path)+1:])
             
+            for f in File.objects.filter(parent_folder=curr_folder_obj).all():
+                fp = os.path.join(base_path, f.relative_path)
+                if not os.path.exists(fp):
+                    f.delete()
+
             for f in os.listdir(curr_folder):
                 f_full_path = os.path.join(curr_folder, f)
                 if os.path.isdir(f_full_path):
@@ -44,9 +49,11 @@ class Indexer(Thread):
                 elif os.path.isfile(f_full_path):
                     self.update_file(base_path, curr_folder_obj, f_full_path)
 
+
+
     def update_folder(self, base_path, parent_folder, full_path):
         name = os.path.basename(full_path)
-        rp = full_path[len(base_path):]
+        rp = full_path[len(base_path)+1:]
         last_modified = datetime.fromtimestamp(os.path.getmtime(full_path), tz=get_current_timezone())
 
         obj = get_object_or_None(FolderObject, relative_path=rp)
@@ -60,7 +67,7 @@ class Indexer(Thread):
 
     def update_file(self, base_path, parent_folder, full_path):
         name = os.path.basename(full_path)
-        rp = full_path[len(base_path):]
+        rp = full_path[len(base_path)+1:]
         last_modified = datetime.fromtimestamp(os.path.getmtime(full_path), tz=get_current_timezone())
         size = os.path.getsize(full_path)
 
@@ -140,11 +147,12 @@ class FileOperator:
     def folder_to_create(channel, method_frame, header_frame, body):
         try:
             data = json.loads(body)
-            storage = Storage.objects.get(primary=True).base_path
-            parent_folder = Folder.objects.get(pk=data['message']['folder'])
-            fp = os.path.join(storage, parent_folder.path[1:], data['message']['name'])
-            Indexer().update_folder(storage.base_path, data['message']['folder'], fp)
-            MQUtils.push_to_channel(data['reply-queue'],'',False)
+            storage = Storage.objects.get(primary=True)
+            parent_folder = FolderObject.objects.get(pk=data['message']['folder'])
+            fp = os.path.join(storage.base_path, parent_folder.relative_path, data['message']['name'])
+            os.mkdir(fp)
+            Indexer().update_folder(storage.base_path, parent_folder, fp)
+            MQUtils.push_to_channel(data['reply-queue'],'{}',False)
         except:
-            pass
+            print(traceback.format_exc())
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)

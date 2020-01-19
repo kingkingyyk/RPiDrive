@@ -8,17 +8,27 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatListModule, MatButtonModule, MatSortModule, MatTableModule, 
         MatCheckboxModule, MatSelectModule, MatMenuModule, 
         MatProgressBarModule, MatTooltipModule, MatRippleModule,
-        MatDialogModule, MatExpansionModule } from  '@angular/material';
-import { FileListComponent } from './file-list/file-list.component';
-import { MusicPlayerComponent } from './file-list/music-player/music-player.component';
+        MatDialogModule, MatExpansionModule, MatFormFieldModule,
+        MatInputModule, MatProgressSpinnerModule } from  '@angular/material';
+import { FileListComponent } from './folder-view/file-list/file-list.component';
+import { MusicPlayerComponent } from './folder-view/file-list/music-player/music-player.component';
 import { HttpClientModule } from '@angular/common/http';
 import { FolderViewComponent } from './folder-view/folder-view.component';
-import { FolderTasksComponent } from './folder-tasks/folder-tasks.component';
-import { VideoPlayerComponent } from './file-list/video-player/video-player.component';
-import { PictureViewerComponent } from './file-list/picture-viewer/picture-viewer.component';
-import { CodeViewerComponent } from './file-list/code-viewer/code-viewer.component';
+import { FolderTasksComponent } from './folder-view/folder-tasks/folder-tasks.component';
+import { VideoPlayerComponent } from './folder-view/file-list/video-player/video-player.component';
+import { PictureViewerComponent } from './folder-view/file-list/picture-viewer/picture-viewer.component';
+import { CodeViewerComponent } from './folder-view/file-list/code-viewer/code-viewer.component';
 import { HighlightModule, HIGHLIGHT_OPTIONS  } from 'ngx-highlightjs';
-import { DialogCreateNewFolderComponent } from './file-list/dialog-create-new-folder/dialog-create-new-folder.component';
+import { DialogCreateNewFolderComponent } from './folder-view/folder-tasks/dialog-create-new-folder/dialog-create-new-folder.component';
+import { DialogNewFileUploadComponent } from './folder-view/folder-tasks/dialog-new-file-upload/dialog-new-file-upload.component';
+import { DialogAddNewDownloadComponent } from './folder-view/folder-tasks/dialog-add-new-download/dialog-add-new-download.component';
+import { SystemComponent } from './system/system.component';
+import { NetworkUsageComponent } from './system/network-usage/network-usage.component';
+import { SystemFactsComponent } from './system/system-facts/system-facts.component';
+import { FileTasksComponent } from './folder-view/file-tasks/file-tasks.component';
+import { FileService } from './service/file.service'
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFileUploadModule } from 'angular-material-fileupload';
 
 export function getHighlightLanguages() {
   return {
@@ -42,6 +52,12 @@ export function getHighlightLanguages() {
     PictureViewerComponent,
     CodeViewerComponent,
     DialogCreateNewFolderComponent,
+    DialogNewFileUploadComponent,
+    DialogAddNewDownloadComponent,
+    SystemComponent,
+    NetworkUsageComponent,
+    SystemFactsComponent,
+    FileTasksComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
@@ -49,6 +65,8 @@ export function getHighlightLanguages() {
     CodeViewerComponent,
     PictureViewerComponent,
     DialogCreateNewFolderComponent,
+    DialogNewFileUploadComponent,
+    DialogAddNewDownloadComponent,
   ],
   imports: [
     BrowserModule,
@@ -71,6 +89,12 @@ export function getHighlightLanguages() {
     MatDialogModule,
     HighlightModule,
     MatExpansionModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFileUploadModule,
   ],
   providers: [
     {
@@ -78,7 +102,7 @@ export function getHighlightLanguages() {
       useValue: {
         languages: getHighlightLanguages()
       }
-    }
+    },
   ],
   bootstrap: [
     AppComponent

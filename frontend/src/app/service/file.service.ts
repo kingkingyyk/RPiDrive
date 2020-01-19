@@ -8,14 +8,20 @@ import {Observable} from 'rxjs'
 export class FileService {
   API_URL  =  'http://localhost:8000';
   constructor(private  httpClient:  HttpClient) {}
-  getFileList(parent_folder: string) {
+  getFolderRedirect(folderId : string) {
+    return this.httpClient.get(`${this.API_URL}/drive/angular-api/folder-redirect/${folderId}`);
+  }
+  getFileList(parentFolder: string) {
     let params = new HttpParams()
-    if (parent_folder) {
-      params = params.append('parent-folder', parent_folder)
-    }
+    if (parentFolder) params = params.append('parent-folder', parentFolder)
     let files = this.httpClient.get(`${this.API_URL}/drive/angular-api/child-files`,
                                 {params: params});
     return files;
+  }
+  getFileNameList(parent_folder: string) {
+    let params = new HttpParams()
+    if (parent_folder) params = params.append('parent-folder', parent_folder)
+    return this.httpClient.get(`${this.API_URL}/drive/angular-api/child-filenames`, {params: params});
   }
   getStorageList() {
     return this.httpClient.get(`${this.API_URL}/drive/angular-api/storages`);
@@ -30,7 +36,13 @@ export class FileService {
     return this.httpClient.get(this.getFileDownloadURL(fileId), {responseType: "text"});
   }
   createNewFolder(folderId: string, newFolderName: string) {
-    return null;
-    //return this.httpClient.post(`${this.API_URL}/drive/angular-api/create-new-folder/${folderId}`, );
+    let data = {'folder-id': folderId, 'name': newFolderName};
+    return this.httpClient.post(`${this.API_URL}/drive/angular-api/create-new-folder`, JSON.stringify(data));
+  }
+  getSystemFacts() {
+    return this.httpClient.get(`${this.API_URL}/drive/angular-api/system-facts`)
+  }
+  getNetworkFacts() {
+    return this.httpClient.get(`${this.API_URL}/drive/angular-api/network-facts`)
   }
 }

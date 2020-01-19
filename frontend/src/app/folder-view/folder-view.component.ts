@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FileListComponent } from '../file-list/file-list.component';
-import { FolderTasksComponent } from '../folder-tasks/folder-tasks.component';
+import { Router, ActivatedRoute } from '@angular/router';
+import { FileService } from 'src/app/service/file.service';
 
 @Component({
   selector: 'app-folder-view',
@@ -8,10 +8,22 @@ import { FolderTasksComponent } from '../folder-tasks/folder-tasks.component';
   styleUrls: ['./folder-view.component.css']
 })
 export class FolderViewComponent implements OnInit {
+  folderId : string;
 
-  constructor() { }
+  constructor(private router: Router,
+              private activatedRoute: ActivatedRoute, 
+              private fileService: FileService) {}
 
   ngOnInit() {
+    this.activatedRoute.params.subscribe( params => {
+      let currId = params['folderId'];
+      this.fileService.getFolderRedirect(currId).subscribe((data:  object) => {
+        let redirectedId = data['id'];
+        if (currId != redirectedId) {
+          window.open("/drive/folder/"+redirectedId, "_self");
+        }
+      });
+    });
   }
 
 }

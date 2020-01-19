@@ -1,0 +1,45 @@
+<mat-progress-bar *ngIf="!loaded" mode="query"></mat-progress-bar>
+<ng-container *ngIf="cpu">
+    <h1>CPU</h1>
+    <mat-list>
+        <mat-list-item *ngFor="let metric of cpu">
+            <mat-icon mat-list-icon>memory</mat-icon>
+            <h4 mat-line>{{metric.title}}</h4>
+            <p mat-line> {{metric.value}} </p>
+          </mat-list-item>
+    </mat-list>
+    <mat-divider></mat-divider>
+</ng-container>
+<ng-container *ngIf="memory">
+    <h1>Memory</h1>
+    <mat-list>
+        <mat-list-item *ngFor="let metric of memory">
+            <mat-icon mat-list-icon>developer_board</mat-icon>
+            <h4 mat-line>{{metric.title}}</h4>
+            <p mat-line> {{metric.value}} </p>
+          </mat-list-item>
+    </mat-list>
+    <mat-divider></mat-divider>
+</ng-container>
+<ng-container *ngIf="sensors">
+    <h1>Sensors</h1>
+    <mat-list>
+        <mat-list-item *ngFor="let metric of sensors">
+            <mat-icon mat-list-icon>signal_cellular_alt</mat-icon>
+            <h4 mat-line>{{metric.title}}</h4>
+            <p mat-line> {{metric.value}} </p>
+          </mat-list-item>
+    </mat-list>
+    <mat-divider></mat-divider>
+</ng-container>
+<ng-container *ngIf="environment">
+    <h1>Environment</h1>
+    <mat-list>
+        <mat-list-item *ngFor="let metric of environment">
+            <mat-icon mat-list-icon>developer_mode</mat-icon>
+            <h4 mat-line>{{metric.title}}</h4>
+            <p mat-line> {{metric.value}} </p>
+          </mat-list-item>
+    </mat-list>
+    <mat-divider></mat-divider>
+</ng-container>

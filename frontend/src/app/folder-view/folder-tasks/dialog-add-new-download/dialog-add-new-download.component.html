@@ -1,0 +1,12 @@
+<h1 mat-dialog-title><mat-icon>cloud_download</mat-icon>  Add download</h1>
+<div mat-dialog-content>
+    <mat-form-field class="example-full-width"><input matInput placeholder="URL" required/></mat-form-field>
+    <mat-form-field class="example-full-width"><input matInput placeholder="Filename" required/></mat-form-field>
+    <mat-checkbox class="example-full-width">Authentication</mat-checkbox>
+    <mat-form-field class="example-full-width"><input matInput placeholder="Username" required/></mat-form-field>
+    <mat-form-field class="example-full-width"><input matInput placeholder="Password" required/></mat-form-field>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="createNewFolder($event)" cdkFocusInitial>Start</button>
+    <button mat-button (click)="onNoClick()">Close</button>
+</div>

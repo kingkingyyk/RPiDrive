@@ -37,6 +37,7 @@ class MQUtils:
     @staticmethod
     def subscribe_channel(channel_name, callback):
         def loop(channel_name, callback):
+            import traceback
             while True:
                 try:
                     connection = pika.BlockingConnection(MQUtils._create_conn_params())
@@ -55,6 +56,7 @@ class MQUtils:
                     break
                 except pika.exceptions.AMQPConnectionError:
                     continue
+                print(traceback.format_exc())
                 time.sleep(0.5)
         Thread(target=loop, args=(channel_name, callback)).start()
 
@@ -75,7 +77,7 @@ class MQUtils:
             start_time = datetime.now()
             max_time = timedelta(seconds=timeout)
             flag = False
-            while datetime.now() - start_time < max_time:
+            while datetime.now() - start_time < max_time and not flag:
                 method_frame, header_frame, body = channel.basic_get(queue=response_queue)
                 if method_frame:
                     channel.basic_ack(method_frame.delivery_tag)

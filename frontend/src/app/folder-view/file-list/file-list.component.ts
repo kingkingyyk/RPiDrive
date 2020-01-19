@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, Inject } from '@angular/core';
-import { FileService } from '../service/file.service';
+import { FileService } from 'src/app/service/file.service';
 import { ActivatedRoute } from '@angular/router';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort } from '@angular/material/sort';
@@ -68,9 +68,7 @@ export class FileListComponent implements OnInit {
     else if (targetFileObjExtType == 'VIDEO') this.dialog.open(VideoPlayerComponent, {data: fileObj});
     else if (targetFileObjExtType == 'PICTURE') this.dialog.open(PictureViewerComponent, {data: fileObj});
     else if (targetFileObjExtType == 'CODE') this.dialog.open(CodeViewerComponent, {data: fileObj});
-    else {
-      this.fileService.downloadFile(fileObj['id']);
-    }
+    else this.fileService.downloadFile(fileObj['id']);
   }
 
   isAllSelected() {

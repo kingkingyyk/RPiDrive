@@ -1,11 +1,21 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, StreamingHttpResponse, HttpResponseBadRequest
-from .models import File, FolderObject, FileObject, FileTypes, Storage, MusicFileObject, PictureFileObject
+from ..models import File, FolderObject, FileObject, FileTypes, Storage, MusicFileObject, PictureFileObject
 from django.db.models.functions import Lower
-from .utils.connection_utils import RangeFileWrapper, range_re
+from ..utils.connection_utils import RangeFileWrapper, range_re
 from wsgiref.util import FileWrapper
-from .mq.mq import MQUtils, MQChannels
-import os, mimetypes
+from ..mq.mq import MQUtils, MQChannels
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+import os, mimetypes, platform, json
+
+def get_folder_redirect(request, folder_id):
+    try:
+        folder = FolderObject.objects.get(pk=folder_id)
+    except:
+        folder = FolderObject.objects.get(parent_folder=None)
+    return JsonResponse({'id': str(folder.pk)})
+
 
 def get_child_files(request):
     def serialize_folder(f):
@@ -43,13 +53,11 @@ def get_child_files(request):
     parent_folder_id = request.GET.get('parent-folder', None)
     parent_folder = None
     try:
-        parent_folder = File.objects.select_related('parent_folder').get(pk=parent_folder_id)
+        parent_folder = FolderObject.objects.select_related('parent_folder').get(pk=parent_folder_id)
     except:
-        parent_folder = File.objects.select_related('parent_folder').get(parent_folder=None)
+        parent_folder = FolderObject.objects.select_related('parent_folder').get(parent_folder=None)
 
-    files = File.objects.order_by(Lower('name'))
-    if parent_folder_id:
-        files = files.filter(parent_folder=parent_folder)
+    files = File.objects.filter(parent_folder=parent_folder).order_by(Lower('name'))
     files = [x for x in files if isinstance(x, FolderObject)] + [x for x in files if isinstance(x, FileObject)]
     files_data = [file_to_data(x) for x in files]
 
@@ -71,6 +79,20 @@ def get_child_files(request):
     }
     return JsonResponse(data)
 
+def get_child_filenames(request):
+    parent_folder_id = request.GET.get('parent-folder', None)
+    parent_folder = None
+    try:
+        parent_folder = FolderObject.objects.select_related('parent_folder').get(pk=parent_folder_id)
+    except:
+        parent_folder = FolderObject.objects.select_related('parent_folder').get(parent_folder=None)
+
+    data = {'folder-name': parent_folder.name, 
+            'case-sensitive': os.name != 'nt',
+            'filenames': [x for x in File.objects.filter(parent_folder=parent_folder).values_list('name', flat=True).all()]}
+    return JsonResponse(data)
+
+
 def get_storages(request):
     storages = Storage.objects.order_by('primary', 'base_path').all()
     data = [{
@@ -86,7 +108,7 @@ def get_storages(request):
 def download(request, file_id):
     storage = get_object_or_404(Storage, primary=True)
     file = get_object_or_404(File, id=file_id)
-    f_real_path = os.path.join(storage.base_path, file.relative_path[1:])
+    f_real_path = os.path.join(storage.base_path, file.relative_path)
 
     range_header = request.META.get('HTTP_RANGE', '').strip()
     range_match = range_re.match(range_header)
@@ -108,19 +130,24 @@ def download(request, file_id):
     resp['Accept-Ranges'] = 'bytes'
     return resp
 
-def create_new_folder(request, folder_id):
+@require_http_methods(["POST"])
+@csrf_exempt 
+def create_new_folder(request):
+    data = json.loads(request.body)
     storage = get_object_or_404(Storage, primary=True)
-    folder = get_object_or_404(FolderObject, id=folder_id)
+    folder = get_object_or_404(FolderObject, id=data['folder-id'])
 
-    new_folder_name = request.POST['name']
-    new_folder_path = os.path.join(storage.base_path, folder.relative_path[1:], new_folder_name)
+    new_folder_name = data['name']
+    new_folder_path = os.path.join(storage.base_path, folder.relative_path, new_folder_name)
     if os.path.exists(new_folder_path):
         return JsonResponse({},status=500)
 
     try:
-        MQUtils.push_to_channel(MQChannels.FOLDER_TO_CREATE, {'folder': folder.pk, 'name': new_folder_path}, True)
+        MQUtils.push_to_channel(MQChannels.FOLDER_TO_CREATE, {'folder': str(folder.pk), 'name': new_folder_path}, True)
         return JsonResponse({}, status=201)
     except:
+        import traceback
+        print(traceback.format_exc())
         return JsonResponse({}, status=500)
 
 def upload_file(request, folder_id):
@@ -136,10 +163,4 @@ def delete_file(request):
     pass
 
 def add_download(request, folder_id):
-    pass
-
-def get_storage(request):
-    pass
-
-def get_system(request):
     pass

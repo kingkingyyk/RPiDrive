@@ -90,7 +90,7 @@ DATABASES = {
 
 MESSAGE_QUEUE = [{
     'HOST': '192.168.99.100',
-    'PORT': 5671,
+    'PORT': 5672,
     'USER': 'rpi-drive',
     'PASSWORD': 'rpi-drive',
 }]

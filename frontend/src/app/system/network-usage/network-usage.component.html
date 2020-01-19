@@ -1,0 +1,27 @@
+<mat-progress-bar *ngIf="!loaded" mode="query"></mat-progress-bar>
+<ng-container *ngIf="loaded">
+    <h1>Network</h1>
+    <mat-list>
+        <mat-list-item>
+            <mat-icon mat-list-icon>network_check</mat-icon>
+            <h4 mat-line>Download Speed</h4>
+            <p mat-line> {{downloadSpeedText}} </p>
+        </mat-list-item>
+        <mat-list-item>
+            <mat-icon mat-list-icon>network_check</mat-icon>
+            <h4 mat-line>Upload Speed</h4>
+            <p mat-line> {{uploadSpeedText}} </p>
+        </mat-list-item>
+        <mat-list-item>
+            <mat-icon mat-list-icon>network_check</mat-icon>
+            <h4 mat-line>Total Downloads</h4>
+            <p mat-line> {{totalDownloads}} </p>
+        </mat-list-item>
+        <mat-list-item>
+            <mat-icon mat-list-icon>network_check</mat-icon>
+            <h4 mat-line>Total Uploads</h4>
+            <p mat-line> {{totalUploads}} </p>
+        </mat-list-item>
+    </mat-list>
+    <mat-divider></mat-divider>
+</ng-container>
