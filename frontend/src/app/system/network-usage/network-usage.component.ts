@@ -62,19 +62,25 @@ export class NetworkUsageComponent implements OnInit {
      backgroundColor: "transparent",
       pointSize:5
   };
-  width: 1000;
-  height: "auto";
+  width = 1000;
+  height = "auto";
+
+  intervalQueryId: number;
 
   constructor(private fileService: FileService) {}
 
   ngOnInit() {
     this.fileService.getNetworkFacts().subscribe((data:  object) => this.setData(data));
 
-    interval(2000)
+    let intervalQueryId = interval(2000)
     .pipe(
         flatMap(() => this.fileService.getNetworkFacts())
     )
     .subscribe((data:  object) => this.setData(data));
+  }
+
+  ngOnDestroy() {
+    if (this.intervalQueryId) clearInterval(this.intervalQueryId);
   }
 
   convertTotalUsage(value: number) {

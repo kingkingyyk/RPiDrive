@@ -7,9 +7,26 @@ div {
     background-color: black;
     padding: 10px;
     text-align: center;
+    animation-name: fade-in;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    opacity: 0.0;
+}
+
+/* Safari 4.0 - 8.0 */
+@-webkit-keyframes fade-in {
+  from {opacity: 0.0;}
+  to {opacity: 1.0;}
+}
+
+/* Standard syntax */
+@keyframes fade-in {
+  from {opacity: 0.0;}
+  to {opacity: 1.0;}
 }
 
 .example-button-row button,
 .example-button-row a {
   margin-right: 8px;
 }
+

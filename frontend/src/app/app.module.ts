@@ -10,6 +10,10 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatProgressBarModule, MatTooltipModule, MatRippleModule,
         MatDialogModule, MatExpansionModule, MatFormFieldModule,
         MatInputModule, MatProgressSpinnerModule } from  '@angular/material';
+  
+import { FileService } from 'src/app/service/file.service';
+import { ClipboardModule } from 'ngx-clipboard';
+
 import { FileListComponent } from './folder-view/file-list/file-list.component';
 import { MusicPlayerComponent } from './folder-view/file-list/music-player/music-player.component';
 import { HttpClientModule } from '@angular/common/http';
@@ -26,10 +30,10 @@ import { SystemComponent } from './system/system.component';
 import { NetworkUsageComponent } from './system/network-usage/network-usage.component';
 import { SystemFactsComponent } from './system/system-facts/system-facts.component';
 import { FileTasksComponent } from './folder-view/file-tasks/file-tasks.component';
-import { FileService } from './service/file.service'
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFileUploadModule } from 'angular-material-fileupload';
 import { GoogleChartsModule } from 'angular-google-charts';
+import { ConfirmDeleteDialogComponent } from './folder-view/file-tasks/confirm-delete-dialog/confirm-delete-dialog.component';
 
 export function getHighlightLanguages() {
   return {
@@ -59,6 +63,7 @@ export function getHighlightLanguages() {
     NetworkUsageComponent,
     SystemFactsComponent,
     FileTasksComponent,
+    ConfirmDeleteDialogComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
@@ -68,11 +73,13 @@ export function getHighlightLanguages() {
     DialogCreateNewFolderComponent,
     DialogNewFileUploadComponent,
     DialogAddNewDownloadComponent,
+    ConfirmDeleteDialogComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    ClipboardModule,
     HttpClientModule,
     MatToolbarModule,
     MatSidenavModule,
@@ -105,6 +112,7 @@ export function getHighlightLanguages() {
         languages: getHighlightLanguages()
       }
     },
+    FileService
   ],
   bootstrap: [
     AppComponent

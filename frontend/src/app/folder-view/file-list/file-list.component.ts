@@ -4,10 +4,12 @@ import { ActivatedRoute } from '@angular/router';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTableDataSource } from '@angular/material/table';
 import { MusicPlayerComponent } from './music-player/music-player.component';
 import { CodeViewerComponent } from './code-viewer/code-viewer.component';
 import { PictureViewerComponent } from './picture-viewer/picture-viewer.component';
 import { VideoPlayerComponent } from './video-player/video-player.component';
+import { FileSelectionService } from 'src/app/service/file-selection.service';
 
 @Component({
   selector: 'app-file-list',
@@ -15,21 +17,23 @@ import { VideoPlayerComponent } from './video-player/video-player.component';
   styleUrls: ['./file-list.component.css']
 })
 export class FileListComponent implements OnInit {
-  displayedColumns  :  string[] = ['name', 'last_modified', 'size'] 
-  files  = [];
+  displayedColumns = ['select', 'name', 'lastModified', 'size'] 
+  files  = new MatTableDataSource<object>([]);
   folderId : string;
   folderName : string;
   rootFolder: object;
   parentFolder: object;
   parentFolders = [];
   selectedParentFolder: string;
-  selection = new SelectionModel<Object>(true, []);
+
+  selection = new SelectionModel<object>(true, []);
 
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
   constructor(private activatedRoute: ActivatedRoute, 
               private fileService: FileService, 
-              public dialog: MatDialog) {}
+              public dialog: MatDialog,
+              private fileSelectionService : FileSelectionService) {}
 
   ngOnInit() {
     this.activatedRoute.params.subscribe( params => {
@@ -45,7 +49,7 @@ export class FileListComponent implements OnInit {
       this.rootFolder = data['root-folder'];
       this.parentFolder = data['parent-folder'];
       this.parentFolders = data['parent-folders'];
-      this.files = data['files'];
+      this.files = new MatTableDataSource<object>(data['files']);
     });
   }
 
@@ -70,18 +74,32 @@ export class FileListComponent implements OnInit {
     else if (targetFileObjExtType == 'CODE') this.dialog.open(CodeViewerComponent, {data: fileObj});
     else this.fileService.downloadFile(fileObj['id']);
   }
-
+  
   isAllSelected() {
     const numSelected = this.selection.selected.length;
-    const numRows = this.files.length;
+    const numRows = this.files.data.length;
     return numSelected === numRows;
   }
 
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
   masterToggle() {
     this.isAllSelected() ?
         this.selection.clear() :
-        this.files.forEach(row => this.selection.select(row));
+        this.files.data.forEach(row => this.selection.select(row));
+    this.onSelectionChange(null, null);
+  } 
+
+  checkboxLabel(row?: object): string {
+    if (!row) {
+      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
+    }
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row['position'] + 1}`;
   }
 
+  onSelectionChange(selection: SelectionModel<object>, row: object) {
+    if (selection != null) selection.toggle(row);
+
+    let selectList: Object [] = [];
+    for (let f of this.selection.selected) selectList.push(f);
+    this.fileSelectionService.pushUpdate(selectList);
+  }
 }

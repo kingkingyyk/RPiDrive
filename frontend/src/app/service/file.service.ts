@@ -27,7 +27,7 @@ export class FileService {
     return this.httpClient.get(`${this.API_URL}/drive/angular-api/storages`);
   }
   getFileDownloadURL(fileId: string) {
-    return `${this.API_URL}/drive/angular-api/download/${fileId}`
+    return `${this.API_URL}/drive/download/${fileId}`
   }
   downloadFile(fileId: string) {
     window.open(this.getFileDownloadURL(fileId), "_blank");
@@ -38,6 +38,9 @@ export class FileService {
   createNewFolder(folderId: string, newFolderName: string) {
     let data = {'folder-id': folderId, 'name': newFolderName};
     return this.httpClient.post(`${this.API_URL}/drive/angular-api/create-new-folder`, JSON.stringify(data));
+  }
+  deleteFiles(fileId : string []) {
+    return this.httpClient.post(`${this.API_URL}/drive/angular-api/delete-files`, JSON.stringify(fileId));
   }
   getSystemFacts() {
     return this.httpClient.get(`${this.API_URL}/drive/angular-api/system-facts`)

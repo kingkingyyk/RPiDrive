@@ -7,6 +7,7 @@ from queue import SimpleQueue
 from datetime import datetime
 from exif import Image
 from ...mq.mq import MQUtils, MQChannels
+from ...utils.file_utils import FileUtils
 import os, time, eyed3, traceback, mimetypes, json
 
 class Command(BaseCommand):
@@ -48,8 +49,6 @@ class Indexer(Thread):
                     self.update_folder(base_path, curr_folder_obj, f_full_path)
                 elif os.path.isfile(f_full_path):
                     self.update_file(base_path, curr_folder_obj, f_full_path)
-
-
 
     def update_folder(self, base_path, parent_folder, full_path):
         name = os.path.basename(full_path) if parent_folder else 'My Drive'
@@ -141,7 +140,8 @@ class FileOperator:
 
     @staticmethod
     def start():
-        MQUtils.subscribe_channel(MQChannels.FOLDER_TO_CREATE, FileOperator.folder_to_create)
+        MQUtils.subscribe_channel(MQChannels.FOLDER_OBJ_TO_CREATE, FileOperator.folder_to_create)
+        MQUtils.subscribe_channel(MQChannels.FILE_TO_DELETE, FileOperator.file_to_delete)
 
     @staticmethod
     def folder_to_create(channel, method_frame, header_frame, body):
@@ -152,7 +152,21 @@ class FileOperator:
             fp = os.path.join(storage.base_path, parent_folder.relative_path, data['message']['name'])
             os.mkdir(fp)
             Indexer().update_folder(storage.base_path, parent_folder, fp)
-            MQUtils.push_to_channel(data['reply-queue'],'{}',False)
         except:
             print(traceback.format_exc())
+        MQUtils.push_to_channel(data['reply-queue'],'{}',False)
+        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+    @staticmethod
+    def file_to_delete(channel, method_frame, header_frame, body):
+        data = json.loads(body)
+        storage = Storage.objects.get(primary=True)
+        for fileId in data['message']['files']:
+            try:
+                f = File.objects.get(pk=fileId)
+                FileUtils.delete_file_or_dir(os.path.join(storage.base_path, f.relative_path))
+                f.delete()
+            except:
+                print(traceback.format_exc())
+        MQUtils.push_to_channel(data['reply-queue'],'{}',False)
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)

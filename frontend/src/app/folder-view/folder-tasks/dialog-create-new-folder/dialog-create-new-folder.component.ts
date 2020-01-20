@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 import { FileService } from 'src/app/service/file.service';
-import { FormControl, FormGroup, FormBuilder, Form } from '@angular/forms'
+import { FormGroup, FormBuilder } from '@angular/forms'
 import { ValidatorFn, Validators } from '@angular/forms';
 import { AbstractControl } from '@angular/forms';
 
@@ -11,7 +11,7 @@ import { AbstractControl } from '@angular/forms';
   styleUrls: ['./dialog-create-new-folder.component.css']
 })
 export class DialogCreateNewFolderComponent implements OnInit {
-  form : object;
+  form : FormGroup;
   folderId : string;
   folderName : string;
   caseSensitive : boolean;

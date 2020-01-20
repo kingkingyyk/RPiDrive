@@ -24,6 +24,7 @@ def get_child_files(request):
     def file_to_data(x):
         dat = {'id': str(x.pk),
                 'name': x.name, 
+                'relative_path': x.relative_path,
                 'natural_last_modified': x.natural_last_modified,
                 'natural_size': x.natural_size,
                 'type': x.__class__.__name__,
@@ -143,7 +144,7 @@ def create_new_folder(request):
         return JsonResponse({},status=500)
 
     try:
-        MQUtils.push_to_channel(MQChannels.FOLDER_TO_CREATE, {'folder': str(folder.pk), 'name': new_folder_path}, True)
+        MQUtils.push_to_channel(MQChannels.FOLDER_OBJ_TO_CREATE, {'folder': str(folder.pk), 'name': new_folder_path}, True)
         return JsonResponse({}, status=201)
     except:
         import traceback
@@ -153,14 +154,23 @@ def create_new_folder(request):
 def upload_file(request, folder_id):
     pass
 
-def move_file(request):
+def move_files(request):
     pass
 
-def rename_file(request):
+def rename_file(request, file_id):
     pass
 
-def delete_file(request):
-    pass
+@require_http_methods(["POST"])
+@csrf_exempt 
+def delete_files(request):
+    file_list = json.loads(request.body)
+    try:
+        MQUtils.push_to_channel(MQChannels.FILE_TO_DELETE, {'files': file_list}, True)
+        return JsonResponse({}, status=201)
+    except:
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({}, status=500)
 
 def add_download(request, folder_id):
     pass

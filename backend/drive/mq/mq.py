@@ -4,16 +4,8 @@ from threading import Thread
 import pika, random, uuid, time, json
 
 class MQChannels:
-    FOLDER_TO_CREATE = "operation.folder.create"
-    FOLDER_CREATED = "operation.folder.created"
-    FOLDER_RENAMED = "operation.folder.renamed"
-    FOLDER_MOVED = "operation.folder.moved"
-    FOLDER_DELETED = "operation.folder.deleted"
-
-    FILE_CREATED = "operation.file.created"
-    FILE_RENAMED = "operation.file.renamed"
-    FILE_MOVED = "operation.file.moved"
-    FILDER_DELETED = "operation.file.deleted"
+    FOLDER_OBJ_TO_CREATE = "operation.folderObj.create"
+    FILE_TO_DELETE = "operation.file.delete"
 
     DOWNLOAD_ADDED = "download.added"
     DOWNLOAD_DELETED = "download.deleted"

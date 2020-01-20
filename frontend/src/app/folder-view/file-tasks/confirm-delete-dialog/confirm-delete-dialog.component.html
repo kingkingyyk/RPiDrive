@@ -1,0 +1,16 @@
+<ng-container *ngIf="!loading">
+    <h1 mat-dialog-title><mat-icon>delete_forever</mat-icon>  Confirm to delete the following items?</h1>
+    <div mat-dialog-content>
+        <mat-list dense>
+            <mat-list-item *ngFor="let file of filesToDelete"> {{file.relative_path}} </mat-list-item>
+        </mat-list>
+    </div>
+    <div mat-dialog-actions>
+        <h5 style="color: red">Files will be permanently removed!</h5><br>
+        <button mat-button (click)="deleteFiles($event)" cdkFocusInitial><span style="color: red">Delete</span></button>
+        <button mat-button (click)="onNoClick()">Close</button>
+    </div>
+</ng-container>
+<ng-container *ngIf="loading">
+    <mat-spinner></mat-spinner>
+</ng-container>
