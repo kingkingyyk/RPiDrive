@@ -11,12 +11,17 @@ export class ConfirmDeleteDialogComponent implements OnInit {
   filesToDelete : object[];
   loading = false;
 
+  filesToDeleteDisplay : string[] = [];
+
   constructor(public dialogRef: MatDialogRef<ConfirmDeleteDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: object[],
     private fileService: FileService) {}
 
   ngOnInit() {
     this.filesToDelete = this.data;
+
+    for (let i=0;i<=Math.min(3, this.filesToDelete.length);i++) this.filesToDeleteDisplay.push(this.filesToDelete[i]['relative_path']);
+    if (this.filesToDelete.length>3) this.filesToDeleteDisplay.push('... and '+(this.filesToDelete.length-3)+' more files/folders');
   }
 
   onNoClick(): void {
@@ -30,6 +35,7 @@ export class ConfirmDeleteDialogComponent implements OnInit {
     this.loading = true;
     this.fileService.deleteFiles(selectedFileIds).subscribe((data : object) => {
       this.loading = false;
+      this.onNoClick();
       window.location.reload();
     });
   }
