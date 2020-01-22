@@ -19,8 +19,7 @@ export class ConfirmDeleteDialogComponent implements OnInit {
 
   ngOnInit() {
     this.filesToDelete = this.data;
-
-    for (let i=0;i<=Math.min(3, this.filesToDelete.length);i++) this.filesToDeleteDisplay.push(this.filesToDelete[i]['relative_path']);
+    for (let i=0;i<Math.min(3, this.filesToDelete.length);i++) this.filesToDeleteDisplay.push(this.filesToDelete[i]['name']);
     if (this.filesToDelete.length>3) this.filesToDeleteDisplay.push('... and '+(this.filesToDelete.length-3)+' more files/folders');
   }
 
