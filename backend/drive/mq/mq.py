@@ -6,6 +6,7 @@ import pika, random, uuid, time, json
 class MQChannels:
     FOLDER_OBJ_TO_CREATE = "operation.folderObj.create"
     FILE_TO_DELETE = "operation.file.delete"
+    FILE_TO_RENAME = "operation.file.rename"
 
     DOWNLOAD_ADDED = "download.added"
     DOWNLOAD_DELETED = "download.deleted"

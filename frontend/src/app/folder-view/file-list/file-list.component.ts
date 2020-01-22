@@ -25,6 +25,7 @@ export class FileListComponent implements OnInit {
   parentFolder: object;
   parentFolders = [];
   selectedParentFolder: string;
+  loaded = false;
 
   selection = new SelectionModel<object>(true, []);
 
@@ -43,6 +44,7 @@ export class FileListComponent implements OnInit {
   }
 
   loadFileList() {
+    this.loaded = false;
     this.fileService.getFileList(this.folderId).subscribe((data:  object) => {
       this.folderId = data['id'];
       this.folderName = data['name'];
@@ -50,6 +52,7 @@ export class FileListComponent implements OnInit {
       this.parentFolder = data['parent-folder'];
       this.parentFolders = data['parent-folders'];
       this.files = new MatTableDataSource<object>(data['files']);
+      this.loaded = true;
     });
   }
 

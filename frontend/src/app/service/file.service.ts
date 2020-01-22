@@ -19,8 +19,8 @@ export class FileService {
     return files;
   }
   getFileNameList(parent_folder: string) {
-    let params = new HttpParams()
-    if (parent_folder) params = params.append('parent-folder', parent_folder)
+    let params = new HttpParams();
+    if (parent_folder) params = params.append('parent-folder', parent_folder);
     return this.httpClient.get(`${this.API_URL}/drive/angular-api/child-filenames`, {params: params});
   }
   getStorageList() {
@@ -38,6 +38,10 @@ export class FileService {
   createNewFolder(folderId: string, newFolderName: string) {
     let data = {'folder-id': folderId, 'name': newFolderName};
     return this.httpClient.post(`${this.API_URL}/drive/angular-api/create-new-folder`, JSON.stringify(data));
+  }
+  renameFile(fileId: string, newName: string) {
+    let data = {'name': newName};
+    return this.httpClient.post(`${this.API_URL}/drive/angular-api/rename-file/${fileId}`, JSON.stringify(data));
   }
   deleteFiles(fileId : string []) {
     return this.httpClient.post(`${this.API_URL}/drive/angular-api/delete-files`, JSON.stringify(fileId));

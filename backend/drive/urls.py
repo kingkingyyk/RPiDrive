@@ -10,7 +10,7 @@ urlpatterns = [
     path(r'angular-api/storages', views_file.get_storages),
 
     path(r'angular-api/create-new-folder', views_file.create_new_folder),
-    path(r'angular-api/rename/<file_id>', views_file.rename_file),
+    path(r'angular-api/rename-file/<file_id>', views_file.rename_file),
     path(r'angular-api/delete-files', views_file.delete_files),
     path(r'angular-api/move-files', views_file.move_files),
 

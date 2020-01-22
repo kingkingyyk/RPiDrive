@@ -135,6 +135,21 @@ class Indexer(Thread):
             obj.size = size
             obj.save()
 
+    def update_relative_path(self, base_path, parent_folder):
+        queue = SimpleQueue()
+        queue.put(parent_folder)
+
+        files_to_update = []
+        while not queue.empty():
+            curr_folder = queue.get()
+            for f in File.objects.filter(parent_folder=curr_folder).all():
+                f.relative_path = curr_folder.relative_path + os.path.sep + f.name
+                files_to_update.append(f)
+                if isinstance(f, FolderObject):
+                    queue.put(f)
+
+        File.objects.bulk_update(files_to_update)
+        print('DONE UPDATE REL PATH!!')
 
 class FileOperator:
 
@@ -142,6 +157,7 @@ class FileOperator:
     def start():
         MQUtils.subscribe_channel(MQChannels.FOLDER_OBJ_TO_CREATE, FileOperator.folder_to_create)
         MQUtils.subscribe_channel(MQChannels.FILE_TO_DELETE, FileOperator.file_to_delete)
+        MQUtils.subscribe_channel(MQChannels.FILE_TO_RENAME, FileOperator.file_to_rename)
 
     @staticmethod
     def folder_to_create(channel, method_frame, header_frame, body):
@@ -168,5 +184,26 @@ class FileOperator:
                 f.delete()
             except:
                 print(traceback.format_exc())
+        MQUtils.push_to_channel(data['reply-queue'],'{}',False)
+        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+    @staticmethod
+    def file_to_rename(channel, method_frame, header_frame, body):
+        def update_rel_path(base_path, folder):
+            Indexer().update_relative_path(storage.base_path, folder)
+        
+        data = json.loads(body)
+        storage = Storage.objects.get(primary=True)
+        file = File.objects.get(pk=data['message']['file'])
+        new_name = data['message']['name']
+        try:
+            os.rename(os.path.join(storage.base_path, file.relative_path), os.path.join(storage.base_path, new_name))
+            file.relative_path = file.relative_path[:-len(file.name)] + new_name
+            file.name = new_name
+            file.save()
+            if isinstance(file, FolderObject):
+                Thread(target=update_rel_path, args=(storage.base_path, file)).start()
+        except:
+            print(traceback.format_exc())
         MQUtils.push_to_channel(data['reply-queue'],'{}',False)
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)

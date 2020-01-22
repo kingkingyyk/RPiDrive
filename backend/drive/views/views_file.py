@@ -157,8 +157,20 @@ def upload_file(request, folder_id):
 def move_files(request):
     pass
 
+@require_http_methods(["POST"])
+@csrf_exempt 
 def rename_file(request, file_id):
-    pass
+    file = get_object_or_404(File, pk=file_id)
+    data = json.loads(request.body)
+    name = data.get('name', '')
+    if name != '':
+        try:
+            MQUtils.push_to_channel(MQChannels.FILE_TO_RENAME, {'file': str(file.pk), 'name': name}, True)
+            return JsonResponse({}, status=200)
+        except:
+            import traceback
+            print(traceback.format_exc())
+    return JsonResponse({}, status=500)
 
 @require_http_methods(["POST"])
 @csrf_exempt 

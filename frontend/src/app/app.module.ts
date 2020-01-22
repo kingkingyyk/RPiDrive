@@ -34,6 +34,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFileUploadModule } from 'angular-material-fileupload';
 import { GoogleChartsModule } from 'angular-google-charts';
 import { ConfirmDeleteDialogComponent } from './folder-view/file-tasks/confirm-delete-dialog/confirm-delete-dialog.component';
+import { RenameDialogComponent } from './folder-view/file-tasks/rename-dialog/rename-dialog.component';
 
 export function getHighlightLanguages() {
   return {
@@ -64,6 +65,7 @@ export function getHighlightLanguages() {
     SystemFactsComponent,
     FileTasksComponent,
     ConfirmDeleteDialogComponent,
+    RenameDialogComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
@@ -74,6 +76,7 @@ export function getHighlightLanguages() {
     DialogNewFileUploadComponent,
     DialogAddNewDownloadComponent,
     ConfirmDeleteDialogComponent,
+    RenameDialogComponent,
   ],
   imports: [
     BrowserModule,
