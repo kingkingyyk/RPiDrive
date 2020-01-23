@@ -5,6 +5,7 @@ import { ClipboardService } from 'ngx-clipboard'
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog/confirm-delete-dialog.component';
 import { RenameDialogComponent } from './rename-dialog/rename-dialog.component';
+import { MoveFileDialogComponent } from './move-file-dialog/move-file-dialog.component';
 
 @Component({
   selector: 'app-file-tasks',
@@ -40,7 +41,7 @@ export class FileTasksComponent implements OnInit {
   }
 
   moveSelection() {
-
+    this.dialog.open(MoveFileDialogComponent, {data: this.selectedFiles});
   }
 
   deleteSelection() {

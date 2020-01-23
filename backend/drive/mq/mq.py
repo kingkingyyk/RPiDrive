@@ -7,6 +7,7 @@ class MQChannels:
     FOLDER_OBJ_TO_CREATE = "operation.folderObj.create"
     FILE_TO_DELETE = "operation.file.delete"
     FILE_TO_RENAME = "operation.file.rename"
+    FILE_TO_MOVE = "operation.file.move"
 
     DOWNLOAD_ADDED = "download.added"
     DOWNLOAD_DELETED = "download.deleted"

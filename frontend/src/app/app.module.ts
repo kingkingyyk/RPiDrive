@@ -9,7 +9,8 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatCheckboxModule, MatSelectModule, MatMenuModule, 
         MatProgressBarModule, MatTooltipModule, MatRippleModule,
         MatDialogModule, MatExpansionModule, MatFormFieldModule,
-        MatInputModule, MatProgressSpinnerModule } from  '@angular/material';
+        MatInputModule, MatProgressSpinnerModule,
+        MatTreeModule } from  '@angular/material';
   
 import { FileService } from 'src/app/service/file.service';
 import { ClipboardModule } from 'ngx-clipboard';
@@ -35,6 +36,7 @@ import { MatFileUploadModule } from 'angular-material-fileupload';
 import { GoogleChartsModule } from 'angular-google-charts';
 import { ConfirmDeleteDialogComponent } from './folder-view/file-tasks/confirm-delete-dialog/confirm-delete-dialog.component';
 import { RenameDialogComponent } from './folder-view/file-tasks/rename-dialog/rename-dialog.component';
+import { MoveFileDialogComponent } from './folder-view/file-tasks/move-file-dialog/move-file-dialog.component';
 
 export function getHighlightLanguages() {
   return {
@@ -66,6 +68,7 @@ export function getHighlightLanguages() {
     FileTasksComponent,
     ConfirmDeleteDialogComponent,
     RenameDialogComponent,
+    MoveFileDialogComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
@@ -77,6 +80,7 @@ export function getHighlightLanguages() {
     DialogAddNewDownloadComponent,
     ConfirmDeleteDialogComponent,
     RenameDialogComponent,
+    MoveFileDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -107,6 +111,7 @@ export function getHighlightLanguages() {
     ReactiveFormsModule,
     MatFileUploadModule,
     GoogleChartsModule,
+    MatTreeModule,
   ],
   providers: [
     {

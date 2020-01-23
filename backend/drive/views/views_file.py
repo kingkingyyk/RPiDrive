@@ -93,6 +93,20 @@ def get_child_filenames(request):
             'filenames': [x for x in File.objects.filter(parent_folder=parent_folder).values_list('name', flat=True).all()]}
     return JsonResponse(data)
 
+def get_child_folders(request):
+    parent_folder_id = request.GET.get('parent-folder', None)
+    try:
+        parent_folder = FolderObject.objects.select_related('parent_folder').get(pk=parent_folder_id)
+    except:
+        parent_folder = FolderObject.objects.select_related('parent_folder').get(parent_folder=None)
+    child_folders = FolderObject.objects.filter(parent_folder=parent_folder).order_by('name').all()
+    data = {
+        'id': str(parent_folder.id),
+        'name': str(parent_folder.name),
+        'parent-folder': str(parent_folder.parent_folder.pk) if parent_folder.parent_folder else None,
+        'folders': [{'id': str(x.pk), 'name': str(x.name)} for x in child_folders]
+    }
+    return JsonResponse(data)
 
 def get_storages(request):
     storages = Storage.objects.order_by('primary', 'base_path').all()
@@ -154,8 +168,22 @@ def create_new_folder(request):
 def upload_file(request, folder_id):
     pass
 
-def move_files(request):
-    pass
+@require_http_methods(["POST"])
+@csrf_exempt 
+def move_files(request, folder_id):
+    folder = get_object_or_404(FolderObject, pk=folder_id)
+    file_list = json.loads(request.body)
+    if File.objects.get(pk=file_list[0]).parent_folder.pk != folder.pk:
+        try:
+            MQUtils.push_to_channel(MQChannels.FILE_TO_MOVE, {'folder': str(folder.pk), 'files': file_list}, True)
+            return JsonResponse({}, status=200)
+        except:
+            import traceback
+            print(traceback.format_exc())
+        return JsonResponse({}, status=500)
+    else:
+        return JsonResponse({}, status=200)
+
 
 @require_http_methods(["POST"])
 @csrf_exempt 

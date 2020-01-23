@@ -9,6 +9,7 @@ from exif import Image
 from ...mq.mq import MQUtils, MQChannels
 from ...utils.file_utils import FileUtils
 import os, time, eyed3, traceback, mimetypes, json
+from django.db import transaction
 
 class Command(BaseCommand):
     help = 'Run indexer service'
@@ -30,6 +31,20 @@ class Indexer(Thread):
         self.update_folder(storage.base_path, None, storage.base_path)
         self.perform_index(storage.base_path, storage.base_path)
 
+    def update_folder(self, base_path, parent_folder, full_path):
+        name = os.path.basename(full_path) if parent_folder else 'My Drive'
+        rp = full_path[len(base_path)+1:]
+        last_modified = datetime.fromtimestamp(os.path.getmtime(full_path), tz=get_current_timezone())
+
+        obj = get_object_or_None(FolderObject, relative_path=rp)
+        if not obj:
+            obj = FolderObject(name=name, relative_path=rp,
+                                parent_folder=parent_folder, 
+                                last_modified=datetime.min)
+        if obj.last_modified != last_modified:
+            obj.last_modified = last_modified
+            obj.save()
+
     def perform_index(self, base_path, start_folder):
         queue = SimpleQueue()
         queue.put(start_folder)
@@ -49,20 +64,6 @@ class Indexer(Thread):
                     self.update_folder(base_path, curr_folder_obj, f_full_path)
                 elif os.path.isfile(f_full_path):
                     self.update_file(base_path, curr_folder_obj, f_full_path)
-
-    def update_folder(self, base_path, parent_folder, full_path):
-        name = os.path.basename(full_path) if parent_folder else 'My Drive'
-        rp = full_path[len(base_path)+1:]
-        last_modified = datetime.fromtimestamp(os.path.getmtime(full_path), tz=get_current_timezone())
-
-        obj = get_object_or_None(FolderObject, relative_path=rp)
-        if not obj:
-            obj = FolderObject(name=name, relative_path=rp,
-                                parent_folder=parent_folder, 
-                                last_modified=datetime.min)
-        if obj.last_modified != last_modified:
-            obj.last_modified = last_modified
-            obj.save()
 
     def update_file(self, base_path, parent_folder, full_path):
         name = os.path.basename(full_path)
@@ -135,21 +136,21 @@ class Indexer(Thread):
             obj.size = size
             obj.save()
 
+    @transaction.atomic
     def update_relative_path(self, base_path, parent_folder):
         queue = SimpleQueue()
         queue.put(parent_folder)
 
-        files_to_update = []
         while not queue.empty():
             curr_folder = queue.get()
             for f in File.objects.filter(parent_folder=curr_folder).all():
-                f.relative_path = curr_folder.relative_path + os.path.sep + f.name
-                files_to_update.append(f)
-                if isinstance(f, FolderObject):
-                    queue.put(f)
+                rel_path = curr_folder.relative_path + os.path.sep if curr_folder.relative_path == '' else ''
+                new_relative_path = rel_path + os.path.sep + f.name
+                if f.relative_path != new_relative_path:
+                    f.save()
+                    if isinstance(f, FolderObject):
+                        queue.put(f)
 
-        File.objects.bulk_update(files_to_update)
-        print('DONE UPDATE REL PATH!!')
 
 class FileOperator:
 
@@ -158,6 +159,7 @@ class FileOperator:
         MQUtils.subscribe_channel(MQChannels.FOLDER_OBJ_TO_CREATE, FileOperator.folder_to_create)
         MQUtils.subscribe_channel(MQChannels.FILE_TO_DELETE, FileOperator.file_to_delete)
         MQUtils.subscribe_channel(MQChannels.FILE_TO_RENAME, FileOperator.file_to_rename)
+        MQUtils.subscribe_channel(MQChannels.FILE_TO_MOVE, FileOperator.file_to_move)
 
     @staticmethod
     def folder_to_create(channel, method_frame, header_frame, body):
@@ -194,10 +196,10 @@ class FileOperator:
         
         data = json.loads(body)
         storage = Storage.objects.get(primary=True)
-        file = File.objects.get(pk=data['message']['file'])
+        file = File.objects.select_related('parent_folder').get(pk=data['message']['file'])
         new_name = data['message']['name']
         try:
-            os.rename(os.path.join(storage.base_path, file.relative_path), os.path.join(storage.base_path, new_name))
+            os.rename(os.path.join(storage.base_path, file.relative_path), os.path.join(storage.base_path, file.parent_folder.relative_path ,new_name))
             file.relative_path = file.relative_path[:-len(file.name)] + new_name
             file.name = new_name
             file.save()
@@ -205,5 +207,43 @@ class FileOperator:
                 Thread(target=update_rel_path, args=(storage.base_path, file)).start()
         except:
             print(traceback.format_exc())
+        MQUtils.push_to_channel(data['reply-queue'],'{}',False)
+        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+    @staticmethod
+    def file_to_move(channel, method_frame, header_frame, body):
+        def update_rel_path(base_path, folder):
+            Indexer().update_relative_path(storage.base_path, folder)
+
+        data = json.loads(body)
+        storage = Storage.objects.get(primary=True)
+        folder = FolderObject.objects.get(pk=data['message']['folder'])
+        for fileId in data['message']['files']:
+            try:
+                f = File.objects.get(pk=fileId)
+                old_path = os.path.join(storage.base_path, f.relative_path)
+                new_path = os.path.join(storage.base_path, folder.relative_path, f.name)
+
+                postfix_count = 1;
+                while os.path.exists(new_path):
+                    fname_split = f.name.split('.')
+                    print(fname_split)
+                    if len(fname_split) == 1:
+                        fname_split[-1] = fname_split[-1] + '_' + str(postfix_count)
+                    else:
+                        fname_split[-2] = fname_split[-2] + '_' + str(postfix_count)
+                    new_fname = '.'.join(fname_split)
+                    new_path = os.path.join(storage.base_path, folder.relative_path, new_fname)
+                    postfix_count += 1
+                
+                os.rename(old_path, new_path)
+                f.relative_path = new_path[len(storage.base_path)+1:]
+                f.name = os.path.basename(new_path)
+                f.parent_folder = folder
+                f.save()
+            except:
+                print(traceback.format_exc())
+        Thread(target=update_rel_path, args=(storage.base_path, folder)).start()
+
         MQUtils.push_to_channel(data['reply-queue'],'{}',False)
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
