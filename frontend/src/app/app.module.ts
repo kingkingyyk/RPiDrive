@@ -11,7 +11,10 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatDialogModule, MatExpansionModule, MatFormFieldModule,
         MatInputModule, MatProgressSpinnerModule,
         MatTreeModule } from  '@angular/material';
-  
+        import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+        import { MatFileUploadModule } from 'angular-material-fileupload';
+        import { GoogleChartsModule } from 'angular-google-charts';
+        
 import { FileService } from 'src/app/service/file.service';
 import { ClipboardModule } from 'ngx-clipboard';
 
@@ -31,9 +34,6 @@ import { SystemComponent } from './system/system.component';
 import { NetworkUsageComponent } from './system/network-usage/network-usage.component';
 import { SystemFactsComponent } from './system/system-facts/system-facts.component';
 import { FileTasksComponent } from './folder-view/file-tasks/file-tasks.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatFileUploadModule } from 'angular-material-fileupload';
-import { GoogleChartsModule } from 'angular-google-charts';
 import { ConfirmDeleteDialogComponent } from './folder-view/file-tasks/confirm-delete-dialog/confirm-delete-dialog.component';
 import { RenameDialogComponent } from './folder-view/file-tasks/rename-dialog/rename-dialog.component';
 import { MoveFileDialogComponent } from './folder-view/file-tasks/move-file-dialog/move-file-dialog.component';

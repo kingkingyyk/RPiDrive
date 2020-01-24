@@ -8,6 +8,7 @@ class MQChannels:
     FILE_TO_DELETE = "operation.file.delete"
     FILE_TO_RENAME = "operation.file.rename"
     FILE_TO_MOVE = "operation.file.move"
+    REINDEX_FOLDER = "operation.folderObj.reindex"
 
     DOWNLOAD_ADDED = "download.added"
     DOWNLOAD_DELETED = "download.deleted"

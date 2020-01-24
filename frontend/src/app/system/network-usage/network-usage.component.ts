@@ -35,6 +35,7 @@ export class NetworkUsageComponent implements OnInit {
         gridlines: {
           color: 'transparent'
         },
+        format: 'hh:mm:s a'
      },
      vAxis:{
         title: 'Bandwidth\n(KB/s)',

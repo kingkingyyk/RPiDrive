@@ -160,6 +160,7 @@ class FileOperator:
         MQUtils.subscribe_channel(MQChannels.FILE_TO_DELETE, FileOperator.file_to_delete)
         MQUtils.subscribe_channel(MQChannels.FILE_TO_RENAME, FileOperator.file_to_rename)
         MQUtils.subscribe_channel(MQChannels.FILE_TO_MOVE, FileOperator.file_to_move)
+        MQUtils.subscribe_channel(MQChannels.REINDEX_FOLDER, FileOperator.reindex_folder)
 
     @staticmethod
     def folder_to_create(channel, method_frame, header_frame, body):
@@ -245,5 +246,17 @@ class FileOperator:
                 print(traceback.format_exc())
         Thread(target=update_rel_path, args=(storage.base_path, folder)).start()
 
+        MQUtils.push_to_channel(data['reply-queue'],'{}',False)
+        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+    @staticmethod
+    def reindex_folder(channel, method_frame, header_frame, body):
+        def update_rel_path(base_path, folder):
+            Indexer().update_relative_path(storage.base_path, folder)
+        data = json.loads(body)
+        storage = Storage.objects.get(primary=True)
+        folder = FolderObject.objects.get(pk=data['message']['folder'])
+        for fp in data['message']['files']:
+            Indexer().update_file(storage.base_path, folder, fp)
         MQUtils.push_to_channel(data['reply-queue'],'{}',False)
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)

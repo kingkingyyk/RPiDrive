@@ -7,7 +7,8 @@ from wsgiref.util import FileWrapper
 from ..mq.mq import MQUtils, MQChannels
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-import os, mimetypes, platform, json
+from ..utils.file_utils import FileUtils
+import os, mimetypes, platform, json, shutil
 
 def get_folder_redirect(request, folder_id):
     try:
@@ -165,24 +166,49 @@ def create_new_folder(request):
         print(traceback.format_exc())
         return JsonResponse({}, status=500)
 
+@require_http_methods(["POST"])
+@csrf_exempt 
 def upload_file(request, folder_id):
-    pass
+    storage = Storage.objects.get(primary=True)
+    folder = get_object_or_404(FolderObject, pk=folder_id)
+    form = 'files'
+    stored_fp = []
+    if request.FILES[form]:
+        for temp_file in request.FILES.getlist(form):
+            f_real_path = os.path.join(storage.base_path, folder.relative_path, temp_file.name)
+            if os.path.exists(f_real_path):
+                FileUtils.delete_file_or_dir(f_real_path)
+            with open(f_real_path, 'wb+') as f:
+                shutil.copyfileobj(temp_file.file, f, 10485760)
+            stored_fp.append(f_real_path)
+    try:
+        MQUtils.push_to_channel(MQChannels.REINDEX_FOLDER, {'folder': str(folder.pk), 'files': stored_fp}, True, timeout=5.0*len(stored_fp))
+        return JsonResponse({}, status=201)
+    except:
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({}, status=500)
 
 @require_http_methods(["POST"])
 @csrf_exempt 
 def move_files(request, folder_id):
     folder = get_object_or_404(FolderObject, pk=folder_id)
     file_list = json.loads(request.body)
-    if File.objects.get(pk=file_list[0]).parent_folder.pk != folder.pk:
+    parent_folder_ids = []
+    for file_id in file_list:
+        temp_file = File.objects.select_related('parent_folder').get(pk=file_id)
+        while temp_file is not None:
+            parent_folder_ids.append(temp_file.id)
+            temp_file = temp_file.parent_folder
+
+    if str(folder.id) not in parent_folder_ids:
         try:
             MQUtils.push_to_channel(MQChannels.FILE_TO_MOVE, {'folder': str(folder.pk), 'files': file_list}, True)
             return JsonResponse({}, status=200)
         except:
             import traceback
             print(traceback.format_exc())
-        return JsonResponse({}, status=500)
-    else:
-        return JsonResponse({}, status=200)
+    return JsonResponse({}, status=500)
 
 
 @require_http_methods(["POST"])

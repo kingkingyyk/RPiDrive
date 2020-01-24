@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from  '@angular/common/http';
+import { HttpClient, HttpParams, HttpRequest } from  '@angular/common/http';
 import {Observable} from 'rxjs'
 
 @Injectable({
@@ -41,6 +41,10 @@ export class FileService {
   }
   getCodeContent(fileId: string) {
     return this.httpClient.get(this.getFileDownloadURL(fileId), {responseType: "text"});
+  }
+  uploadFile(folderId: string, formData : FormData) {
+    const req = new HttpRequest('POST', `${this.API_URL}/drive/angular-api/upload-files/${folderId}`, formData, {reportProgress: true});
+    return this.httpClient.request(req)
   }
   createNewFolder(folderId: string, newFolderName: string) {
     let data = {'folder-id': folderId, 'name': newFolderName};
