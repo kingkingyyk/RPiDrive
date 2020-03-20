@@ -1,0 +1,16 @@
+<h1 mat-dialog-title><mat-icon>cloud_download</mat-icon>  Add URL file download</h1>
+<div mat-dialog-content>
+    <form [formGroup]="fg">
+        <mat-form-field><input matInput placeholder="URL" formControlName="url" required/></mat-form-field>
+        <mat-form-field><input matInput placeholder="Filename" formControlName="filename"/></mat-form-field>
+        <mat-checkbox formControlName="authentication">Authentication</mat-checkbox>
+        <ng-container *ngIf="fg.get('authentication').value">
+            <mat-form-field><input matInput placeholder="Username" formControlName="username" required/></mat-form-field>
+            <mat-form-field><input matInput placeholder="Password" formControlName="password" required/></mat-form-field>
+        </ng-container>
+    </form>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="add($event)" cdkFocusInitial [disabled]="fg.invalid">Start</button>
+    <button mat-button (click)="onNoClick()">Close</button>
+</div>

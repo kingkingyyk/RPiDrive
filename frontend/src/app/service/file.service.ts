@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpRequest } from  '@angular/common/http';
 import {Observable} from 'rxjs'
+import { URLDownload } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -65,5 +66,30 @@ export class FileService {
   }
   getNetworkFacts() {
     return this.httpClient.get(`${this.API_URL}/drive/angular-api/network-facts`)
+  }
+
+  addURLDownload(data : URLDownload) {
+    const req = new HttpRequest('POST', `${this.API_URL}/drive/angular-api/download/add/url`, data);
+    return this.httpClient.request(req)
+  }
+  addMagnetDownload(data : URLDownload) {
+    const req = new HttpRequest('POST', `${this.API_URL}/drive/angular-api/download/add/magnet`, data);
+    return this.httpClient.request(req)
+  }
+  addTorrentDownload(formData : FormData) {
+    const req = new HttpRequest('POST', `${this.API_URL}/drive/angular-api/download/add/torrent`, formData, {reportProgress: true});
+    return this.httpClient.request(req)
+  }
+  getDownloads() {
+    return this.httpClient.get(`${this.API_URL}/drive/angular-api/download/list`)
+  }
+  pauseDownload(gid : string) {
+    return this.httpClient.put(`${this.API_URL}/drive/angular-api/download/`+gid+`/pause`,{})
+  }
+  resumeDownload(gid : string) {
+    return this.httpClient.put(`${this.API_URL}/drive/angular-api/download/`+gid+`/resume`,{})
+  }
+  cancelDownload(gid : string) {
+    return this.httpClient.delete(`${this.API_URL}/drive/angular-api/download/`+gid+`/cancel`)
   }
 }

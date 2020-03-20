@@ -123,7 +123,7 @@ class FileTypes:
         file_ext = file_path.split('.')[-1]
         if file_ext in ("mp4", "webm"):
             return FileTypes.VIDEO
-        elif file_ext in ("mp3", "m4a", "ogg"):
+        elif file_ext in ("mp3", "m4a", "ogg", 'flac'):
             return FileTypes.MUSIC
         elif file_ext in ("jpg", "bmp", "gif", "png"):
             return FileTypes.PICTURE

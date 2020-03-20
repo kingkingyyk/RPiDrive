@@ -1,0 +1,10 @@
+<h1 mat-dialog-title><mat-icon>cloud_download</mat-icon>  Add magnet download</h1>
+<div mat-dialog-content>
+    <form [formGroup]="fg">
+        <mat-form-field><input matInput placeholder="Magnet Link" formControlName="url" required/></mat-form-field>
+    </form>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="add($event)" cdkFocusInitial [disabled]="fg.invalid">Start</button>
+    <button mat-button (click)="onNoClick()">Close</button>
+</div>

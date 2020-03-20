@@ -26,7 +26,7 @@
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
               "src/styles.css",
-              "./node_modules/highlight.js/styles/github.css",
+              "./node_modules/highlight.js/styles/github.css"
             ],
             "scripts": []
           },
@@ -125,5 +125,8 @@
       }
     }
   },
-  "defaultProject": "frontend"
+  "defaultProject": "frontend",
+  "cli": {
+    "analytics": "283abe79-1994-41e2-9dd3-e2e67943b313"
+  }
 }

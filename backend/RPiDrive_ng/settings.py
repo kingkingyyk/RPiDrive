@@ -82,18 +82,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'rpidrive',
         'USER': 'postgres',
-        'PASSWORD': 'rpi-drive',
-        'HOST': '192.168.99.100',
+        'PASSWORD': 'postgres',
+        'HOST': '192.168.0.182',
         'PORT': '5432',
     }
 }
-
-MESSAGE_QUEUE = [{
-    'HOST': '192.168.99.100',
-    'PORT': 5672,
-    'USER': 'rpi-drive',
-    'PASSWORD': 'rpi-drive',
-}]
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -134,3 +127,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+ARIA2_HOST = os.environ.get('ARIA2_HOST', '192.168.0.182')
+ARIA2_PORT = int(os.environ.get('ARIA2_PORT', '6800'))
+ARIA2_SECRET = os.environ.get('ARIA2_SECRET', 'rpidrive')

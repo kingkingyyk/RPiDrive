@@ -6,3 +6,4 @@ eyed3
 django-annoying
 humanize
 psutil
+aria2p

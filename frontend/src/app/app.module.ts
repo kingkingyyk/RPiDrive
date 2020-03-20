@@ -12,7 +12,6 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatInputModule, MatProgressSpinnerModule,
         MatTreeModule } from  '@angular/material';
         import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-        import { MatFileUploadModule } from 'angular-material-fileupload';
         import { GoogleChartsModule } from 'angular-google-charts';
         
 import { FileService } from 'src/app/service/file.service';
@@ -29,7 +28,7 @@ import { CodeViewerComponent } from './folder-view/file-list/code-viewer/code-vi
 import { HighlightModule, HIGHLIGHT_OPTIONS  } from 'ngx-highlightjs';
 import { DialogCreateNewFolderComponent } from './folder-view/folder-tasks/dialog-create-new-folder/dialog-create-new-folder.component';
 import { DialogNewFileUploadComponent } from './folder-view/folder-tasks/dialog-new-file-upload/dialog-new-file-upload.component';
-import { DialogAddNewDownloadComponent } from './folder-view/folder-tasks/dialog-add-new-download/dialog-add-new-download.component';
+import { DialogNewURLDownloadComponent } from './folder-view/folder-tasks/dialog-new-url-download/dialog-new-url-download.component';
 import { SystemComponent } from './system/system.component';
 import { NetworkUsageComponent } from './system/network-usage/network-usage.component';
 import { SystemFactsComponent } from './system/system-facts/system-facts.component';
@@ -37,6 +36,8 @@ import { FileTasksComponent } from './folder-view/file-tasks/file-tasks.componen
 import { ConfirmDeleteDialogComponent } from './folder-view/file-tasks/confirm-delete-dialog/confirm-delete-dialog.component';
 import { RenameDialogComponent } from './folder-view/file-tasks/rename-dialog/rename-dialog.component';
 import { MoveFileDialogComponent } from './folder-view/file-tasks/move-file-dialog/move-file-dialog.component';
+import { DialogNewMagnetDownloadComponent } from './folder-view/folder-tasks/dialog-new-magnet-download/dialog-new-magnet-download.component';
+import { DialogNewTorrentDownloadComponent } from './folder-view/folder-tasks/dialog-new-torrent-download/dialog-new-torrent-download.component';
 
 export function getHighlightLanguages() {
   return {
@@ -61,7 +62,7 @@ export function getHighlightLanguages() {
     CodeViewerComponent,
     DialogCreateNewFolderComponent,
     DialogNewFileUploadComponent,
-    DialogAddNewDownloadComponent,
+    DialogNewURLDownloadComponent,
     SystemComponent,
     NetworkUsageComponent,
     SystemFactsComponent,
@@ -69,6 +70,8 @@ export function getHighlightLanguages() {
     ConfirmDeleteDialogComponent,
     RenameDialogComponent,
     MoveFileDialogComponent,
+    DialogNewMagnetDownloadComponent,
+    DialogNewTorrentDownloadComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
@@ -77,7 +80,7 @@ export function getHighlightLanguages() {
     PictureViewerComponent,
     DialogCreateNewFolderComponent,
     DialogNewFileUploadComponent,
-    DialogAddNewDownloadComponent,
+    DialogNewURLDownloadComponent,
     ConfirmDeleteDialogComponent,
     RenameDialogComponent,
     MoveFileDialogComponent,
@@ -109,7 +112,7 @@ export function getHighlightLanguages() {
     MatProgressSpinnerModule,
     FormsModule,
     ReactiveFormsModule,
-    MatFileUploadModule,
+    //MatFileUploadModule,
     GoogleChartsModule,
     MatTreeModule,
   ],
