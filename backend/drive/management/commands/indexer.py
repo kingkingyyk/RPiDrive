@@ -23,8 +23,9 @@ class Command(BaseCommand):
     help = 'Run indexer service'
 
     def handle(self, *args, **options):
+        print('Performing file indexing')
         Indexer.perform_full_index()
-
+        print('Done')
 
 class Indexer:
 
@@ -62,9 +63,11 @@ class Indexer:
                 curr_folder_obj = FolderObject.objects.get(
                     relative_path=curr_folder[len(base_path)+1:])
 
-                for f in File.objects.filter(parent_folder=curr_folder_obj).select_for_update().all():
+                for f in File.objects.filter(parent_folder=curr_folder_obj).all():
                     fp = os.path.join(base_path, f.relative_path)
                     if not os.path.exists(fp):
+                        if isinstance(f, FolderObject):
+                            Indexer.recurse_delete(f)
                         f.delete()
 
                 for f in os.listdir(curr_folder):
@@ -74,6 +77,13 @@ class Indexer:
                         Indexer.update_folder(base_path, curr_folder_obj, f_full_path)
                     elif os.path.isfile(f_full_path):
                         Indexer.update_file(base_path, curr_folder_obj, f_full_path)
+    
+    @staticmethod
+    def recurse_delete(folder_obj):
+        for f in File.objects.filter(parent_folder=folder_obj).all():
+            if isinstance(f, FolderObject):
+                Indexer.recurse_delete(f)
+            f.delete()
 
     @staticmethod
     def update_file(base_path, parent_folder, full_path):
@@ -136,7 +146,8 @@ class Indexer:
                     if audiofile.tag.genre:
                         obj.genre = audiofile.tag.genre
                 except:
-                    pass
+                    if not obj.title:
+                        obj.title = '.'.join(name.split('.')[:-1])
         else:
             if not obj:
                 obj = FileObject(name=name, relative_path=rp,

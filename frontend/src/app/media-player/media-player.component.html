@@ -23,7 +23,7 @@
                     </mat-form-field>
                 </div>
 
-                <mat-list-item *ngFor="let playlist of playlists"
+                <mat-list-item dense *ngFor="let playlist of playlists"
                     (click)="expPanel.expanded = false; loadPlaylist(playlist)">
                     <mat-icon mat-list-icon>queue_music</mat-icon>
                     <div mat-line>{{playlist.name}}</div>
@@ -33,7 +33,7 @@
             </mat-action-list>
         </mat-expansion-panel>
     </mat-accordion>
-    <mat-list *ngIf="currPlaylist">
+    <mat-list dense *ngIf="currPlaylist">
         <div mat-subheader>
             {{currPlaylist.name}}
             <button mat-icon-button matTooltip="Add media" (click)="addMediaToList(currPlaylist)">
@@ -48,14 +48,18 @@
         </div>
         <div cdkDropList class="media-file-list" (cdkDropListDropped)="reorderMedia(currPlaylist, $event)">
             <mat-list-item *ngFor="let file of currPlaylist.files" class="media-file-item"
-                matTooltip="{{file.relative_path}}" cdkDragLockAxis="y" cdkDrag matRipple style="cursor: 100%;">
-                <mat-icon mat-list-icon *ngIf="file == currPlayingMedia">play_arrow</mat-icon>
-                <mat-icon mat-list-icon *ngIf="file != currPlayingMedia">music_note</mat-icon>
+                matTooltip="{{file.relative_path}}" cdkDragLockAxis="y" cdkDrag matRipple style="cursor: pointer;">
+                <ng-container *ngIf="file.id == currPlayingMedia.id">
+                    <mat-icon mat-list-icon *ngIf="this.audioPlayerRef.nativeElement.paused">pause</mat-icon>
+                    <mat-icon mat-list-icon *ngIf="!this.audioPlayerRef.nativeElement.paused">play_arrow</mat-icon>
+                </ng-container>
+
+                <mat-icon mat-list-icon *ngIf="file.id != currPlayingMedia.id">music_note</mat-icon>
                 <div style="width: 100%" (click)="playMedia(file)">
                     <div mat-line>{{file.title}}</div>
-                    <div mat-line>{{file.artist}} {{file.album}} </div>
+                    <div mat-line>{{file.artist}} - {{file.album}} </div>
                 </div>
-                <div style="position: absolute; right: 10px; z-index: 3"><button mat-icon-button (click)="removeMediaFromPlaylist(currPlaylist, media)">
+                <div style="position: absolute; right: 10px; z-index: 3"><button mat-icon-button (click)="removeMediaFromPlaylist(currPlaylist, file)">
                         <mat-icon>delete</mat-icon>
                     </button>
                 </div>
@@ -64,9 +68,6 @@
         </div>
     </mat-list>
     <div class="footer">
-        <ng-container *ngIf="currPlayingMedia">
-            Now Playing : {{currPlayingMedia.title}}
-        </ng-container>
         <audio controls autoplay #audioPlayer style="width: 100%" (ended)="onAudioEnded()">
             <source>
         </audio>

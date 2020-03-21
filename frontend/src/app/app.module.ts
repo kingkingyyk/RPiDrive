@@ -10,7 +10,7 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatProgressBarModule, MatTooltipModule, MatRippleModule,
         MatDialogModule, MatExpansionModule, MatFormFieldModule,
         MatInputModule, MatProgressSpinnerModule,
-        MatTreeModule, MatCardModule } from  '@angular/material';
+        MatTreeModule, MatCardModule, MatTabsModule } from  '@angular/material';
         import { FormsModule, ReactiveFormsModule } from '@angular/forms';
         import { GoogleChartsModule } from 'angular-google-charts';
 import {DragDropModule} from '@angular/cdk/drag-drop';
@@ -19,7 +19,7 @@ import { ClipboardModule } from 'ngx-clipboard';
 
 import { FileListComponent } from './folder-view/file-list/file-list.component';
 import { MusicPlayerComponent } from './folder-view/file-list/music-player/music-player.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { FolderViewComponent } from './folder-view/folder-view.component';
 import { FolderTasksComponent } from './folder-view/folder-tasks/folder-tasks.component';
 import { VideoPlayerComponent } from './folder-view/file-list/video-player/video-player.component';
@@ -108,6 +108,7 @@ export function getHighlightLanguages() {
     BrowserAnimationsModule,
     ClipboardModule,
     HttpClientModule,
+    HttpClientXsrfModule.withOptions({ cookieName: 'csrftoken', headerName: 'X-CSRFToken' }),
     MatToolbarModule,
     MatSidenavModule,
     MatListModule,
@@ -133,6 +134,7 @@ export function getHighlightLanguages() {
     GoogleChartsModule,
     MatTreeModule,
     DragDropModule,
+    MatTabsModule,
   ],
   providers: [
     {

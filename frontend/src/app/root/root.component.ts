@@ -21,7 +21,8 @@ export class RootComponent implements OnInit {
 
   constructor() {
     this.apps = [new App('File Explorer', 'storage', '/drive/folder'),
-                 new App('Media Player', 'play_arrow', 'media-player')]
+                 new App('Media Player', 'play_arrow', '/media-player'),
+                 new App('System', 'settings', '/system')]
 
   }
 

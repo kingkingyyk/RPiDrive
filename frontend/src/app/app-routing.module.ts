@@ -12,7 +12,7 @@ const routes: Routes = [
   { path: 'drive/folder', component: FolderViewComponent },
   { path: 'drive/folder/', component: FolderViewComponent },
   { path: 'drive/folder/:folderId', component: FolderViewComponent },
-  { path: 'drive/system', component: SystemComponent },
+  { path: 'system', component: SystemComponent },
   { path: 'media-player', component: MediaPlayerComponent },
 ];
 

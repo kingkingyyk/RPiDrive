@@ -312,6 +312,8 @@ def delete_files(request):
             try:
                 FileUtils.delete_file_or_dir(os.path.join(
                     storage.base_path, f.relative_path))
+                if isinstance(f, FolderObject):
+                    Indexer.recurse_delete(f)
                 f.delete()
             except:
                 print(traceback.format_exc())

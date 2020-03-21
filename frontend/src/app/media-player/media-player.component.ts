@@ -5,7 +5,6 @@ import { DialogNewPlaylistComponent } from './dialog-new-playlist/dialog-new-pla
 import { FileService } from '../service/file.service';
 import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import { timer } from 'rxjs';
-import { runInThisContext } from 'vm';
 import { DialogAddMediaComponent } from './dialog-add-media/dialog-add-media.component';
 import { ConfirmDeletePlaylistComponent } from './confirm-delete-playlist/confirm-delete-playlist.component';
 import { MatExpansionPanel } from '@angular/material';
@@ -61,6 +60,8 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
         this.service.createPlaylist(result['name']).subscribe((data : Playlist) => {
           this.playlists.unshift(data);
           this.loadPlaylist(data);
+        }, error => {
+          alert('error');
         });
       }
     });
@@ -68,6 +69,9 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
 
   loadPlaylist(playlist : Playlist) {
     this.expPanel.expanded = false;
+    this.currPlayingMedia = null;
+    this.currPlayingIndex = -1
+    this.audioPlayerRef.nativeElement.src = '';
     this.service.getPlaylist(playlist.id).subscribe((data : Playlist) => {
       this.currPlaylistClean = JSON.parse(JSON.stringify(data));
       this.currPlaylist = data;
@@ -101,6 +105,8 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
             this.currPlaylist = null;
             this.currPlaylistClean = null;
           }
+        }, error => {
+          alert('error');
         });
       }
     })
@@ -109,7 +115,8 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
   persistPlaylist() {
     if (JSON.stringify(this.currPlaylistClean) != JSON.stringify(this.currPlaylist)) {
       this.service.updatePlaylist(this.currPlaylist).subscribe((data : Playlist) => {
-        this.currPlaylistClean = data;
+        this.currPlaylist = data;
+        this.currPlaylistClean = JSON.parse(JSON.stringify(this.currPlaylist));
       })
     }
   }
@@ -118,7 +125,12 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
     const diag = this.dialog.open(DialogAddMediaComponent, {data: this.currPlaylist});
     diag.afterClosed().subscribe(result => {
       if (result) {
-        this.currPlaylist.files.push.apply(result);
+        this.currPlaylist.files.push(...result);
+        if (!this.currPlayingMedia && this.currPlaylist.files.length > 0) {
+          if (this.currPlaylist.files.indexOf(this.currPlayingMedia) > 0) this.audioPlayerRef.nativeElement.play();
+          else this.playMedia(this.currPlaylist.files[0]);
+        }
+        this.persistPlaylist();
       }
     })
   }
@@ -128,19 +140,33 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
   }
 
   removeMediaFromPlaylist(playlist: Playlist, file : MediaFile) {
-    let index = playlist.files.indexOf(file);
-    playlist.files.splice(index);
-    if (playlist.files.length > 0) {
-      index = index % playlist.files.length;
-      if (playlist == this.currPlaylist) this.playMedia(playlist.files[index]);
-    } else this.audioPlayerRef.nativeElement.src = '';
+    let index = -1;
+    for (let i=0;i<playlist.files.length;i++) if (playlist.files[i].id === file.id) {
+      index = i;
+      break;
+    }
+    
+    if (index >= 0) {
+      playlist.files.splice(index,1);
+      if (playlist.files.length > 0) {
+        index = index % playlist.files.length;
+        if (playlist.id == this.currPlaylist.id) this.playMedia(this.currPlaylist.files[index]);
+      } else this.audioPlayerRef.nativeElement.src = '';
+    }
   }
 
   @ViewChild('audioPlayer') audioPlayerRef: ElementRef;
   playMedia(file : MediaFile) {
-    this.currPlayingMedia = file;
-    this.currPlayingIndex = this.currPlaylist.files.indexOf(this.currPlayingMedia);
-    this.audioPlayerRef.nativeElement.src = this.fservice.getFileDownloadURL(this.currPlayingMedia.id);
+    if (this.currPlayingMedia === file) {
+      if (this.audioPlayerRef.nativeElement.paused) this.audioPlayerRef.nativeElement.play();
+      else this.audioPlayerRef.nativeElement.pause();
+    } else {
+      this.currPlayingMedia = file;
+      this.currPlayingIndex = this.currPlaylist.files.indexOf(this.currPlayingMedia);
+      this.audioPlayerRef.nativeElement.src = this.fservice.getFileDownloadURL(this.currPlayingMedia.id);
+      this.audioPlayerRef.nativeElement.play();
+    }
+
   }
 
   onAudioEnded() {

@@ -29,7 +29,7 @@
         <p matLine *ngIf="element['primary']"><b>Primary</b></p>
         <p matLine *ngIf="!element['primary']"><b>Secondary</b></p>
 
-        <p matLine style="direction: rtl;">{{element['base-path']}}</p>
+        <p matLine>{{element['base-path']}}</p>
         <p matLine>
             <mat-progress-bar mode="determinate" value="{{element['used-space-percent']}}"></mat-progress-bar>
         </p>

@@ -86,6 +86,7 @@
 
 .app-icon {
     font-size: 64px;
+    margin-top: 5px;
 }
 
 .app-name {
@@ -103,5 +104,13 @@
     position: absolute;
     z-index: 7;
     width: 100%;
+    color: white;
+    text-align: center;
+    font-size: small;
+    padding-bottom: 2px;
+    line-height: 8px;
+}
+
+.footer a{
     color: white;
 }
