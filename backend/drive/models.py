@@ -57,7 +57,7 @@ class Storage(models.Model):
         
 class File(PolymorphicModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.TextField()
+    name = models.TextField(db_index=True)
     relative_path = models.TextField(unique=True, db_index=True)
     parent_folder = models.ForeignKey('FolderObject', on_delete=models.CASCADE, null=True)
     last_modified = models.DateTimeField()
@@ -101,7 +101,7 @@ class PictureFileObject(FileObject):
     focal_length = models.TextField(blank=True, null=True)
 
 class MusicFileObject(FileObject):
-    title = models.TextField()
+    title = models.TextField(db_index=True)
     artist = models.TextField(default="Unknown Artist", db_index=True)
     album = models.TextField(default="Unknown Album", db_index=True)
     genre = models.TextField(default="", blank=True, db_index=True)
@@ -130,7 +130,7 @@ class FileTypes:
         elif file_ext in ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
                                        'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx'):
             return FileTypes.COMPRESSED
-        elif file_ext in ('cpp', 'java', 'py', 'php', 'cs', 'txt'):
+        elif file_ext in ('cpp', 'java', 'py', 'php', 'cs', 'txt', 'log'):
             return FileTypes.CODE
         elif file_ext in ('exe', 'sh', 'bat'):
             return FileTypes.EXECUTABLE

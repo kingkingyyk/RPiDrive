@@ -42,7 +42,7 @@ export class FolderTasksComponent implements OnInit, OnDestroy {
       this.folderId = params['folderId'];
     });
 
-    this.timerSub = timer(0,10000).subscribe(t=> this.updateDownloads());
+    this.timerSub = timer(0,5000).subscribe(t=> this.updateDownloads());
   }
 
   ngOnDestroy() {

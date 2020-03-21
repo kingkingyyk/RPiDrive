@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'drive.apps.DriveConfig',
+    'mediaplayer.apps.MediaplayerConfig',
 ]
 
 MIDDLEWARE = [

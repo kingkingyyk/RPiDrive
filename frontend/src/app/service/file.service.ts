@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpRequest } from  '@angular/common/http';
-import {Observable} from 'rxjs'
-import { URLDownload } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -68,11 +66,11 @@ export class FileService {
     return this.httpClient.get(`${this.API_URL}/drive/angular-api/network-facts`)
   }
 
-  addURLDownload(data : URLDownload) {
+  addURLDownload(data : any) {
     const req = new HttpRequest('POST', `${this.API_URL}/drive/angular-api/download/add/url`, data);
     return this.httpClient.request(req)
   }
-  addMagnetDownload(data : URLDownload) {
+  addMagnetDownload(data : any) {
     const req = new HttpRequest('POST', `${this.API_URL}/drive/angular-api/download/add/magnet`, data);
     return this.httpClient.request(req)
   }

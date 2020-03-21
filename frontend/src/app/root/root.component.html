@@ -1,0 +1,18 @@
+<div class="background">
+    <div class="user"><button mat-button color="accent">Logout</button></div>
+    <div style="margin: 10%;"></div>
+    <div class="title">RPi Drive</div>
+
+    <div class="apps">
+        <div class="app-button" *ngFor="let app of apps" matRipple (click)="openApp(app)">
+            <div class="app-icon-container">
+                <mat-icon class="app-icon">{{app.icon}}</mat-icon>
+            </div>
+            <div class="app-name">{{app.name}}</div>
+        </div>
+    </div>
+
+</div>
+<div class="footer">
+    <a mat-button href="https://github.com/kingkingyyk/RPiDrive" target="_blank">GitHub</a>
+</div>

@@ -10,10 +10,10 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatProgressBarModule, MatTooltipModule, MatRippleModule,
         MatDialogModule, MatExpansionModule, MatFormFieldModule,
         MatInputModule, MatProgressSpinnerModule,
-        MatTreeModule } from  '@angular/material';
+        MatTreeModule, MatCardModule } from  '@angular/material';
         import { FormsModule, ReactiveFormsModule } from '@angular/forms';
         import { GoogleChartsModule } from 'angular-google-charts';
-        
+import {DragDropModule} from '@angular/cdk/drag-drop';
 import { FileService } from 'src/app/service/file.service';
 import { ClipboardModule } from 'ngx-clipboard';
 
@@ -38,6 +38,14 @@ import { RenameDialogComponent } from './folder-view/file-tasks/rename-dialog/re
 import { MoveFileDialogComponent } from './folder-view/file-tasks/move-file-dialog/move-file-dialog.component';
 import { DialogNewMagnetDownloadComponent } from './folder-view/folder-tasks/dialog-new-magnet-download/dialog-new-magnet-download.component';
 import { DialogNewTorrentDownloadComponent } from './folder-view/folder-tasks/dialog-new-torrent-download/dialog-new-torrent-download.component';
+import { RootComponent } from './root/root.component';
+import { LoginComponent } from './login/login.component';
+import { NavBarComponent } from './nav-bar/nav-bar.component';
+import { MediaPlayerComponent } from './media-player/media-player.component';
+import { DialogNewPlaylistComponent } from './media-player/dialog-new-playlist/dialog-new-playlist.component';
+import { MediaPlayerService } from './service/media-player.service';
+import { DialogAddMediaComponent } from './media-player/dialog-add-media/dialog-add-media.component';
+import { ConfirmDeletePlaylistComponent } from './media-player/confirm-delete-playlist/confirm-delete-playlist.component';
 
 export function getHighlightLanguages() {
   return {
@@ -72,6 +80,13 @@ export function getHighlightLanguages() {
     MoveFileDialogComponent,
     DialogNewMagnetDownloadComponent,
     DialogNewTorrentDownloadComponent,
+    RootComponent,
+    LoginComponent,
+    NavBarComponent,
+    MediaPlayerComponent,
+    DialogNewPlaylistComponent,
+    DialogAddMediaComponent,
+    ConfirmDeletePlaylistComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
@@ -84,6 +99,8 @@ export function getHighlightLanguages() {
     ConfirmDeleteDialogComponent,
     RenameDialogComponent,
     MoveFileDialogComponent,
+    DialogAddMediaComponent,
+    ConfirmDeletePlaylistComponent,
   ],
   imports: [
     BrowserModule,
@@ -112,9 +129,10 @@ export function getHighlightLanguages() {
     MatProgressSpinnerModule,
     FormsModule,
     ReactiveFormsModule,
-    //MatFileUploadModule,
+    MatCardModule,
     GoogleChartsModule,
     MatTreeModule,
+    DragDropModule,
   ],
   providers: [
     {
@@ -123,7 +141,8 @@ export function getHighlightLanguages() {
         languages: getHighlightLanguages()
       }
     },
-    FileService
+    FileService,
+    MediaPlayerService,
   ],
   bootstrap: [
     AppComponent

@@ -18,5 +18,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('drive/', include('drive.urls')),
+    path('media-player/', include('mediaplayer.urls')),
     path('admin/', admin.site.urls),
 ]

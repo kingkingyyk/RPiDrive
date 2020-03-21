@@ -1,9 +1,12 @@
-<mat-sidenav-container class="contain">
-    <mat-sidenav mode="side" opened>
-        <app-folder-tasks></app-folder-tasks>
-    </mat-sidenav>
-    <mat-sidenav-content style="padding: 20px">
-        <app-file-list></app-file-list>
-    </mat-sidenav-content>
-</mat-sidenav-container>
-<app-file-tasks></app-file-tasks>
+<app-nav-bar [title]="'File Explorer'" [searchbox]="true"></app-nav-bar>
+<div class="mat-app-background" style="margin-top: 0px">
+    <mat-sidenav-container class="contain">
+        <mat-sidenav mode="side" opened>
+            <app-folder-tasks></app-folder-tasks>
+        </mat-sidenav>
+        <mat-sidenav-content style="padding: 20px">
+            <app-file-list></app-file-list>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+    <app-file-tasks></app-file-tasks>
+</div>
