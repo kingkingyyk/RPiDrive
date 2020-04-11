@@ -1,6 +1,9 @@
 # RPi Drive
 
-A cloud drive based on [Django](https://www.djangoproject.com/) & [Materialize CSS](https://materializecss.com/).
+A cloud drive based on [Django](https://www.djangoproject.com/) & [Angular Material](https://material.angular.io/).
+
+#### Deployment Guide
+
 
 #### Development Guide
 - Install Docker & Docker-Compose
