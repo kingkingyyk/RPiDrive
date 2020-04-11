@@ -11,8 +11,7 @@ pipeline {
         }
         stage('Release') {
             steps {
-                sh '/home/lel/.local/bin/githubrelease asset kingkingyyk/RPiDrive delete develop-latest build.tar.gz'
-                sh '/home/lel/.local/bin/githubrelease asset kingkingyyk/RPiDrive upload develop-latest build.tar.gz'
+                sh '/home/lel/.local/bin/githubrelease asset kingkingyyk/RPiDrive upload $BRANCH_NAME-$BUILD_ID build.tar.gz'
             }
         }
     }
