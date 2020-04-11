@@ -11,6 +11,19 @@ import { PictureViewerComponent } from './picture-viewer/picture-viewer.componen
 import { VideoPlayerComponent } from './video-player/video-player.component';
 import { FileSelectionService } from 'src/app/service/file-selection.service';
 
+interface Folder {
+  id: string;
+  name: string;
+}
+interface File {
+  id: string;
+  name: string;
+  relative_path: string;
+  natural_last_modified: string;
+  natural_size: number;
+  type: string;
+  ext_type: string;
+}
 @Component({
   selector: 'app-file-list',
   templateUrl: './file-list.component.html',
@@ -18,16 +31,16 @@ import { FileSelectionService } from 'src/app/service/file-selection.service';
 })
 export class FileListComponent implements OnInit {
   displayedColumns = ['select', 'name', 'lastModified', 'size'] 
-  files  = new MatTableDataSource<object>([]);
+  files  = new MatTableDataSource<File>([]);
   folderId : string;
   folderName : string;
-  rootFolder: object;
-  parentFolder: object;
+  rootFolder: Folder;
+  parentFolder: Folder;
   parentFolders = [];
   selectedParentFolder: string;
   loaded = false;
 
-  selection = new SelectionModel<object>(true, []);
+  selection = new SelectionModel<File>(true, []);
 
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
@@ -51,7 +64,7 @@ export class FileListComponent implements OnInit {
       this.rootFolder = data['root-folder'];
       this.parentFolder = data['parent-folder'];
       this.parentFolders = data['parent-folders'];
-      this.files = new MatTableDataSource<object>(data['files']);
+      this.files = new MatTableDataSource<File>(data['files']);
       this.loaded = true;
     });
   }
@@ -91,14 +104,14 @@ export class FileListComponent implements OnInit {
     this.onSelectionChange(null, null);
   } 
 
-  checkboxLabel(row?: object): string {
+  checkboxLabel(row?: File): string {
     if (!row) {
       return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
     }
     return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row['position'] + 1}`;
   }
 
-  onSelectionChange(selection: SelectionModel<object>, row: object) {
+  onSelectionChange(selection: SelectionModel<File>, row: File) {
     if (selection != null) selection.toggle(row);
 
     let selectList: Object [] = [];

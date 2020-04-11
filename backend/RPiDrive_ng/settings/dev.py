@@ -33,3 +33,8 @@ from .settings import *
 INSTALLED_APPS += ['corsheaders']
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(os.path.dirname(BASE_DIR), 'static'),
+]

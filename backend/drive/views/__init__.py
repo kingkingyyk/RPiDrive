@@ -1,6 +1,7 @@
 from django.http.response import JsonResponse
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.shortcuts import render
 
 def get_user(request):
     if settings.DEBUG:
@@ -25,3 +26,6 @@ def requires_admin(function):
         else:
             return JsonResponse({}, status=401)
     return wrapper
+
+def index(request, **kwargs):
+    return render(request, 'drive/index.html')

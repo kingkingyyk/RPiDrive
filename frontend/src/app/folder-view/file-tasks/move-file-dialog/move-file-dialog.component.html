@@ -1,21 +1,23 @@
 <h1 mat-dialog-title><mat-icon>local_shipping</mat-icon>  Move files</h1>
-<ng-container *ngIf="!loading">
+<div *ngIf="!loading" style="height: 75%">
     <div>
-        <mat-icon *ngIf="currFolder.parentFolder.id" (click)="loadFolder(currFolder.parentFolder)" class="pointable">arrow_back</mat-icon>
+        <mat-icon *ngIf="currFolder.parentFolder" (click)="loadFolder(currFolder.parentFolder)" class="pointable">arrow_back</mat-icon>
         {{currFolder.name}}
     </div>
     <mat-divider></mat-divider>
-    <table>
-        <tr *ngFor="let element of currChildFolders">
-            <td (click)="loadFolder(element)" class="tr-pointable pointable" *ngIf="!filesIdToMove.includes(element.id)"><mat-icon>folder</mat-icon>{{element.name}}</td>
-            <td *ngIf="filesIdToMove.includes(element.id)" class="tr-unpointable"><mat-icon>folder</mat-icon>{{element.name}}</td>
-        </tr>
-    </table>
+    <div style="overflow-y: auto; max-height: 50vh">
+        <table>
+            <tr *ngFor="let element of currChildFolders">
+                <td (click)="loadFolder(element)" class="tr-pointable pointable" *ngIf="!filesIdToMove.includes(element.id)"><mat-icon>folder</mat-icon>{{element.name}}</td>
+                <td *ngIf="filesIdToMove.includes(element.id)" class="tr-unpointable"><mat-icon>folder</mat-icon>{{element.name}}</td>
+            </tr>
+        </table>
+    </div>
     <div mat-dialog-actions>
         <button mat-button (click)="moveFiles()" cdkFocusInitial>Move</button>
         <button mat-button (click)="onNoClick()">Close</button>
     </div>
-</ng-container>
+</div>
 <ng-container *ngIf="loading">
     <mat-spinner></mat-spinner>
 </ng-container>

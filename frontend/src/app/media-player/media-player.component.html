@@ -36,7 +36,7 @@
     <mat-list dense *ngIf="currPlaylist">
         <div mat-subheader>
             {{currPlaylist.name}}
-            <button mat-icon-button matTooltip="Add media" (click)="addMediaToList(currPlaylist)">
+            <button mat-icon-button matTooltip="Add media" (click)="addMediaToList()">
                 <mat-icon>add</mat-icon>
             </button>
             <button mat-icon-button matTooltip="Edit playlist" (click)="renamePlaylist(currPlaylist)">

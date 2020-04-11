@@ -16,7 +16,7 @@ export class NetworkUsageComponent implements OnInit {
   currDownload: number;
   loaded : boolean;
 
-  chartTitle = 'Bandwidth';
+  title = 'Bandwidth';
   type = 'LineChart';
   data = [];
   columnNames = ["Time", "Download", "Upload"];

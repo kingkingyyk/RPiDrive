@@ -36,7 +36,7 @@ export class RootComponent implements OnInit {
       this.userService.getCurrentUser().subscribe((data : CurrentUserResponse) => {
         if (data.loggedIn) {
           this.createApps(data.superuser);
-        } else window.open('/login', '_self');
+        } else window.open('/drive/login', '_self');
       }, error => {
         this.loadingCurrentUserError = false;
       }).add(() => this.loadingCurrentUser = false);
@@ -46,11 +46,11 @@ export class RootComponent implements OnInit {
   createApps(isSuperuser : boolean) {
     if (isSuperuser) {
       this.apps = [new App('File Explorer', 'storage', '/drive/folder'),
-                  new App('Media Player', 'play_arrow', '/media-player'),
-                  new App('System', 'settings', '/system')]
+                  new App('Media Player', 'play_arrow', '/drive/media-player'),
+                  new App('System', 'settings', '/drive/system')]
     } else {
       this.apps = [new App('File Explorer', 'storage', '/drive/folder'),
-                  new App('Media Player', 'play_arrow', '/media-player'),
+                  new App('Media Player', 'play_arrow', '/drive/media-player'),
       ]
     }
   }
@@ -59,6 +59,6 @@ export class RootComponent implements OnInit {
   }
 
   logout() {
-    this.userService.logout().subscribe((data : object) => {}).add(() => window.open('/login', '_self'));
+    this.userService.logout().subscribe((data : object) => {}).add(() => window.open('/drive/login', '_self'));
   }
 }

@@ -23,7 +23,7 @@
                     </tr>
                 </table>
                 <div *ngIf="failedLogin" style="color: red">Failed to login, please check username & password.</div>
-                <button mat-raised-button [disabled]="username.length == 0 || password == 0 || loggingIn"
+                <button mat-raised-button [disabled]="username.length == 0 || password.length == 0 || loggingIn"
                     (click)="login()" color="primary" type="submit">Login</button>
             </form>
             <mat-spinner [style.display]="loggingIn ? 'block' : 'none'"></mat-spinner>

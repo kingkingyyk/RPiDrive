@@ -9,9 +9,9 @@ import { MediaPlayerComponent } from './media-player/media-player.component';
 const routes: Routes = [
   { path: '', component: RootComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'drive/folder', component: FolderViewComponent },
-  { path: 'drive/folder/', component: FolderViewComponent },
-  { path: 'drive/folder/:folderId', component: FolderViewComponent },
+  { path: 'folder', component: FolderViewComponent },
+  { path: 'folder/', component: FolderViewComponent },
+  { path: 'folder/:folderId', component: FolderViewComponent },
   { path: 'system', component: SystemComponent },
   { path: 'media-player', component: MediaPlayerComponent },
 ];

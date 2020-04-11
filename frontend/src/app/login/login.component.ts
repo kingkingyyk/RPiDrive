@@ -23,7 +23,7 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.service.getCurrentUser().subscribe((data : CurrentUserResponse) => {
-      if (data.loggedIn) window.open('/', '_self');
+      if (data.loggedIn) window.open('/drive', '_self');
     });
   }
 
@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
     this.failedLogin = false;
     this.service.login(this.username, this.password).subscribe((data : LoginResponse) => {
       this.failedLogin = !data.success;
-      if (data.success) window.open('/', '_self');
+      if (data.success) window.open('/drive', '_self');
     }, error => {
       this.failedLogin = true;
     }).add(() => this.loggingIn = false);

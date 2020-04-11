@@ -9,24 +9,24 @@ export class MediaPlayerService {
   API_URL  =  environment.api_url + 'media-player/angular-api';
   constructor(private  httpClient:  HttpClient) {}
   searchPlaylists(kw : string) {
-    return this.httpClient.get(`${this.API_URL}/playlists/search`, {params: {name: kw}});
+    return this.httpClient.get(this.API_URL+'/playlists/search', {params: {name: kw}});
   }
   getPlaylists() {
-    return this.httpClient.get(`${this.API_URL}/playlists`);
+    return this.httpClient.get(this.API_URL+'/playlists');
   }
   createPlaylist(name : string) {
-    return this.httpClient.post(`${this.API_URL}/playlist/create`, JSON.stringify({'name': name}));
+    return this.httpClient.post(this.API_URL+'/playlist/create', JSON.stringify({'name': name}));
   }
   getPlaylist(playlistId : string) {
-    return this.httpClient.get(`${this.API_URL}/playlist/`+playlistId);
+    return this.httpClient.get(this.API_URL+'/playlist/'+playlistId);
   }
   updatePlaylist(data : object) {
-    return this.httpClient.post(`${this.API_URL}/playlist/`+data['id'], JSON.stringify(data));
+    return this.httpClient.post(this.API_URL+'/playlist/'+data['id'], JSON.stringify(data));
   }
   deletePlaylist(data : object) {
-    return this.httpClient.delete(`${this.API_URL}/playlist/`+data['id']);
+    return this.httpClient.delete(this.API_URL+'/playlist/'+data['id']);
   }
   searchMedia(kw: string) {
-    return this.httpClient.get(`${this.API_URL}/media/search`, {params: {name: kw}});
+    return this.httpClient.get(this.API_URL+'/media/search', {params: {name: kw}});
   }
 }

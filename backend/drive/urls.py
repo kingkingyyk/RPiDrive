@@ -1,13 +1,13 @@
-from django.urls import path, include
-from .views import views_file, views_system, views_downloader, views_user_accounts
+from django.urls import path, include, re_path
+from .views import views_file, views_system, views_downloader, views_user_accounts, index
 
 urlpatterns = [
     path(r'download/<file_id>', views_file.download),
 
     path(r'angular-api/folder-redirect/<folder_id>', views_file.get_folder_redirect),
-    path(r'angular-api/child-files/', views_file.get_child_files),
-    path(r'angular-api/child-folders/', views_file.get_child_folders),
-    path(r'angular-api/child-filenames/', views_file.get_child_filenames),
+    path(r'angular-api/child-files', views_file.get_child_files),
+    path(r'angular-api/child-folders', views_file.get_child_folders),
+    path(r'angular-api/child-filenames', views_file.get_child_filenames),
     path(r'angular-api/storages', views_file.get_storages),
 
     path(r'angular-api/create-new-folder', views_file.create_new_folder),
@@ -33,4 +33,7 @@ urlpatterns = [
 
     path(r'angular-api/system-facts', views_system.get_facts),
     path(r'angular-api/network-facts', views_system.get_network_facts),
+
+    re_path(r'^(?P<path>.*)/$', index),
+    re_path(r'$', index),
 ]
