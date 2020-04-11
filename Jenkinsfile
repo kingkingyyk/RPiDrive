@@ -7,7 +7,7 @@ pipeline {
                 sh build.sh
             }
         }
-        stage('Release) {
+        stage('Release') {
             steps {
                 githubrelease asset kingkingyyk/RPiDrive upload develop-latest build.tar.gz
             }
