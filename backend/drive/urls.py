@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import views_file, views_system, views_downloader
+from .views import views_file, views_system, views_downloader, views_user_accounts
 
 urlpatterns = [
     path(r'download/<file_id>', views_file.download),
@@ -23,6 +23,13 @@ urlpatterns = [
     path(r'angular-api/download/<gid>/resume', views_downloader.resume_download),
     path(r'angular-api/download/<gid>/pause', views_downloader.pause_download),
     path(r'angular-api/download/<gid>/cancel', views_downloader.cancel_download),
+
+    path(r'angular-api/user/login', views_user_accounts.login),
+    path(r'angular-api/user/logout', views_user_accounts.logout),
+    path(r'angular-api/user/current', views_user_accounts.current_user),
+    path(r'angular-api/users', views_user_accounts.list_users),
+    path(r'angular-api/user/create', views_user_accounts.create_user),
+    path(r'angular-api/user/<user_id>/manage', views_user_accounts.manage_user),
 
     path(r'angular-api/system-facts', views_system.get_facts),
     path(r'angular-api/network-facts', views_system.get_network_facts),

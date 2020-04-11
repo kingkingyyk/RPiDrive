@@ -5,7 +5,7 @@ from django.http.response import JsonResponse
 from mediaplayer.models import *
 import json
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
+from drive.views import requires_login, get_user
 
 
 def serialize_media(media):
@@ -48,7 +48,7 @@ def serialize_playlist(playlist, include_media_list):
                          for x in qs]
     return data
 
-
+@requires_login
 def search_playlists(request):
     name = request.GET.get('name', '')
     playlists = Playlist.objects.prefetch_related('user').filter(
@@ -57,7 +57,7 @@ def search_playlists(request):
     data = {'values': data}
     return JsonResponse(data)
 
-
+@requires_login
 def get_playlists(request):
     playlists = Playlist.objects.prefetch_related(
         'user').order_by('name').all()
@@ -67,9 +67,9 @@ def get_playlists(request):
 
 
 @require_http_methods(['POST'])
-@csrf_exempt
+@requires_login
 def create_playlist(request):
-    user = User.objects.first()
+    user = get_user(request)
     data = json.loads(request.body)
     p = Playlist(name=data['name'], user=user)
     p.save()
@@ -77,7 +77,7 @@ def create_playlist(request):
 
 
 @require_http_methods(['POST', 'GET', 'DELETE'])
-@csrf_exempt
+@requires_login
 def manage_playlist(request, playlist_id):
     if request.method == 'GET':
         playlist = get_object_or_404(Playlist, pk=playlist_id)

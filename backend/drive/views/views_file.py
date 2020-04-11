@@ -12,7 +12,6 @@ from django.db.models.functions import Lower
 from django.http import (HttpResponseBadRequest, JsonResponse,
                          StreamingHttpResponse)
 from django.shortcuts import get_object_or_404, render
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.timezone import get_current_timezone
 
@@ -22,8 +21,9 @@ from ..models import (File, FileObject, FileTypes, FolderObject,
                       MusicFileObject, PictureFileObject, Storage)
 from ..utils.connection_utils import RangeFileWrapper, range_re
 from ..utils.file_utils import FileUtils
+from . import requires_login
 
-
+@requires_login
 def get_folder_redirect(request, folder_id):
     try:
         folder = FolderObject.objects.get(pk=folder_id)
@@ -31,7 +31,7 @@ def get_folder_redirect(request, folder_id):
         folder = FolderObject.objects.get(parent_folder=None)
     return JsonResponse({'id': str(folder.pk)})
 
-
+@requires_login
 def get_child_files(request):
     def serialize_folder(f):
         return {'id': f.pk, 'name': f.name}
@@ -99,7 +99,7 @@ def get_child_files(request):
     }
     return JsonResponse(data)
 
-
+@requires_login
 def get_child_filenames(request):
     parent_folder_id = request.GET.get('parent-folder', None)
     parent_folder = None
@@ -115,7 +115,7 @@ def get_child_filenames(request):
             'filenames': [x for x in File.objects.filter(parent_folder=parent_folder).values_list('name', flat=True).all()]}
     return JsonResponse(data)
 
-
+@requires_login
 def get_child_folders(request):
     parent_folder_id = request.GET.get('parent-folder', None)
     try:
@@ -134,7 +134,7 @@ def get_child_folders(request):
     }
     return JsonResponse(data)
 
-
+@requires_login
 def get_storages(request):
     storages = Storage.objects.order_by('primary', 'base_path').all()
     data = [{
@@ -147,7 +147,7 @@ def get_storages(request):
     } for x in storages]
     return JsonResponse(data, safe=False)
 
-
+@requires_login
 def download(request, file_id):
     storage = get_object_or_404(Storage, primary=True)
     file = get_object_or_404(File, id=file_id)
@@ -178,7 +178,7 @@ def download(request, file_id):
 
 
 @require_http_methods(["POST"])
-@csrf_exempt
+@requires_login
 @transaction.atomic
 def create_new_folder(request):
     data = json.loads(request.body)
@@ -207,7 +207,7 @@ def create_new_folder(request):
 
 
 @require_http_methods(["POST"])
-@csrf_exempt
+@requires_login
 @transaction.atomic
 def upload_file(request, folder_id):
     storage = Storage.objects.get(primary=True)
@@ -226,7 +226,7 @@ def upload_file(request, folder_id):
     return JsonResponse({})
 
 @require_http_methods(["POST"])
-@csrf_exempt
+@requires_login
 @transaction.atomic
 def move_files(request, folder_id):
     storage = get_object_or_404(Storage, primary=True)
@@ -275,7 +275,7 @@ def move_files(request, folder_id):
         return JsonResponse({}, status=400)
 
 @require_http_methods(["POST"])
-@csrf_exempt
+@requires_login
 @transaction.atomic
 def rename_file(request, file_id):
     storage = Storage.objects.select_for_update().get(primary=True)
@@ -301,7 +301,7 @@ def rename_file(request, file_id):
         return JsonResponse({}, status=400)
 
 @require_http_methods(["POST"])
-@csrf_exempt
+@requires_login
 @transaction.atomic
 def delete_files(request):
     file_list = json.loads(request.body)
@@ -318,7 +318,3 @@ def delete_files(request):
             except:
                 print(traceback.format_exc())
     return JsonResponse({}, status=200)
-
-
-def add_download(request, folder_id):
-    pass

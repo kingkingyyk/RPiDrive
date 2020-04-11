@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from . import requires_admin
 import psutil, humanize, sys, platform, time
 
 def natural_bandwidth(value):
@@ -65,9 +66,10 @@ def retrieve_system_info(cpu=True, memory=True, sensors=True, env=True, network=
 
     return all_data
 
-
+@requires_admin
 def get_facts(request):
     return JsonResponse(retrieve_system_info(network=False))
 
+@requires_admin
 def get_network_facts(request):
     return JsonResponse(retrieve_system_info(cpu=False, memory=False, sensors=False, env=False))

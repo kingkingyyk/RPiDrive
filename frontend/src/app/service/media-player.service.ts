@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpRequest } from  '@angular/common/http';
+import { HttpClient } from  '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MediaPlayerService {
-  API_URL  =  'http://localhost:8000/media-player/angular-api';
+  API_URL  =  environment.api_url + 'media-player/angular-api';
   constructor(private  httpClient:  HttpClient) {}
   searchPlaylists(kw : string) {
     return this.httpClient.get(`${this.API_URL}/playlists/search`, {params: {name: kw}});

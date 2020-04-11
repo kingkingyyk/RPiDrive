@@ -1,17 +1,24 @@
 <div class="background">
-    <div class="user"><button mat-button color="accent">Logout</button></div>
-    <div style="margin: 10%;"></div>
-    <div class="title">RPi Drive</div>
 
-    <div class="apps">
-        <div class="app-button" *ngFor="let app of apps" matRipple (click)="openApp(app)">
-            <div class="app-icon-container">
-                <mat-icon class="app-icon">{{app.icon}}</mat-icon>
+    <ng-container *ngIf="!loadingCurrentUser">
+        <div class="user"><button mat-button color="accent" (click)="logout()">Logout</button></div>
+        <div style="margin: 10%;"></div>
+        <div class="title">RPi Drive</div>
+    
+        <div class="apps">
+            <div class="app-button" *ngFor="let app of apps" matRipple (click)="openApp(app)">
+                <div class="app-icon-container">
+                    <mat-icon class="app-icon">{{app.icon}}</mat-icon>
+                </div>
+                <div class="app-name">{{app.name}}</div>
             </div>
-            <div class="app-name">{{app.name}}</div>
         </div>
-    </div>
+    </ng-container>
 
+    <div style="width: 100%; text-align: center; margin-top: 20%" *ngIf="loadingCurrentUser">
+        <mat-spinner style="margin:0 auto;"></mat-spinner>
+        <p>RPi Drive is loading...</p>
+    </div>
 </div>
 <div class="footer">
     <p>

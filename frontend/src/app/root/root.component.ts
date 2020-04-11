@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { UserService } from '../service/user.service';
+import { environment } from 'src/environments/environment';
 
 class App {
   name: string;
@@ -11,25 +13,52 @@ class App {
     this.url = url;
   }
 }
+interface CurrentUserResponse {
+  loggedIn: boolean;
+  superuser: boolean;
+}
 @Component({
   selector: 'app-root',
   templateUrl: './root.component.html',
   styleUrls: ['./root.component.css']
 })
 export class RootComponent implements OnInit {
+  loadingCurrentUser = false;
+  loadingCurrentUserError = false;
   apps : App[];
 
-  constructor() {
-    this.apps = [new App('File Explorer', 'storage', '/drive/folder'),
-                 new App('Media Player', 'play_arrow', '/media-player'),
-                 new App('System', 'settings', '/system')]
-
-  }
+  constructor(private userService : UserService) {}
 
   ngOnInit(): void {
+    if (environment.production) {
+      this.loadingCurrentUser = true;
+      this.loadingCurrentUserError = false;
+      this.userService.getCurrentUser().subscribe((data : CurrentUserResponse) => {
+        if (data.loggedIn) {
+          this.createApps(data.superuser);
+        } else window.open('/login', '_self');
+      }, error => {
+        this.loadingCurrentUserError = false;
+      }).add(() => this.loadingCurrentUser = false);
+    } else this.createApps(true);
   }
 
+  createApps(isSuperuser : boolean) {
+    if (isSuperuser) {
+      this.apps = [new App('File Explorer', 'storage', '/drive/folder'),
+                  new App('Media Player', 'play_arrow', '/media-player'),
+                  new App('System', 'settings', '/system')]
+    } else {
+      this.apps = [new App('File Explorer', 'storage', '/drive/folder'),
+                  new App('Media Player', 'play_arrow', '/media-player'),
+      ]
+    }
+  }
   openApp(app : App) : void {
     window.open(app.url, '_self')
+  }
+
+  logout() {
+    this.userService.logout().subscribe((data : object) => {}).add(() => window.open('/login', '_self'));
   }
 }

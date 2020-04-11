@@ -10,11 +10,13 @@ import { MatToolbarModule, MatIconModule, MatSidenavModule,
         MatProgressBarModule, MatTooltipModule, MatRippleModule,
         MatDialogModule, MatExpansionModule, MatFormFieldModule,
         MatInputModule, MatProgressSpinnerModule,
-        MatTreeModule, MatCardModule, MatTabsModule } from  '@angular/material';
+        MatTreeModule, MatCardModule, MatTabsModule, MatSnackBarModule } from  '@angular/material';
         import { FormsModule, ReactiveFormsModule } from '@angular/forms';
         import { GoogleChartsModule } from 'angular-google-charts';
 import {DragDropModule} from '@angular/cdk/drag-drop';
 import { FileService } from 'src/app/service/file.service';
+import { MediaPlayerService } from './service/media-player.service';
+import { UserService } from 'src/app/service/user.service';
 import { ClipboardModule } from 'ngx-clipboard';
 
 import { FileListComponent } from './folder-view/file-list/file-list.component';
@@ -43,9 +45,12 @@ import { LoginComponent } from './login/login.component';
 import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { MediaPlayerComponent } from './media-player/media-player.component';
 import { DialogNewPlaylistComponent } from './media-player/dialog-new-playlist/dialog-new-playlist.component';
-import { MediaPlayerService } from './service/media-player.service';
+
 import { DialogAddMediaComponent } from './media-player/dialog-add-media/dialog-add-media.component';
 import { ConfirmDeletePlaylistComponent } from './media-player/confirm-delete-playlist/confirm-delete-playlist.component';
+import { UserAccountsComponent } from './system/user-accounts/user-accounts.component';
+import { DeleteComponent } from './system/user-accounts/delete/delete.component';
+import { EditComponent } from './system/user-accounts/edit/edit.component';
 
 export function getHighlightLanguages() {
   return {
@@ -87,6 +92,9 @@ export function getHighlightLanguages() {
     DialogNewPlaylistComponent,
     DialogAddMediaComponent,
     ConfirmDeletePlaylistComponent,
+    UserAccountsComponent,
+    DeleteComponent,
+    EditComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
@@ -135,6 +143,7 @@ export function getHighlightLanguages() {
     MatTreeModule,
     DragDropModule,
     MatTabsModule,
+    MatSnackBarModule,
   ],
   providers: [
     {
@@ -145,6 +154,7 @@ export function getHighlightLanguages() {
     },
     FileService,
     MediaPlayerService,
+    UserService,
   ],
   bootstrap: [
     AppComponent

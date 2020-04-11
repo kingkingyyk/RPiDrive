@@ -1,7 +1,6 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FileService } from 'src/app/service/file.service'
-import { interval, bindCallback } from 'rxjs';
-import { flatMap } from 'rxjs/operators'
+import { timer } from 'rxjs';
 
 @Component({
   selector: 'app-network-usage',
@@ -66,22 +65,18 @@ export class NetworkUsageComponent implements OnInit {
   width = 1000;
   height = "auto";
 
-  intervalQueryId: number;
+  timer: any;
 
   constructor(private fileService: FileService) {}
 
   ngOnInit() {
-    this.fileService.getNetworkFacts().subscribe((data:  object) => this.setData(data));
-
-    let intervalQueryId = interval(2000)
-    .pipe(
-        flatMap(() => this.fileService.getNetworkFacts())
-    )
-    .subscribe((data:  object) => this.setData(data));
+    this.timer = timer(0, 2000).subscribe(() => {
+      this.loadData();
+    })
   }
 
   ngOnDestroy() {
-    if (this.intervalQueryId) clearInterval(this.intervalQueryId);
+    if (this.timer) this.timer.unsubscribe();
   }
 
   convertTotalUsage(value: number) {
@@ -92,6 +87,10 @@ export class NetworkUsageComponent implements OnInit {
       idx += 1;
     }
     return value.toFixed(1)+" "+units[idx];
+  }
+
+  loadData() {
+    this.fileService.getNetworkFacts().subscribe((data:  object) => this.setData(data));
   }
 
   setData(data: object) {
@@ -114,7 +113,7 @@ export class NetworkUsageComponent implements OnInit {
   }
 
   resizeChart() {
-    this.width = Math.max(document.documentElement.clientWidth, window.innerWidth || 0) - 40;
+    this.width = Math.max(document.documentElement.clientWidth, window.innerWidth || 0) - 240;
     if (this.width < 500) this.options.chartArea.width = "50%";
     else if (this.width < 1200) this.options.chartArea.width = "60%";
     else this.options.chartArea.width = "70%";

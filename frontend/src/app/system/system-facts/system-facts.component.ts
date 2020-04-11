@@ -1,30 +1,34 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FileService } from 'src/app/service/file.service';
-import { interval } from 'rxjs';
-import { flatMap } from 'rxjs/operators'
+import { timer } from 'rxjs';
 
 @Component({
   selector: 'app-system-facts',
   templateUrl: './system-facts.component.html',
   styleUrls: ['./system-facts.component.css']
 })
-export class SystemFactsComponent implements OnInit {
+export class SystemFactsComponent implements OnInit, OnDestroy {
   cpu : object;
   memory : object;
   sensors : object;
   environment : object;
   loaded : boolean;
+  timer : any;
 
   constructor(private fileService: FileService) {}
 
   ngOnInit() {
-    this.fileService.getSystemFacts().subscribe((data:  object) => this.setData(data));
+    this.timer = timer(0, 5000).subscribe(() => {
+      this.loadData();
+    })
+  }
 
-    interval(5*1000)
-    .pipe(
-        flatMap(() => this.fileService.getSystemFacts())
-    )
-    .subscribe((data:  object) => this.setData(data));
+  ngOnDestroy() {
+    if (this.timer) this.timer.unsubscribe();
+  }
+
+  loadData() {
+    this.fileService.getSystemFacts().subscribe((data:  object) => this.setData(data));
   }
 
   setData(data: object) {

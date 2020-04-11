@@ -2,7 +2,7 @@ from aria2p import API, Client
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.http.response import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from . import requires_login
 import json
 
 
@@ -11,7 +11,7 @@ def get_aria2_api():
 
 
 @require_http_methods(["POST"])
-@csrf_exempt
+@requires_login
 def add_url_download(request):
     data = json.loads(request.body)
     if not data['url'].startswith('http://') and not data['url'].startswith('https://'):
@@ -28,7 +28,7 @@ def add_url_download(request):
 
 
 @require_http_methods(['POST'])
-@csrf_exempt
+@requires_login
 def add_magnet_download(request):
     data = json.loads(request.body)
     if not data['url'].startswith('magnet:?xt='):
@@ -38,11 +38,11 @@ def add_magnet_download(request):
 
 
 @require_http_methods(['POST'])
-@csrf_exempt
+@requires_login
 def add_torrent_download(request):
     return JsonResponse({})
 
-
+@requires_login
 def get_downloads(request):
     data = []
     for download in get_aria2_api().get_downloads():
@@ -59,7 +59,7 @@ def get_downloads(request):
 
 
 @require_http_methods(['PUT'])
-@csrf_exempt
+@requires_login
 def pause_download(request, gid):
     try:
         get_aria2_api().get_download(gid).pause(True)
@@ -69,7 +69,7 @@ def pause_download(request, gid):
 
 
 @require_http_methods(['PUT'])
-@csrf_exempt
+@requires_login
 def resume_download(request, gid):
     try:
         get_aria2_api().get_download(gid).resume()
@@ -79,7 +79,7 @@ def resume_download(request, gid):
 
 
 @require_http_methods(['DELETE'])
-@csrf_exempt
+@requires_login
 def cancel_download(request, gid):
     try:
         get_aria2_api().get_download(gid).remove(True, True)
