@@ -6,12 +6,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'build.sh'
+                sh 'sh ./build.sh'
             }
         }
         stage('Release') {
             steps {
-                githubrelease 'asset kingkingyyk/RPiDrive upload develop-latest build.tar.gz'
+                sh 'githubrelease asset kingkingyyk/RPiDrive upload develop-latest build.tar.gz'
             }
         }
     }
