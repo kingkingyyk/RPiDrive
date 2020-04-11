@@ -11,7 +11,7 @@ pipeline {
         }
         stage('Release') {
             steps {
-                sh 'githubrelease asset kingkingyyk/RPiDrive upload develop-latest build.tar.gz'
+                sh '$(which githubrelease) asset kingkingyyk/RPiDrive upload develop-latest build.tar.gz'
             }
         }
     }
