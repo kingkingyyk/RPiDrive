@@ -1,10 +1,11 @@
 psycopg2
 django
 requests
-pika
 eyed3
 django-annoying
 humanize
 psutil
 aria2p
 gunicorn
+django-polymorphic
+exif

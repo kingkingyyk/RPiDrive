@@ -15,16 +15,16 @@ export class MediaPlayerService {
     return this.httpClient.get(this.API_URL+'/playlists');
   }
   createPlaylist(name : string) {
-    return this.httpClient.post(this.API_URL+'/playlist/create', JSON.stringify({'name': name}));
+    return this.httpClient.post(this.API_URL+'/playlist/create', JSON.stringify({'name': name}), {withCredentials: true});
   }
   getPlaylist(playlistId : string) {
     return this.httpClient.get(this.API_URL+'/playlist/'+playlistId);
   }
   updatePlaylist(data : object) {
-    return this.httpClient.post(this.API_URL+'/playlist/'+data['id'], JSON.stringify(data));
+    return this.httpClient.post(this.API_URL+'/playlist/'+data['id'], JSON.stringify(data), {withCredentials: true});
   }
   deletePlaylist(data : object) {
-    return this.httpClient.delete(this.API_URL+'/playlist/'+data['id']);
+    return this.httpClient.delete(this.API_URL+'/playlist/'+data['id'], {withCredentials: true});
   }
   searchMedia(kw: string) {
     return this.httpClient.get(this.API_URL+'/media/search', {params: {name: kw}});

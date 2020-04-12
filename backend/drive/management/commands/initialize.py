@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not Storage.objects.exists():
-            Storage(base_path=settings.STORAGE_DIR).save()
+            Storage(base_path=settings.STORAGE_DIR, primary=True).save()
         if not User.objects.exists():
             User.objects.create_superuser(username=settings.ADMIN_USER,
                                           email=settings.ADMIN_USER+'@rpidrive.com',

@@ -10,10 +10,10 @@ export class UserService {
   constructor(private  httpClient:  HttpClient) {}
   login(username: string, password: string) {
     let data = {'u': username, 'p': password};
-    return this.httpClient.post(this.API_URL+'drive/angular-api/user/login', JSON.stringify(data));
+    return this.httpClient.post(this.API_URL+'drive/angular-api/user/login', JSON.stringify(data), {withCredentials: true});
   }
   logout() {
-    return this.httpClient.post(this.API_URL+'drive/angular-api/user/logout', '');
+    return this.httpClient.post(this.API_URL+'drive/angular-api/user/logout', '', {withCredentials: true});
   }
   getCurrentUser() {
     return this.httpClient.get(this.API_URL+'drive/angular-api/user/current')
@@ -23,13 +23,13 @@ export class UserService {
   }
   createUser(username: string, password: string, superuser: boolean) {
     let data = {'u': username, 'p': password, 'superuser': superuser};
-    return this.httpClient.post(this.API_URL+'drive/angular-api/user/create', JSON.stringify(data));
+    return this.httpClient.post(this.API_URL+'drive/angular-api/user/create', JSON.stringify(data), {withCredentials: true});
   }
   updateUser(userId: number, username: string, password: string, superuser: boolean) {
     let data = {'u': username, 'p': password, 'superuser': superuser};
-    return this.httpClient.post(this.API_URL+'drive/angular-api/user/'+userId.toString()+'/manage', JSON.stringify(data));
+    return this.httpClient.post(this.API_URL+'drive/angular-api/user/'+userId.toString()+'/manage', JSON.stringify(data), {withCredentials: true});
   }
   deleteUser(userId: number) {
-    return this.httpClient.delete(this.API_URL+'drive/angular-api/user/'+userId.toString()+'/manage');
+    return this.httpClient.delete(this.API_URL+'drive/angular-api/user/'+userId.toString()+'/manage', {withCredentials: true});
   }
 }
