@@ -10,4 +10,4 @@ RUN apt update && \
 EXPOSE 8080
 ENV DJANGO_SETTINGS_MODULE RPiDrive_ng.settings.prod
 
-CMD ["gunicorn", "-w", "9", "-b" "0.0.0.0:8888", "RPiDrive_ng.wsgi", "--timeout", "3000", "--preload"]
+ENTRYPOINT "cd /mnt && python manage.py initialize && gunicorn -w 9 -b 0.0.0.0:8888 RPiDrive_ng.wsgi --timeout 3000 --preload"

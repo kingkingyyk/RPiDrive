@@ -18,3 +18,22 @@ services:
       RPC_SECRET: rpidrive
     volumes:
       - $HOME/shared/Downloads:/downloads
+  drive:
+    image: rpidrive:latest
+    ports:
+      - "8888:8888"
+    environment:
+      SECRET_KEY: fncxsng(81-$ruzd$h-w3v8f-qj)2e)u*$w+f&!c!)7mx62^oq
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      ARIA2_HOST: localhost
+      ARIA2_PORT: 6800
+      AIRA2_SECRET: rpidrive
+      ALLOWED_HOSTS: *
+      ADMIN_USER: rpidrive
+      ADMIN_PASSWORD: rpidrivepass
+      STORAGE_DIR: /mnt/drive
+    volumes:
+      - /mnt/drive:/mnt/drive
