@@ -2,37 +2,34 @@
 
 A cloud drive based on [Django](https://www.djangoproject.com/) & [Angular Material](https://material.angular.io/).
 
-#### Deployment Guide
-
-
 #### Development Guide
-- Install Docker & Docker-Compose
+- Install Docker, Python3.7+, NodeJS
 ```
 git clone https://www.github.com/kingkingyyk/RPiDrive.git
-cd RPiDrive/docker
-docker compose up -d
+cd RPiDrive/frontend
+npm install --save
+cd ../backend
+sudo apt install libpq-dev gcc python3.7-dev
+python3.7 -m pip install -r requirements
+cd ../docker
+sudo docker-compose -f docker-compose-dev.yml up -d
 ```
-- Install Python 3.7+
+- Change settings in `RPiDrive_ng/settings/dev.py
 ```
 cd ../backend
-pip install -r requirements.txt
-python manage.py makemigrations
-python manage.py makemigrations drive
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
-- Go to `http://localhost:8000/admin/`
-- Add a drive object
-- Add a path to storage object, set it as primary, link it to the drive object you created just now.
-- Go to `http://localhost:8000/drive/`
-- Perform login on superuser
-- Install Node
-```
+python3.7 manage.py makemigrations
+python3.7 manage.py migrate
+python3.7 manage.py makemigrations drive
+python3.7 manage.py migrate drive
+python3.7 manage.py makemigrations mediaplayer
+python3.7 manage.py migrate mediaplayer
+python3.7 manage.py initialize
+python3.7 manage.py indexer
+python3.7 manage.py runserver 0.0.0.0:8000
 cd ../frontend
 ng serve
 ```
-- Go to `http://localhost:4200/drive/folder/1`
+- Go to `http://localhost:4200`
 - ..... This is a development branch and more information will be updated.
 
 

@@ -9,3 +9,4 @@ aria2p
 gunicorn
 django-polymorphic
 exif
+django-cors-headers

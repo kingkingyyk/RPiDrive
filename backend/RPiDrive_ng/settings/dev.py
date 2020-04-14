@@ -38,3 +38,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(os.path.dirname(BASE_DIR), 'static'),
 ]
+
+ADMIN_USER = 'rpidrive'
+ADMIN_PASSWORD = 'rpidrive'
