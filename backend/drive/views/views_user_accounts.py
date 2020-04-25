@@ -7,11 +7,12 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
+from drive.utils.login_protect import LoginProtect
 
 from . import requires_admin, requires_login
 
-
 @require_http_methods(["POST"])
+@LoginProtect.apply_login_protect
 def login(request):
     data = json.loads(request.body)
     success = False

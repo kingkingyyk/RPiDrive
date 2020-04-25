@@ -86,3 +86,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+LOGIN_ATTEMPT_LIMIT = 5
+LOGIN_ATTEMPT_TIMEOUT = 5
