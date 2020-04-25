@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../service/user.service';
 import { environment } from 'src/environments/environment';
+import { Title } from '@angular/platform-browser';
 
 class App {
   name: string;
@@ -27,9 +28,11 @@ export class RootComponent implements OnInit {
   loadingCurrentUserError = false;
   apps : App[];
 
-  constructor(private userService : UserService) {}
+  constructor(private userService : UserService,
+              private titleService : Title) {}
 
   ngOnInit(): void {
+    this.titleService.setTitle('RPiDrive Menu');
     if (environment.production) {
       this.loadingCurrentUser = true;
       this.loadingCurrentUserError = false;

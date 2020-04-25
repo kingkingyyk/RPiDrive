@@ -8,6 +8,7 @@ import { timer } from 'rxjs';
 import { DialogAddMediaComponent } from './dialog-add-media/dialog-add-media.component';
 import { ConfirmDeletePlaylistComponent } from './confirm-delete-playlist/confirm-delete-playlist.component';
 import { MatExpansionPanel } from '@angular/material';
+import { Title } from '@angular/platform-browser';
 
 interface GetPlaylistsResult {
   values: Playlist[];
@@ -41,6 +42,7 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
 
   constructor(private service : MediaPlayerService,
               private fservice : FileService,
+              private titleService: Title,
               private dialog: MatDialog) {}
 
   ngOnInit(): void {
@@ -158,13 +160,20 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
   @ViewChild('audioPlayer') audioPlayerRef: ElementRef;
   playMedia(file : MediaFile) {
     if (this.currPlayingMedia === file) {
-      if (this.audioPlayerRef.nativeElement.paused) this.audioPlayerRef.nativeElement.play();
-      else this.audioPlayerRef.nativeElement.pause();
+      if (this.audioPlayerRef.nativeElement.paused) {
+        this.audioPlayerRef.nativeElement.play();
+        this.titleService.setTitle('Now playing - '+file.name);
+      }
+      else {
+        this.audioPlayerRef.nativeElement.pause();
+        this.titleService.setTitle('Paused - '+file.name);
+      }
     } else {
       this.currPlayingMedia = file;
       this.currPlayingIndex = this.currPlaylist.files.indexOf(this.currPlayingMedia);
       this.audioPlayerRef.nativeElement.src = this.fservice.getFileDownloadURL(this.currPlayingMedia.id);
       this.audioPlayerRef.nativeElement.play();
+      this.titleService.setTitle('Now playing - '+file.name);
     }
 
   }
@@ -173,5 +182,6 @@ export class MediaPlayerComponent implements OnInit, OnDestroy {
     this.currPlayingIndex = (this.currPlaylist.files.indexOf(this.currPlayingMedia) + 1) % this.currPlaylist.files.length;
     this.currPlayingMedia = this.currPlaylist.files[this.currPlayingIndex];
     this.audioPlayerRef.nativeElement.src = this.fservice.getFileDownloadURL(this.currPlayingMedia.id);
+    this.titleService.setTitle('Now playing - '+this.currPlayingMedia.name);
   }
 }

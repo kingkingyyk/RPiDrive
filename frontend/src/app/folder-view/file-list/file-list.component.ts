@@ -10,6 +10,7 @@ import { CodeViewerComponent } from './code-viewer/code-viewer.component';
 import { PictureViewerComponent } from './picture-viewer/picture-viewer.component';
 import { VideoPlayerComponent } from './video-player/video-player.component';
 import { FileSelectionService } from 'src/app/service/file-selection.service';
+import { Title } from '@angular/platform-browser';
 
 interface Folder {
   id: string;
@@ -47,7 +48,8 @@ export class FileListComponent implements OnInit {
   constructor(private activatedRoute: ActivatedRoute, 
               private fileService: FileService, 
               public dialog: MatDialog,
-              private fileSelectionService : FileSelectionService) {}
+              private fileSelectionService : FileSelectionService,
+              private titleService: Title) {}
 
   ngOnInit() {
     this.activatedRoute.params.subscribe( params => {
@@ -58,6 +60,7 @@ export class FileListComponent implements OnInit {
 
   loadFileList() {
     this.loaded = false;
+    this.titleService.setTitle('RPi Drive');
     this.fileService.getFileList(this.folderId).subscribe((data:  object) => {
       this.folderId = data['id'];
       this.folderName = data['name'];
@@ -66,6 +69,7 @@ export class FileListComponent implements OnInit {
       this.parentFolders = data['parent-folders'];
       this.files = new MatTableDataSource<File>(data['files']);
       this.loaded = true;
+      this.titleService.setTitle(this.folderName);
     });
   }
 

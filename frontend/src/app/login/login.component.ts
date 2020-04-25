@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../service/user.service';
+import { Title } from '@angular/platform-browser';
 
 interface CurrentUserResponse {
   loggedIn: boolean;
@@ -19,9 +20,11 @@ export class LoginComponent implements OnInit {
   loggingIn = false;
   failedLogin = false;
 
-  constructor(private service : UserService) { }
+  constructor(private service : UserService,
+              private titleService: Title) { }
 
   ngOnInit(): void {
+    this.titleService.setTitle('RPiDrive Login')
     this.service.getCurrentUser().subscribe((data : CurrentUserResponse) => {
       if (data.loggedIn) window.open('/drive', '_self');
     });
