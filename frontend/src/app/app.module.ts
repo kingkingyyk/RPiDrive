@@ -51,6 +51,7 @@ import { ConfirmDeletePlaylistComponent } from './media-player/confirm-delete-pl
 import { UserAccountsComponent } from './system/user-accounts/user-accounts.component';
 import { DeleteComponent } from './system/user-accounts/delete/delete.component';
 import { EditComponent } from './system/user-accounts/edit/edit.component';
+import { RequiresLoginComponent } from './requires-login/requires-login.component';
 
 export function getHighlightLanguages() {
   return {
@@ -95,6 +96,7 @@ export function getHighlightLanguages() {
     UserAccountsComponent,
     DeleteComponent,
     EditComponent,
+    RequiresLoginComponent,
   ],
   entryComponents: [
     MusicPlayerComponent,
