@@ -22,7 +22,7 @@ def login(request):
     if user is not None:
         d_login(request, user)
         success = True
-    return JsonResponse({'success': success})
+    return JsonResponse({'success': success}), success
 
 
 @require_http_methods(["POST"])
