@@ -52,7 +52,7 @@ def list_users(request):
 @transaction.atomic
 def create_user(request):
     data = json.loads(request.body)
-    if data['superuser']:
+    if data.get('superuser', False):
         user = User.objects.create_superuser(username=data['u'],
                                             email=data['u']+'@rpidrive.com',
                                             password=data['p'])
@@ -72,7 +72,7 @@ def manage_user(request, user_id):
         user.is_username = data['u']
         if data['p']:
             user.set_password(data['p'])
-        user.is_superuser = data['superuser']
+        user.is_superuser = data.get('superuser', False)
         user.save()
     else:
         user.delete()
