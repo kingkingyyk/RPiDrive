@@ -86,3 +86,8 @@ def cancel_download(request, gid):
     except:
         return JsonResponse({}, status=400)
     return JsonResponse({})
+
+def update_disk_cache():
+    options = get_aria2_api().get_global_options()
+    options.disk_cache = settings.ARIA2_DISK_CACHE
+    get_aria2_api().set_global_options(options)

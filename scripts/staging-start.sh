@@ -6,6 +6,7 @@ export DB_PORT=5432
 export ARIA2_HOST=localhost
 export ARIA2_PORT=6800
 export ARIA2_SECRET=rpidrive
+export ARIA2_DISK_CACHE=256M
 export ALLOWED_HOSTS=*
 export ADMIN_USER=rpidrive
 export ADMIN_PASSWORD=rpidrivepass

@@ -31,6 +31,7 @@ services:
       ARIA2_HOST: localhost
       ARIA2_PORT: 6800
       ARIA2_SECRET: rpidrive
+      ARIA2_DISK_CACHE: 256M
       ALLOWED_HOSTS: *
       ADMIN_USER: rpidrive
       ADMIN_PASSWORD: rpidrivepass
