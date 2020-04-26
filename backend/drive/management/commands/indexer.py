@@ -39,10 +39,7 @@ class Indexer:
     @staticmethod
     def update_folder(base_path, parent_folder, full_path):
         name = os.path.basename(full_path) if parent_folder else 'My Drive'
-        if base_path == full_path:
-            rp = ''
-        else:
-            rp = full_path[len(base_path)+1:]
+        rp = '' if base_path == full_path else full_path[len(base_path)+1:]
         last_modified = datetime.fromtimestamp(
             os.path.getmtime(full_path), tz=get_current_timezone())
 
@@ -63,8 +60,9 @@ class Indexer:
             queue.put(start_folder)
             while not queue.empty():
                 curr_folder = queue.get()
+                curr_folder_rp = '' if base_path == curr_folder else curr_folder[len(base_path)+1:]
                 curr_folder_obj = FolderObject.objects.get(
-                    relative_path=curr_folder[len(base_path)+1:])
+                    relative_path=curr_folder_rp)
 
                 for f in File.objects.filter(parent_folder=curr_folder_obj).all():
                     fp = os.path.join(base_path, f.relative_path)
