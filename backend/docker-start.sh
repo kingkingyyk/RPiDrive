@@ -1,3 +1,4 @@
+cd /mnt
 export DJANGO_SETTINGS_MODULE=RPiDrive_ng.settings.prod
 python manage.py makemigrations
 python manage.py makemigrations drive
