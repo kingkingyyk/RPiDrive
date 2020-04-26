@@ -84,7 +84,7 @@ class FolderObject(File):
     pass
 
 class FileObject(File):
-    size = models.PositiveIntegerField()
+    size = models.BigIntegerField()
 
     @property
     def natural_size(self):
