@@ -12,4 +12,6 @@ export ADMIN_USER=rpidrive
 export ADMIN_PASSWORD=rpidrivepass
 export STORAGE_DIR=/home/lel/shared
 cd ../backend
+python3.7 manage.py initialize --settings=RPiDrive_ng.settings.prod
+python3.7 manage.py indexer --settings=RPiDrive_ng.settings.prod
 python3.7 manage.py runserver 0.0.0.0:8000 --settings=RPiDrive_ng.settings.prod
