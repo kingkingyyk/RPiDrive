@@ -1,7 +1,7 @@
 import os
 
 OS_EVARS = ['SECRET_KEY', 'DB_USER', 'DB_PASSWORD', 'DB_HOST',
-            'DB_PORT', 'ARIA2_HOST', 'ARIA2_PORT', 'ARIA2_SECRET', 'ARIA2_DISK_CACHE'
+            'DB_PORT', 'ARIA2_HOST', 'ARIA2_PORT', 'ARIA2_SECRET', 'ARIA2_DISK_CACHE',
             'ALLOWED_HOSTS', 'STORAGE_DIR', 'ADMIN_USER', 'ADMIN_PASSWORD']
 OS_EVARS_MISSING = [x for x in OS_EVARS if os.environ.get(x, None) is None]
 if len(OS_EVARS_MISSING) > 0:
