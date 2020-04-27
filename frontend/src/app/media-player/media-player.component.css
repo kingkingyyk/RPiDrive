@@ -1,6 +1,6 @@
 .media-file-list {
-    display: block;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: calc(100vh - 230px);
 }
 
 .media-file-item {

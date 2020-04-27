@@ -50,8 +50,8 @@
             <mat-list-item *ngFor="let file of currPlaylist.files" class="media-file-item"
                 matTooltip="{{file.relative_path}}" cdkDragLockAxis="y" cdkDrag matRipple style="cursor: pointer;">
                 <ng-container *ngIf="file.id == currPlayingMedia.id">
-                    <mat-icon mat-list-icon *ngIf="this.audioPlayerRef.nativeElement.paused">pause</mat-icon>
-                    <mat-icon mat-list-icon *ngIf="!this.audioPlayerRef.nativeElement.paused">play_arrow</mat-icon>
+                    <mat-icon mat-list-icon *ngIf="!this.audioPlayerRef.nativeElement.paused">pause</mat-icon>
+                    <mat-icon mat-list-icon *ngIf="this.audioPlayerRef.nativeElement.paused">play_arrow</mat-icon>
                 </ng-container>
 
                 <mat-icon mat-list-icon *ngIf="file.id != currPlayingMedia.id">music_note</mat-icon>
