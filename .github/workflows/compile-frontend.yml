@@ -30,7 +30,7 @@ jobs:
         run: |
           mv -f static/drive/index.html drive/templates/drive/index.html
       - name: Upload code
-        uses: actions/upload-artifacts@v2
+        uses: actions/upload-artifact@v2
         with:
           name: build
           path: backend/
