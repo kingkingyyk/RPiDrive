@@ -4,8 +4,9 @@ jobs:
   compile-frontend:
     name: Compile Frontend
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./frontend
+    defaults:
+      run:
+        working-directory: ./frontend
     strategy:
       matrix:
         node-version: [12.x]
