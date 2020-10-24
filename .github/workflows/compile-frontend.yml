@@ -16,10 +16,9 @@ jobs:
       - name: Cleanup backend
         working-directory: ./backend
         run: |
-          ls
           rm -Rf static/drive
           rm RPiDrive_ng/settings/dev.py
-          rm RPiDrive_ng/settings.prod.py
+          rm RPiDrive_ng/settings/prod.py
       - name: Compile Frontend
         working-directory: ./frontend
         run: |
