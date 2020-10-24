@@ -37,6 +37,7 @@ jobs:
   generate-zip-build:
     name: Generate Zip Build
     needs: compile-frontend
+    runs-on: ubuntu-latest
     steps:
       - name: Upload code
         uses: actions/upload-artifact@v2
