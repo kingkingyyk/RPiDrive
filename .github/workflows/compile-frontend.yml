@@ -49,7 +49,7 @@ jobs:
         with:
           name: build
       - name: Download dockerfile
-        uses: Bhacaz/checkout-files
+        uses: actions/download-artifact@v2
         with:
           name: dockerfile
       - run: ls
