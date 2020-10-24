@@ -4,9 +4,6 @@ jobs:
   compile-frontend:
     name: Compile Frontend
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     strategy:
       matrix:
         node-version: [12.x]
@@ -16,6 +13,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install @angular/cli -g
-      - run: npm install
-      - run: ng build --prod --aot --deployUrl=/static/drive/ --outputPath=../backend/static/drive/
+      - name: Cleanup backend
+        working-directory: ./backend
+        run: |
+          rm -Rf static/drive
+      - name: Compile Frontend
+        working-directory: ./frontend
+        run: |
+          npm install @angular/cli -g
+          npm install
+          ng build --prod --aot --deployUrl=/static/drive/ --outputPath=../backend/static/drive/
