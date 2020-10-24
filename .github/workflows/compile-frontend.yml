@@ -60,5 +60,5 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: kingkingyyk/rpi-drive:develop
+          repository: kingkingyyk/rpi-drive
           tag_with_ref: true
