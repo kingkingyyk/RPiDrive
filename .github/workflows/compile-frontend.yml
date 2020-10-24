@@ -29,7 +29,6 @@ jobs:
         working-directory: ./backend
         run: |
           mv -f static/drive/index.html drive/templates/drive/index.html
-        path: backend
       - name: Upload code
         uses: actions/upload-artifacts@v2
         with:
