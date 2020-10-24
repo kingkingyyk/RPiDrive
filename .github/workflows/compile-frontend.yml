@@ -54,11 +54,11 @@ jobs:
         with:
           name: dockerfile
       - run: ls
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
       - name: Create and push docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v1
         with:
-          push: false
-          platforms: linux/amd64,linux/arm64
-          tags: kingkingyyk/rpi-drive:develop
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: kingkingyyk/rpi-drive:develop
+          tag_with_ref: true
