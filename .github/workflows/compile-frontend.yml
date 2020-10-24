@@ -34,6 +34,11 @@ jobs:
         with:
           name: build
           path: backend/
+      - name: Upload docker file
+        uses: actions/upload-artifact@v2
+        with:
+          name: dockerfile
+          path: .github/workflows/dockerfile
   create-docker-image:
     name: Create Docker Image
     needs: compile-and-package
@@ -43,11 +48,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build
-      - name: Checkout dockerfile
+      - name: Download dockerfile
         uses: Bhacaz/checkout-files
         with:
-          files: .github/workflows/dockerfile
-      - run: mv .github/workflows/dockerfile .
+          name: dockerfile
+      - run: ls
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to GitHub Container Registry
