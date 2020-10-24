@@ -1,9 +1,20 @@
-name: Compile Frontend
+name: Compile & Package
 on: push
 jobs:
+  cleanup-backend:
+    name: Cleanup Backend Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup backend
+        working-directory: ./backend
+        run: |
+          rm -Rf static/drive
+          rm RPiDrive_ng/settings/dev.py
+          rm RPiDrive_ng/settings/prod.py
   compile-frontend:
     name: Compile Frontend
     runs-on: ubuntu-latest
+    needs: cleanup-backend
     strategy:
       matrix:
         node-version: [12.x]
@@ -13,12 +24,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Cleanup backend
-        working-directory: ./backend
-        run: |
-          rm -Rf static/drive
-          rm RPiDrive_ng/settings/dev.py
-          rm RPiDrive_ng/settings/prod.py
       - name: Compile Frontend
         working-directory: ./frontend
         run: |
@@ -29,6 +34,10 @@ jobs:
         working-directory: ./backend
         run: |
           mv -f static/drive/index.html drive/templates/drive/index.html
+  generate-zip-build:
+    name: Generate Zip Build
+    needs: compile-frontend
+    steps:
       - name: Upload code
         uses: actions/upload-artifact@v2
         with:
