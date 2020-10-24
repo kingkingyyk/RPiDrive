@@ -64,6 +64,6 @@ jobs:
       - name: Create and push docker image
         uses: docker/build-push-action@v2
         with:
-          platforms: linux/amd64,linux/arm/v7
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7
           push: true
-          tags: docker.pkg.github.com/kingkingyyk/rpidrive/base:{{}}
+          tags: docker.pkg.github.com/kingkingyyk/rpidrive/base:${GITHUB_REF##*/}
