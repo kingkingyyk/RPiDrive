@@ -8,6 +8,7 @@ jobs:
       - name: Cleanup backend
         working-directory: ./backend
         run: |
+          ls
           rm -Rf static/drive
           rm RPiDrive_ng/settings/dev.py
           rm RPiDrive_ng/settings/prod.py
@@ -39,7 +40,7 @@ jobs:
     needs: compile-frontend
     runs-on: ubuntu-latest
     steps:
-      - name: Upload code
+      - name: Upload build
         uses: actions/upload-artifact@v2
         with:
           name: build
