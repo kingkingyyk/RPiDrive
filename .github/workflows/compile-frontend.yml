@@ -17,9 +17,21 @@ jobs:
         working-directory: ./backend
         run: |
           rm -Rf static/drive
+          rm RPiDrive_ng/settings/dev.py
+          rm RPiDrive_ng/settings.prod.py
       - name: Compile Frontend
         working-directory: ./frontend
         run: |
           npm install @angular/cli -g
           npm install
           ng build --prod --aot --deployUrl=/static/drive/ --outputPath=../backend/static/drive/
+      - name: Patch backend
+        working-directory: ./backend
+        run: |
+          mv -f static/drive/index.html drive/templates/drive/index.html
+        path: backend
+      - name: Upload code
+        uses: actions/upload-artifacts@v2
+        with:
+          name: build
+          path: backend/
