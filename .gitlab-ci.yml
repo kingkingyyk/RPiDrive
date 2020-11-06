@@ -5,7 +5,7 @@ stages:
   image: node:15-alpine
   stage: build
   script:
-    - cd /backend
+    - cd backend/
     - rm -Rf static/drive
     - rm RPiDrive_ng/settings/dev.py
     - rm RPiDrive_ng/settings/prod.py
