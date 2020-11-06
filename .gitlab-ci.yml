@@ -28,9 +28,9 @@ package:docker:
   services:
     - docker:latest
   variables:
-    REGISTRY: registry.gitlab.com
-    IMAGE_TAG: $REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
+    CI_REGISTRY: registry.gitlab.com
+    CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
   script:
-    - docker login -u $CI_JOB_USER -p $CI_JOB_TOKEN $REGISTRY
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t $CI_IMAGE_TAG .
+    - docker push $CI_IMAGE_TAG
