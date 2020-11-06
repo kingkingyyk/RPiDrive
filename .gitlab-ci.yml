@@ -34,6 +34,6 @@ package:docker:
     CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker buildx create --user
+    - docker buildx create --use
     - docker buildx build --platform linux/arm/v7,linux/amd64 -t $CI_IMAGE_TAG .
     - docker push $CI_IMAGE_TAG
