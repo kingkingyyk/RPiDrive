@@ -22,11 +22,11 @@ package:zip:
       - build.tar.gz
 
 package:docker:
-  image: docker:latest
+  image: docker:19.03.0-dind
   stage: package
   needs: ["build"]
   services:
-    - docker:latest
+    - docker:19.03.0-dind
   variables:
     CI_REGISTRY: registry.gitlab.com
     CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
