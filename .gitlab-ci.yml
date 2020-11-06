@@ -22,15 +22,18 @@ package:zip:
       - build.tar.gz
 
 package:docker:
-  image: docker:19.03.0-dind
+  image: jdrouet/docker-with-buildx:stable
   stage: package
   needs: ["build"]
   services:
-    - docker:19.03.0-dind
+    - docker:dind
   variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
     CI_REGISTRY: registry.gitlab.com
     CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_IMAGE_TAG .
+    - docker buildx create --user
+    - docker buildx build --platform linux/arm/v7,linux/amd64 -t $CI_IMAGE_TAG .
     - docker push $CI_IMAGE_TAG
