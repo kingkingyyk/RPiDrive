@@ -1,6 +1,6 @@
 FROM python:slim
 
-ADD backend /app
+ADD build /app
 RUN chmod 777 /app/docker-start.sh &&\
     apt update && \
     apt install gcc libpq-dev -y && \

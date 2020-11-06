@@ -1,20 +1,31 @@
 stages:
   - build
+  - package
 
-"Build":
+build:
   image: node:15-alpine
   stage: build
   script:
-    - cd backend/
-    - rm -Rf static/drive
-    - rm RPiDrive_ng/settings/dev.py
-    - rm RPiDrive_ng/settings/prod.py
-    - cd ../frontend
-    - npm install @angular/cli -g
-    - npm install
-    - ng build --prod --aot --deployUrl=/static/drive/ --outputPath=../backend/static/drive/
-    - cd ../backend
-    - mv -f static/drive/index.html drive/templates/drive/index.html
+    - sh scripts/gitlab-build.sh
   artifacts:
     paths:
-      - backend/
+      - build/
+
+package:zip:
+  image: alpine:3
+  stage: package
+  needs: ["build"]
+  script:
+    - tar -czvf build.tar.gz build/*
+
+package:docker:
+  image: alpine:3
+  stage: package
+  needs: ["build"]
+  variables:
+    - REGISTRY: registry.gitlab.com
+    - IMAGE_TAG: $REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
+  script:
+    - docker login -u $CI_JOB_USER -p $CI_JOB_TOKEN $REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
