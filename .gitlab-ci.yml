@@ -17,14 +17,19 @@ package:zip:
   needs: ["build"]
   script:
     - tar -czvf build.tar.gz build/*
+  artifacts:
+    paths:
+      - build.tar.gz
 
 package:docker:
-  image: alpine:3
+  image: docker:latest
   stage: package
   needs: ["build"]
+  services:
+    - docker:latest
   variables:
-    - REGISTRY: registry.gitlab.com
-    - IMAGE_TAG: $REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
+    REGISTRY: registry.gitlab.com
+    IMAGE_TAG: $REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
   script:
     - docker login -u $CI_JOB_USER -p $CI_JOB_TOKEN $REGISTRY
     - docker build -t $IMAGE_TAG .
