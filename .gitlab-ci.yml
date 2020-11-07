@@ -35,5 +35,5 @@ package:docker:
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker buildx create --use
-    - docker buildx build --platform linux/arm/v7,linux/amd64 -t $CI_IMAGE_TAG .
+    - docker buildx build --platform linux/arm/v7,linux/amd64 -t $CI_IMAGE_TAG -f dockerfile .
     - docker push $CI_IMAGE_TAG
