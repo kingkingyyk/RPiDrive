@@ -6,7 +6,6 @@ stages:
   stage: test
   script:
     - cd backend
-    - pipenv shell
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - coverage run -m pytest --ds=rpidrive.settings --junitxml=./test-reports/unit-test.xml
