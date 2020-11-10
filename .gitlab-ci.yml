@@ -14,6 +14,6 @@ stages:
     - coverage xml
   artifacts:
     reports:
-      cobertuna: ./test-reports/unit-test-coverage.xml
+      cobertura: ./test-reports/unit-test-coverage.xml
       junit: ./test-reports/unit-test.xml
   coverage: '^TOTAL.*\s+(\d+\%)$'
