@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ..utils.indexer import LocalStorageProviderIndexer
+from ..utils.indexer import LocalStorageProviderIndexer, InvalidStorageProviderTypeException
 from ..models import StorageProvider, StorageProviderType, FileObjectType, LocalFileObject, FileExt
 from django.apps import apps
 import os
@@ -177,3 +177,11 @@ class TestLocalStorageProviderIndexer(TestCase):
         for idx, result in enumerate(expected_results):
             lfo = lfos[idx]
             self.assertEqual(lfo.pk, result, 'LocalFileObject.ID')
+
+    def test_non_local_storage_provider(self):
+        sp = StorageProvider.objects.first()
+        sp.type = 'dummy'
+        root = LocalFileObject.objects.get(storage_provider=sp)
+        
+        with self.assertRaises(InvalidStorageProviderTypeException):
+            LocalStorageProviderIndexer.sync(root)
