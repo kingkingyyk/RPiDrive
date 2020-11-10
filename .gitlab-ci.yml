@@ -11,5 +11,9 @@ stages:
     - coverage run -m pytest --ds=rpidrive.settings --junitxml=./test-reports/unit-test.xml
     - coverage report --show-missing
     - coverage xml -o ./test-reports/unit-test-coverage.xml
-    - coverage-badge
-  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+    - coverage xml
+  artifacts:
+    reports:
+      cobertuna: ./test-reports/unit-test-coverage.xml
+      junit: ./test-reports/unit-test.xml
+  coverage: '^TOTAL.*\s+(\d+\%)$'
