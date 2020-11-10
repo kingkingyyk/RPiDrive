@@ -16,4 +16,4 @@ stages:
     reports:
       cobertura: ./test-reports/unit-test-coverage.xml
       junit: ./test-reports/unit-test.xml
-  coverage: '^TOTAL.+?(\d+.\d+\%)$'
+  coverage: '^TOTAL.+?(\d+\%)$'
