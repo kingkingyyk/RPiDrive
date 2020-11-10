@@ -9,7 +9,7 @@ stages:
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - coverage run -m pytest --ds=rpidrive.settings --junitxml=./test-reports/unit-test.xml
-    - coverage report --show-missing --fail-under=100
+    - coverage report --show-missing
     - coverage xml -o ./test-reports/unit-test-coverage.xml
     - coverage-badge
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
