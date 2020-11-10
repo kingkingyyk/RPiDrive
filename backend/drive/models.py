@@ -84,7 +84,6 @@ class LocalFileObject(models.Model):
         return os.path.getsize(self.full_path)
 
     def save(self, *args, **kwargs):
-        if 'name' in kwargs:
-            self._update_extension()
-            self._update_type()
+        self._update_extension()
+        self._update_type()
         super(LocalFileObject, self).save(*args, **kwargs)
