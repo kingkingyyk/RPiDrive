@@ -180,8 +180,7 @@ class TestLocalStorageProviderIndexer(TestCase):
 
     def test_non_local_storage_provider(self):
         sp = StorageProvider.objects.first()
-        sp.type = 'dummy'
         root = LocalFileObject.objects.get(storage_provider=sp)
-        
+        root.storage_provider.type = 'dummy'
         with self.assertRaises(InvalidStorageProviderTypeException):
             LocalStorageProviderIndexer.sync(root)
