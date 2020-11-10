@@ -52,14 +52,14 @@ class TestLocalStorageProviderIndexer(TestCase):
         self.assertEqual(root.path, path, 'Root children size')
         self.assertEqual(len(root.children), 3, 'Root children size')
 
-        file4 = root.children[0]
+        file4 = root.children[2]
         file4_name = 'file4.py'
         self.assertEqual(file4.name, file4_name, 'File4 name')
         self.assertEqual(file4.path, os.path.join(
             path, file4_name), 'File4 path')
         self.assertEqual(len(file4.children), 0, 'File4 children size')
 
-        folder1 = root.children[1]
+        folder1 = root.children[0]
         folder1_name = 'folder1'
         self.assertEqual(folder1.name, folder1_name, 'Folder1 name')
         self.assertEqual(folder1.path, os.path.join(
@@ -73,7 +73,7 @@ class TestLocalStorageProviderIndexer(TestCase):
             folder1.path, file1_name), 'File1 path')
         self.assertEqual(len(file1.children), 0, 'File1 children size')
 
-        folder2 = root.children[2]
+        folder2 = root.children[1]
         folder2_name = 'folder2'
         self.assertEqual(folder2.name, 'folder2', 'Folder2 name')
         self.assertEqual(folder2.path, os.path.join(
