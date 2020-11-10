@@ -9,11 +9,11 @@ stages:
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt
     - coverage run -m pytest --ds=rpidrive.settings --junitxml=./test-reports/unit-test.xml
-    - coverage report --show-missing
+    - coverage report --show-missing --precision=2
     - coverage xml -o ./test-reports/unit-test-coverage.xml
     - coverage xml
   artifacts:
     reports:
       cobertura: ./test-reports/unit-test-coverage.xml
       junit: ./test-reports/unit-test.xml
-  coverage: '^TOTAL.*\s+(\d+\%)$'
+  coverage: '^TOTAL.+?(\d+.\d+\%)$'
