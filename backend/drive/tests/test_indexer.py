@@ -1,7 +1,6 @@
 from django.test import TestCase
 from ..utils.indexer import LocalStorageProviderIndexer
 from ..models import StorageProvider, StorageProviderType, FileObjectType, LocalFileObject, FileExt
-from mptt import register
 from django.apps import apps
 import os
 import shutil
