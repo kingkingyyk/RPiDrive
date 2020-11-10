@@ -4,7 +4,7 @@ stages:
 "Test Backend":
   image: python:3.9-slim-buster
   stage: test
-  scripts:
+  script:
     - cd backend
     - pipenv shell
     - pip install -r requirements.txt
