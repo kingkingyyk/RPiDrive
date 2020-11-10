@@ -8,12 +8,16 @@ stages:
     - cd backend
     - pip install -r requirements.txt
     - pip install -r requirements-test.txt
-    - coverage run -m pytest --ds=rpidrive.settings --junitxml=./test-reports/unit-test.xml
+    - pip install -r requirements-ci.txt
+    - coverage run -m pytest --ds=rpidrive.settings --junitxml=test-reports/unit-test.xml
     - coverage report --show-missing --precision=2
     - coverage xml -o ./test-reports/unit-test-coverage.xml
     - coverage xml
+    - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='Unit Test' --file='unit-test-badge.svg' coverage
   artifacts:
     reports:
       cobertura: backend/test-reports/unit-test-coverage.xml
       junit: backend/test-reports/unit-test.xml
+    paths:
+      - backend/unit-test-badge.svg
   coverage: '/^TOTAL.+?(\d+.\d+\%)$/'
