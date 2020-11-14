@@ -2,7 +2,11 @@ from django.db import models
 import uuid, humanize, os, time
 
 class StorageProviderType:
+    LOCAL_PATH_NAME = 'Local Storage'
     LOCAL_PATH = 'LOCAL_PATH'
+
+    VALUES = [LOCAL_PATH]
+    TYPES = [(LOCAL_PATH_NAME, LOCAL_PATH)]
 
 class FileObjectType:
     FOLDER = 'FOLDER'

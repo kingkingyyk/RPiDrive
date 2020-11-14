@@ -1,4 +1,5 @@
 from ..models import *
+from threading import Thread
 import os
 import logging
 
@@ -15,7 +16,14 @@ class LocalStorageProviderIndexer:
             self.children = []
 
     @staticmethod
-    def sync(root: LocalFileObject):
+    def sync(root: LocalFileObject, background=False):
+        if background:
+            Thread(target=LocalStorageProviderIndexer.sync_helper, args=(root))
+        else:
+            LocalStorageProviderIndexer.sync_helper(root)
+
+    @staticmethod
+    def sync_helper(root: LocalFileObject):
         storage_provider = root.storage_provider
         if storage_provider.type != StorageProviderType.LOCAL_PATH:
             raise InvalidStorageProviderTypeException()
@@ -24,6 +32,7 @@ class LocalStorageProviderIndexer:
         db_tree = LocalStorageProviderIndexer._construct_db_tree(root)
         LocalStorageProviderIndexer._sync_trees(fs_tree, db_tree)
 
+    
     @staticmethod
     def _construct_fs_tree(storage_provider: StorageProvider):
         root = LocalStorageProviderIndexer.FSFileObj(

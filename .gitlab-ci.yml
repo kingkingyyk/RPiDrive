@@ -13,7 +13,7 @@ stages:
     - coverage report --show-missing --precision=2
     - coverage xml -o ./test-reports/unit-test-coverage.xml
     - coverage xml
-    - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='Unit Test' --file='unit-test-badge.svg' coverage
+    - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='unit test' --file='unit-test-badge.svg' coverage
   artifacts:
     reports:
       cobertura: backend/test-reports/unit-test-coverage.xml
