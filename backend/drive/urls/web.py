@@ -10,6 +10,6 @@ urlpatterns = [
     path(r'storage-providers/<int:provider_id>', manage_storage_provider),
 
     path(r'files/create', create_file),
-    path(r'files/<str:file_id>/move', move_file),
     path(r'files/<str:file_id>', manage_file),
+
 ]

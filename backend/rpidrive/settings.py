@@ -118,3 +118,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+REVERSE_PROXY_TYPE = None
+REVERSE_PROXY_SERVE_FILE_URL = '/files/'
+
+if REVERSE_PROXY_TYPE not in [None, 'nginx', 'apache']:
+    raise Exception('Reverse proxy type is not supported! Only support none, nginx or apache.')

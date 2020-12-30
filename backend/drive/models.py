@@ -62,18 +62,27 @@ class LocalFileObject(models.Model):
     extension = models.TextField(null=True, blank=True)
     type = models.TextField(null=True, blank=True)
     objects = LocalFileObjectManager()
+    metadata = models.JSONField(null=True, default=None)
 
     def _update_extension(self):
         if self.obj_type == FileObjectType.FOLDER:
             self.extension = None
         elif self.obj_type == FileObjectType.FILE:
-            self.extension = self.name.split('.')[-1]
+            self.extension = self.name.lower().split('.')[-1]
 
     def _update_type(self):
         if self.obj_type == FileObjectType.FOLDER:
             self.type = None
         elif self.obj_type == FileObjectType.FILE:
             self.type = FileExt.resolve_extension(self.extension)
+
+    def update_name(self, new_name: str):
+        if self.name != new_name:
+            self.name = new_name
+            split = self.rel_path.split(os.path.sep)
+            split[-1] = self.name
+            self.rel_path = os.path.sep.join(split)
+            self.save(update_fields=['name', 'rel_path'])
 
     @property
     def full_path(self):

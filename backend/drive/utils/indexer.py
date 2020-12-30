@@ -1,7 +1,14 @@
 from ..models import *
 from threading import Thread
 import os
+import json
 import logging
+import traceback
+import epub_meta
+from tinytag import TinyTag
+from exif import Image
+from PyPDF2 import PdfFileReader
+from mobi import Mobi
 
 
 class InvalidStorageProviderTypeException(Exception):
@@ -18,7 +25,8 @@ class LocalStorageProviderIndexer:
     @staticmethod
     def sync(root: LocalFileObject, background=False):
         if background:
-            Thread(target=LocalStorageProviderIndexer.sync_helper, args=(root))
+            Thread(target=LocalStorageProviderIndexer.sync_helper,
+                   args=(root))
         else:
             LocalStorageProviderIndexer.sync_helper(root)
 
@@ -32,7 +40,6 @@ class LocalStorageProviderIndexer:
         db_tree = LocalStorageProviderIndexer._construct_db_tree(root)
         LocalStorageProviderIndexer._sync_trees(fs_tree, db_tree)
 
-    
     @staticmethod
     def _construct_fs_tree(storage_provider: StorageProvider):
         root = LocalStorageProviderIndexer.FSFileObj(
@@ -61,7 +68,8 @@ class LocalStorageProviderIndexer:
             db = db_stk.pop()
 
             fs_files = os.listdir(fs.path)
-            db_files = LocalFileObject.objects.filter(parent__pk=db.pk).values_list('name', flat=True)
+            db_files = LocalFileObject.objects.filter(
+                parent__pk=db.pk).values_list('name', flat=True)
 
             delete_fs_files = [x for x in db_files if x not in fs_files]
             LocalFileObject.objects.filter(
@@ -73,8 +81,48 @@ class LocalStorageProviderIndexer:
                 db_obj = LocalFileObject.objects.create(name=f,
                                                         obj_type=FileObjectType.FOLDER if os.path.isdir(
                                                             fp) else FileObjectType.FILE,
-                                                        parent=db, storage_provider=db.storage_provider,
+                                                        parent=db,
+                                                        storage_provider=db.storage_provider,
                                                         rel_path=fp[len(fs_root.path)+1:])
                 if os.path.isdir(fp):
                     fs_stk.append(next(x for x in fs.children if x.name == f))
                     db_stk.append(db_obj)
+
+
+class Metadata:
+
+    @staticmethod
+    def extract(file: LocalFileObject):
+        data = {}
+        if file.type in [FileExt.TYPE_MUSIC, FileExt.TYPE_MOVIE]:
+            try:
+                data = json.loads(str(TinyTag.get(file.full_path)))
+            except:
+                print(traceback.format_exc())
+        elif file.type == FileExt.TYPE_PICTURE:
+            try:
+                with open(file.full_path, 'rb') as fh:
+                    img = Image(fh)
+                if img.has_exif:
+                    data = {key: img[key] for key in dir(img)}
+            except:
+                print(traceback.format_exc())
+        elif file.type == FileExt.TYPE_BOOK:
+            if file.extension == 'pdf':
+                try:
+                    with open(file.full_path, 'rb') as fh:
+                        data = PdfFileReader(fh).getDocumentInfo()
+                except:
+                    print(traceback.format_exc())
+            elif file.extension == 'epub':
+                try:
+                    data = epub_meta.get_epub_metadata(
+                        file.full_path, read_cover_image=True)
+                except:
+                    print(traceback.format_exc())
+            elif file.extesion == 'mobi':
+                try:
+                    data = Mobi(file.full_path).parse().config
+                except:
+                    print(traceback.format_exc())
+        return data

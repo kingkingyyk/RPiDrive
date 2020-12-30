@@ -1,2 +1,7 @@
 django
 humanize
+tinytag
+exif
+pypdf2
+epub_meta
+mobi-python
