@@ -43,10 +43,21 @@ class FileExt:
     def resolve_extension(ext: str) -> str:
         return FileExt._EXT_TO_TYPE.get(ext.lower(), None)
 
+class System(models.Model):
+    initialized = models.BooleanField(default=False)
+    init_key = models.TextField(default=str(uuid.uuid4()))
+
+    def __str__(self):
+        return 'System'
+
 class StorageProvider(models.Model):
     name = models.TextField()
     type = models.CharField(max_length=10)
     path = models.TextField()
+    indexing = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
 class LocalFileObjectManager(models.Manager):
     def get_queryset(self):
@@ -100,3 +111,6 @@ class LocalFileObject(models.Model):
         self._update_extension()
         self._update_type()
         super(LocalFileObject, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.full_path

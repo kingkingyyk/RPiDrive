@@ -57,7 +57,7 @@ def manage_file(request, file_id):
             return serve_file(file, request)
         elif action == 'metadata':
             return read_file_metadata(file)
-        elif action == 'children':
+        elif file.obj_type == FileObjectType.FOLDER and action == 'children':
             return get_children(file)
         else:
             return generate_error_response('Unknown action', 400)

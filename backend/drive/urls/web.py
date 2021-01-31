@@ -9,7 +9,7 @@ urlpatterns = [
     path(r'storage-providers/<int:provider_id>/index', perform_index),
     path(r'storage-providers/<int:provider_id>', manage_storage_provider),
 
-    path(r'files/create', create_file),
     path(r'files/<str:file_id>', manage_file),
 
+    path(r'system/initialize', initialize_system)
 ]

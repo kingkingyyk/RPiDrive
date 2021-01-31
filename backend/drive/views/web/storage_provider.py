@@ -5,6 +5,7 @@ from .local_file_object import *
 from ...utils.indexer import LocalStorageProviderIndexer
 from .shared import generate_error_response
 import json
+import os
 
 
 class StorageProviderRequest:
@@ -29,6 +30,9 @@ class StorageProviderRequest:
                 'The following fields ({}) are missing!'.format(', '.join(missing)))
         StorageProviderRequest._inspect_type(
             data[StorageProviderRequest.TYPE_KEY])
+
+        if not os.path.exists(data[StorageProviderRequest.PATH_KEY]):
+            raise Exception('Path {} doesn\'t exist!'.format(data[StorageProviderRequest.PATH_KEY]))
 
 
 def serialize_storage_provider(request, sp):
