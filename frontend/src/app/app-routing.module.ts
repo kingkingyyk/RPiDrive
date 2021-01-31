@@ -11,7 +11,6 @@ const routes: Routes = [
     { path: DriveUrl.getRootURL(), component: MainComponent },
     { path: DriveUrl.getLoginAbsURL(), component: LoginComponent},
     { path: DriveUrl.getSetupAbsURL(), component: SetupComponent},
-    { path: DriveUrl.getMenuAbsURL(), component: MainComponent},
     { path: DriveUrl.getFolderAbsURL(), component: FolderComponent,
       children: [{
         path: ':id', component: FolderComponent

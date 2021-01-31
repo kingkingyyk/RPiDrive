@@ -31,7 +31,7 @@ export class LoginComponent implements OnInit {
 
     this.loadingLevel += 1;
     this.service.isLoggedIn().subscribe((data : IsLoggedInResponse) => {
-      this.router.navigateByUrl(Url.getMenuAbsURL());
+      this.router.navigateByUrl(Url.getRootURL());
     }).add(() => {
       this.loadingLevel -= 1;
     })
@@ -41,7 +41,7 @@ export class LoginComponent implements OnInit {
     this.loginError = '';
     this.loadingLevel += 1;
     this.service.login(this.loginForm.value).subscribe((data : IsLoggedInResponse) => {
-      this.router.navigateByUrl(Url.getMenuAbsURL());
+      this.router.navigateByUrl(Url.getRootURL());
     }, error => {
       this.loginError = error.error['error']
     }).add(() => {

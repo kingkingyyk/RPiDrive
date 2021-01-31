@@ -37,6 +37,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { LoginComponent } from './drive/login/login.component';
 import { SetupComponent } from './drive/setup/setup.component';
@@ -87,6 +88,7 @@ import { FolderComponent } from './drive/folder/folder.component';
     MatTableModule,
     MatTabsModule,
     MatToolbarModule,
+    MatTooltipModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
