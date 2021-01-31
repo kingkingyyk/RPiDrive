@@ -42,14 +42,14 @@ def initialize_system(request):
         with transaction.atomic():
             # Create superuser
             user_data = data[InitializeSystemRequest.USER_KEY]
-            print(user_data)
-            User(username=user_data[CreateUserRequest.USERNAME_KEY],
-                 password=user_data[CreateUserRequest.PASSWORD_KEY],
+            user = User(username=user_data[CreateUserRequest.USERNAME_KEY],
                  first_name=user_data[CreateUserRequest.FIRST_NAME_KEY],
                  last_name=user_data[CreateUserRequest.LAST_NAME_KEY],
                  email=user_data[CreateUserRequest.EMAIL_KEY],
                  is_active=user_data[CreateUserRequest.ACTIVE_KEY],
-                 is_superuser=user_data[CreateUserRequest.SUPERUSER_KEY]).save()
+                 is_superuser=user_data[CreateUserRequest.SUPERUSER_KEY])
+            user.set_password(user_data[CreateUserRequest.PASSWORD_KEY])
+            user.save()
 
             # Create storage provider
             sp_data = data[InitializeSystemRequest.STORAGE_PROVIDER_KEY]

@@ -66,11 +66,9 @@ export class SetupComponent implements OnInit {
     this.service.initializeSystem(this.setupForm.value).subscribe(() => {
       this.router.navigateByUrl(Url.getLoginAbsURL());
     }, error => {
-      console.log(error);
       this.submissionError = error.error['error'];
     }).add(() => {
       this.loadingLevel -= 1;
     })
-    alert('hello');
   }
 }

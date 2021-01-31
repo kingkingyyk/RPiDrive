@@ -22,4 +22,10 @@ export abstract class Url {
     public static getFolderAbsURL(): string {
         return this.getRootURL() + '/' + this.getFolderRelURL();
     }
+    public static getMenuRelURL(): string {
+        return 'menu';
+    }
+    public static getMenuAbsURL(): string {
+        return this.getRootURL() + '/' + this.getMenuRelURL();
+    }
 }

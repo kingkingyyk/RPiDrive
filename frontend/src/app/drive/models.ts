@@ -36,3 +36,12 @@ export class User {
     isActive: boolean;
     isSuperuser: boolean;
 }
+
+export interface IsLoggedInResponse {
+    result: boolean;
+}
+
+export class Login {
+    username: string;
+    password: string;
+}

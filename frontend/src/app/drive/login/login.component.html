@@ -1,1 +1,26 @@
-<p>login works!</p>
+<div style="height: 100px"></div>
+<div style="width: 500px;margin: auto" class="mat-elevation-z2">
+    <mat-toolbar color="primary">
+        <mat-toolbar-row>
+            <span>RPi Drive Login</span>
+        </mat-toolbar-row>
+    </mat-toolbar>
+
+    <form [formGroup]="loginForm" style="padding: 30px" (ngSubmit)="onSubmit()">
+        <mat-form-field class="full-width">
+            <mat-label>Username</mat-label>
+            <input matInput type="text" formControlName="username">
+        </mat-form-field>
+
+        <mat-form-field class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" formControlName="password">
+        </mat-form-field>
+
+        <section>
+            <button mat-raised-button color="primary" type="submit" [disabled]="!loginForm.valid || loadingLevel>0">Login</button>
+            <span style="color: red; margin-left: 10px">{{loginError}}</span>
+        </section>
+    </form>
+</div>
+<div style="height: 100px"></div>

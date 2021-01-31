@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { StorageProvider, InitializeSystem, GetStorageProviderTypesResponse } from 'src/app/drive/models';
+import { StorageProvider, InitializeSystem, GetStorageProviderTypesResponse, Login } from 'src/app/drive/models';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -16,6 +16,10 @@ export class CommonService {
 
   private static URL_FILES: string = 'files/<id>';
   private static URL_INITIALIZE_SYSTEM: string = 'system/initialize';
+
+  private static URL_IS_LOGGED_IN = 'auth/logged-in';
+  private static URL_LOGIN = 'auth/login';
+  private static URL_LOGOUT = 'auth/logout';
 
   constructor(private http: HttpClient) { }
 
@@ -60,6 +64,18 @@ export class CommonService {
 
   initializeSystem(is : InitializeSystem) {
     return this.http.post(this.constructDriveAPIUrl(CommonService.URL_INITIALIZE_SYSTEM), is);
+  }
+
+  isLoggedIn(): Observable<any> {
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_IS_LOGGED_IN));
+  }
+
+  login(login: Login): Observable<any> {
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_LOGIN), login);
+  }
+
+  logout(): Observable<any> {
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_LOGOUT), {});
   }
 
 }

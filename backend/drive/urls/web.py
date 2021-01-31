@@ -11,5 +11,10 @@ urlpatterns = [
 
     path(r'files/<str:file_id>', manage_file),
 
-    path(r'system/initialize', initialize_system)
+    path(r'system/initialize', initialize_system),
+
+    path(r'auth/login', user_login),
+    path(r'auth/logout', user_logout),
+    path(r'auth/logged-in', is_logged_in),
+
 ]
