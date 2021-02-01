@@ -8,12 +8,12 @@
 
 <mat-drawer-container class="drawer-container">
     <mat-drawer mode="side" opened style="width: 250px">
-        <button mat-raised-button color="primary" style="margin: 10px; height: 50px; border-radius: 30px; padding-left: 20px; padding-right: 30px" [matMenuTriggerFor]="menuNewOperation">
+        <button mat-raised-button color="primary" style="margin: 10px; height: 50px; border-radius: 30px; padding-left: 20px; padding-right: 30px" [matMenuTriggerFor]="folderId ? menuFolderNewOp: menuSPNewOp">
             <mat-icon style="font-size: x-large;">add</mat-icon>
             <span style="font-weight: bolder; padding-left: 10px; font-size: large;">New</span>
         </button>
 
-        <mat-menu #menuNewOperation="matMenu">
+        <mat-menu #menuFolderNewOp="matMenu">
             <button mat-menu-item>
                 <mat-icon>create_new_folder</mat-icon>
                 <span>Folder</span>
@@ -27,7 +27,14 @@
                 <mat-icon>drive_folder_upload</mat-icon>
                 <span>Folder upload</span>
             </button>
-          </mat-menu>
+        </mat-menu>
+
+        <mat-menu #menuSPNewOp="matMenu">
+            <button mat-menu-item>
+                <mat-icon>storage</mat-icon>
+                <span>Storage Provider</span>
+            </button>
+        </mat-menu>
 
         <mat-divider></mat-divider>
         <div style="padding: 10px">
