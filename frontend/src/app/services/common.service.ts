@@ -31,7 +31,7 @@ export class CommonService {
     return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_STORAGE_PROVIDER_TYPES));
   }
 
-  getStorageProviders() {
+  getStorageProviders(): Observable<any> {
     return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_STORAGE_PROVIDERS));
   }
 

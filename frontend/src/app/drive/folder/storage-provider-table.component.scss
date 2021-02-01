@@ -1,0 +1,10 @@
+.table-row {
+    cursor: pointer;
+    position: relative;
+}
+
+.table-row:hover {
+    transition-duration: 0.3s;
+    background-color: darkgray;
+    transition-timing-function: ease-in-out;
+}

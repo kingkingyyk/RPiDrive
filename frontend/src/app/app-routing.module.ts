@@ -12,9 +12,10 @@ const routes: Routes = [
     { path: DriveUrl.getLoginAbsURL(), component: LoginComponent},
     { path: DriveUrl.getSetupAbsURL(), component: SetupComponent},
     { path: DriveUrl.getFolderAbsURL(), component: FolderComponent,
-      children: [{
-        path: ':id', component: FolderComponent
-      }]},
+      children: [
+        {path: ':folderid', component: FolderComponent}
+      ]
+    },
 ];
 
 @NgModule({

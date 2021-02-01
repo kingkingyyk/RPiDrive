@@ -12,6 +12,9 @@ export class StorageProvider {
     name: string;
     type: string;
     path: string;
+    usedSpace: number;
+    totalSpace: number;
+    rootFolder: string;
 
     construct(data: any) {
         this.id = data['id'];
@@ -44,4 +47,8 @@ export interface IsLoggedInResponse {
 export class Login {
     username: string;
     password: string;
+}
+
+export interface GetStorageProvidersResponse {
+    values: StorageProvider[];
 }

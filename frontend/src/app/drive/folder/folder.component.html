@@ -30,15 +30,39 @@
           </mat-menu>
 
         <mat-divider></mat-divider>
-        <mat-nav-list>
-            <a mat-list-item>Storage</a>
-        </mat-nav-list>
+        <div style="padding: 10px">
+            <h2>Storage</h2>
+            <div style="padding: 0px 10px 0px 10px">
+                <div *ngFor="let sp of storageProviders">
+                    <div style="font-weight: bold;">{{ sp.name }}</div>
+                    <div style="font-size: small">{{ sp.path }}</div>
+                    <mat-progress-bar mode="determinate" value="{{ ( sp.usedSpace / sp.totalSpace ) * 100 }}"></mat-progress-bar>
+                    <div style="font-size: small">{{ sp.usedSpace | filesize }} used of {{ sp.totalSpace | filesize }}</div>
+                </div>
+            </div>
+        </div>
     </mat-drawer>
     <mat-drawer-content style="padding: 20px">
-        <h2>My Drive</h2>
-        <mat-divider></mat-divider>
-        <div style="overflow: auto">
-            123
-        </div>
+        <ng-container *ngIf="loadingCount === 0">
+            <ng-container *ngIf="folderId; then folderBlock else storageProviderBlock"></ng-container>
+        </ng-container>
+        <ng-container *ngIf="loadingCount > 0">
+            <mat-spinner></mat-spinner>
+        </ng-container>
     </mat-drawer-content>
 </mat-drawer-container>
+
+<ng-template #storageProviderBlock>
+    <h2>Storage Providers</h2>
+    <mat-divider></mat-divider>
+    <div style="overflow: auto">
+        <app-storage-provider-table [storageProviders]="storageProviders"></app-storage-provider-table>
+    </div>
+</ng-template>
+
+<ng-template #folderBlock>
+    <h2>My Drive</h2>
+    <mat-divider></mat-divider>
+    <div style="overflow: auto">
+    </div>
+</ng-template>

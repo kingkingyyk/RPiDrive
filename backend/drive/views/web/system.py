@@ -3,6 +3,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from django.contrib.auth.models import User
 from django.db import transaction
 from ...models import System, StorageProvider
+from ...core.storage_provider import create_storage_provider_helper
 from .storage_provider import StorageProviderRequest
 from .shared import generate_error_response
 import json
@@ -47,6 +48,7 @@ def initialize_system(request):
                  last_name=user_data[CreateUserRequest.LAST_NAME_KEY],
                  email=user_data[CreateUserRequest.EMAIL_KEY],
                  is_active=user_data[CreateUserRequest.ACTIVE_KEY],
+                 is_staff=True,
                  is_superuser=user_data[CreateUserRequest.SUPERUSER_KEY])
             user.set_password(user_data[CreateUserRequest.PASSWORD_KEY])
             user.save()
@@ -58,9 +60,9 @@ def initialize_system(request):
             except Exception as e:
                 return generate_error_response(str(e))
 
-            StorageProvider(name=sp_data[StorageProviderRequest.NAME_KEY],
-                            type=sp_data[StorageProviderRequest.TYPE_KEY],
-                            path=sp_data[StorageProviderRequest.PATH_KEY]).save()
+            create_storage_provider_helper(name=sp_data[StorageProviderRequest.NAME_KEY],
+                                           type=sp_data[StorageProviderRequest.TYPE_KEY],
+                                           path=sp_data[StorageProviderRequest.PATH_KEY])
 
             # Flag system as initialized
             System.objects.update(initialized=True)

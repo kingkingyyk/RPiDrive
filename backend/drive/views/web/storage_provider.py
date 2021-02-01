@@ -3,16 +3,21 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from drive.models import *
 from .local_file_object import *
 from ...utils.indexer import LocalStorageProviderIndexer
+from ...core.storage_provider import create_storage_provider_helper
 from .shared import generate_error_response
 import json
 import os
 
 
 class StorageProviderRequest:
-    ID_KEY = 'name'
+    ID_KEY = 'id'
     NAME_KEY = 'name'
     TYPE_KEY = 'type'
     PATH_KEY = 'path'
+    USED_SPACE_KEY = 'usedSpace'
+    TOTAL_SPACE_KEY = 'totalSpace'
+    INDEXING_KEY = 'indexing'
+    ROOT_FOLDER_KEY = 'rootFolder'
 
     @staticmethod
     def _inspect_type(sp_type):
@@ -23,7 +28,8 @@ class StorageProviderRequest:
     @staticmethod
     def inspect_create_data(data):
         NEEDED_KEYS = [StorageProviderRequest.NAME_KEY,
-                       StorageProviderRequest.TYPE_KEY, StorageProviderRequest.PATH_KEY]
+                       StorageProviderRequest.TYPE_KEY,
+                       StorageProviderRequest.PATH_KEY]
         missing = [x for x in NEEDED_KEYS if x not in data.keys()]
         if missing:
             raise Exception(
@@ -35,14 +41,19 @@ class StorageProviderRequest:
             raise Exception('Path {} doesn\'t exist!'.format(data[StorageProviderRequest.PATH_KEY]))
 
 
-def serialize_storage_provider(request, sp):
-    return {
+def serialize_storage_provider(request, sp, disk_space=False):
+    data = {
         StorageProviderRequest.ID_KEY: sp.pk,
         StorageProviderRequest.NAME_KEY: sp.name,
         StorageProviderRequest.TYPE_KEY: sp.type,
         StorageProviderRequest.PATH_KEY: sp.path,
+        StorageProviderRequest.INDEXING_KEY: sp.indexing,
+        StorageProviderRequest.ROOT_FOLDER_KEY: LocalFileObject.objects.get(storage_provider__pk=sp.pk).pk,
     }
-
+    if disk_space:
+        data[StorageProviderRequest.USED_SPACE_KEY] = sp.used_space
+        data[StorageProviderRequest.TOTAL_SPACE_KEY] = sp.total_space
+    return data
 
 @require_GET
 def get_storage_provider_types(request):
@@ -58,7 +69,8 @@ def get_storage_provider_types(request):
 @require_GET
 def get_storage_providers(request):
     data = [
-        serialize_storage_provider(request, x) for x in StorageProvider.objects.all()
+        serialize_storage_provider(request, x, disk_space=True) 
+        for x in StorageProvider.objects.all()
     ]
     return JsonResponse({'values': data})
 
@@ -72,14 +84,11 @@ def create_storage_provider(request):
     except Exception as e:
         return generate_error_response(str(e))
 
-    sp = StorageProvider(
-        name=data[StorageProviderRequest.NAME_KEY],
-        type=data[StorageProviderRequest.TYPE_KEY],
-        path=data[StorageProviderRequest.PATH_KEY],
-    )
-    sp.save()
+    with transaction.atomic():
+        sp = create_storage_provider_helper(name=data[StorageProviderRequest.NAME_KEY],
+                                            type=data[StorageProviderRequest.TYPE_KEY],
+                                            path=data[StorageProviderRequest.PATH_KEY])
     return JsonResponse(serialize_storage_provider(request, sp))
-
 
 @require_http_methods(['GET', 'POST', 'DELETE'])
 def manage_storage_provider(request, provider_id):
@@ -94,7 +103,6 @@ def manage_storage_provider(request, provider_id):
     elif request.method == 'DELETE':
         sp.delete()
         return JsonResponse({})
-
 
 @require_POST
 def perform_index(request, provider_id):

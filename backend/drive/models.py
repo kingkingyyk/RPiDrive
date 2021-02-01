@@ -1,5 +1,6 @@
 from django.db import models
-import uuid, humanize, os, time
+import uuid, humanize, os, time, shutil
+
 
 class StorageProviderType:
     LOCAL_PATH_NAME = 'Local Storage'
@@ -8,9 +9,11 @@ class StorageProviderType:
     VALUES = [LOCAL_PATH]
     TYPES = [(LOCAL_PATH_NAME, LOCAL_PATH)]
 
+
 class FileObjectType:
     FOLDER = 'FOLDER'
     FILE = 'FILE'
+
 
 class FileExt:
     TYPE_MOVIE = 'movie'
@@ -43,12 +46,14 @@ class FileExt:
     def resolve_extension(ext: str) -> str:
         return FileExt._EXT_TO_TYPE.get(ext.lower(), None)
 
+
 class System(models.Model):
     initialized = models.BooleanField(default=False)
     init_key = models.TextField(default=str(uuid.uuid4()))
 
     def __str__(self):
         return 'System'
+
 
 class StorageProvider(models.Model):
     name = models.TextField()
@@ -59,9 +64,23 @@ class StorageProvider(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def space(self):
+        return shutil.disk_usage(self.path)
+
+    @property
+    def used_space(self):
+        return self.space[1]
+
+    @property
+    def total_space(self):
+        return self.space[0]
+
+
 class LocalFileObjectManager(models.Manager):
     def get_queryset(self):
         return super(LocalFileObjectManager, self).get_queryset().order_by('-obj_type', 'name').select_related('storage_provider', 'parent').prefetch_related('children')
+
 
 class LocalFileObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)

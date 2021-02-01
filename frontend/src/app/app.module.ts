@@ -39,10 +39,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { NgxFilesizeModule } from 'ngx-filesize';
+
 import { LoginComponent } from './drive/login/login.component';
 import { SetupComponent } from './drive/setup/setup.component';
 import { MainComponent } from './drive/main/main.component';
-import { FolderComponent } from './drive/folder/folder.component';
+import { FolderComponent, StorageProviderTableComponent, FolderTableComponent } from './drive/folder/folder.component';
 
 @NgModule({
   declarations: [
@@ -50,7 +52,9 @@ import { FolderComponent } from './drive/folder/folder.component';
     LoginComponent,
     SetupComponent,
     MainComponent,
-    FolderComponent
+    FolderComponent,
+    StorageProviderTableComponent,
+    FolderTableComponent
   ],
   imports: [
     BrowserModule,
@@ -89,6 +93,7 @@ import { FolderComponent } from './drive/folder/folder.component';
     MatTabsModule,
     MatToolbarModule,
     MatTooltipModule,
+    NgxFilesizeModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
