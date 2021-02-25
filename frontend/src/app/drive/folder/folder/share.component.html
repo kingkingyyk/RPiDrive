@@ -1,0 +1,12 @@
+<h2 mat-dialog-title><mat-icon style="vertical-align: middle; margin-right: 5px">share</mat-icon>Share File</h2>
+<mat-dialog-content class="mat-typography">
+    <div>
+        <span style="overflow: auto; border: 1px solid white; padding: 5px">{{getFileUrl()}}</span>
+        <button mat-icon-button matTooltip="Copy URL" [cdkCopyToClipboard]="getFileUrl()">
+            <mat-icon>content_copy</mat-icon>
+        </button>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button [disabled]="loading" mat-dialog-close>Close</button>
+</mat-dialog-actions>

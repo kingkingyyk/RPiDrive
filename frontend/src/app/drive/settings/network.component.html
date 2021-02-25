@@ -1,0 +1,30 @@
+<h1>Network Usage</h1>
+<mat-divider style="margin-bottom: 24px;"></mat-divider>
+
+<mat-progress-bar mode="indeterminate" *ngIf="!currData"></mat-progress-bar>
+
+<mat-list *ngIf="currData">
+    <div mat-subheader>Speed</div>
+    <mat-list-item>
+        <mat-icon mat-list-icon>download</mat-icon>
+        <div mat-line>Download</div>
+        <div mat-line>{{ currData.downloadSpeed | filesize }}/s</div>
+    </mat-list-item>
+    <mat-list-item>
+        <mat-icon mat-list-icon>upload</mat-icon>
+        <div mat-line>Upload</div>
+        <div mat-line>{{ currData.uploadSpeed | filesize }}/s</div>
+    </mat-list-item>
+    <mat-divider></mat-divider>
+    <div mat-subheader>Total</div>
+    <mat-list-item>
+        <mat-icon mat-list-icon>download</mat-icon>
+        <div mat-line>Downloads</div>
+        <div mat-line>{{ currData.downloadTotal | filesize }}</div>
+    </mat-list-item>
+    <mat-list-item>
+        <mat-icon mat-list-icon>upload</mat-icon>
+        <div mat-line>Uploads</div>
+        <div mat-line>{{ currData.uploadTotal | filesize }}</div>
+    </mat-list-item>
+</mat-list>

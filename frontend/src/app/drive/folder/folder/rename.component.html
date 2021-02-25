@@ -1,0 +1,12 @@
+<h2 mat-dialog-title><mat-icon style="vertical-align: middle; margin-right: 5px">create</mat-icon>Rename File</h2>
+<mat-dialog-content class="mat-typography">
+    <mat-form-field style="width: 100%">
+        <mat-label>Name</mat-label>
+        <input type="text" matInput [formControl]="formControl">
+    </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <span style="color: red">{{errorText}}</span>
+    <button mat-button (click)="renameFile()" [disabled]="loading" cdkFocusInitial>Rename</button>
+    <button mat-button [disabled]="loading" mat-dialog-close>Cancel</button>
+</mat-dialog-actions>

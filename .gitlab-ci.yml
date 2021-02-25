@@ -1,37 +1,54 @@
 stages:
+  - test
   - build
   - package
 
-build:
-  image: node:15-alpine
+"Test Backend":
+  image: python:3.9-slim-buster
+  stage: test
+  before_script:
+    - apt update && apt install libpq-dev gcc -y
+    - pip install -r backend/requirements.txt
+    - pip install -r backend/requirements-test.txt
+    - pip install -r backend/requirements-ci.txt
+    - cp backend/config-test.yaml backend/config.yaml
+  script:
+    - cd backend
+    - coverage run -m pytest --ds=rpidrive.settings --junitxml=test-reports/unit-test.xml
+    - coverage report --show-missing --precision=2
+    - coverage xml -o ./test-reports/unit-test-coverage.xml
+    - coverage xml
+    - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='unit test' --file='unit-test-badge.svg' coverage
+  artifacts:
+    reports:
+      cobertura: backend/test-reports/unit-test-coverage.xml
+      junit: backend/test-reports/unit-test.xml
+    paths:
+      - backend/unit-test-badge.svg
+  coverage: '/^TOTAL.+?(\d+.\d+\%)$/'
+
+"Build":
+  image: node:15.8.0-alpine3.12
   stage: build
   script:
-    - sh scripts/gitlab-build.sh
-  artifacts:
-    paths:
-      - build/
-
-package:zip:
-  image: alpine:3
-  stage: package
-  needs: ["build"]
-  script:
-    - tar -czvf build.tar.gz build/*
+    - cd ci-snippets
+    - sh build.sh
   artifacts:
     paths:
       - build.tar.gz
 
-package:docker:
+"Package Docker":
   image: jdrouet/docker-with-buildx:stable
   stage: package
-  needs: ["build"]
   services:
     - docker:dind
+  dependencies:
+    - "Build"
   variables:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
     CI_REGISTRY: registry.gitlab.com
-    CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
+    CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:latest
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes

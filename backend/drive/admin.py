@@ -1,10 +1,7 @@
 from django.contrib import admin
-from .models import Settings, Storage, FolderObject, FileObject, PictureFileObject, MusicFileObject
+from .models import *
 
 # Register your models here.
-admin.site.register(Settings)
-admin.site.register(Storage)
-admin.site.register(FolderObject)
-admin.site.register(FileObject)
-admin.site.register(PictureFileObject)
-admin.site.register(MusicFileObject)
+admin.site.register(StorageProvider)
+admin.site.register(LocalFileObject)
+admin.site.register(System)

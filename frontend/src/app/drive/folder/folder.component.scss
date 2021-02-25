@@ -1,0 +1,21 @@
+.spacer {
+    flex: 1 1 auto;
+}
+
+.drawer-container {
+    width: 100%;
+    height: calc(100% - 64px);
+    height: -webkit-calc(100% - 64px);
+    height: -moz-calc(100% - 64px);
+}
+
+.storage-provider-info {
+    cursor: pointer;
+    padding: 5px 10px 5px 10px;
+}
+
+.storage-provider-info:hover {
+    transition-duration: 0.3s;
+    background-color: darkgray;
+    transition-timing-function: ease-in-out;
+}

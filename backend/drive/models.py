@@ -1,141 +1,156 @@
 from django.db import models
-from django.utils.timezone import get_current_timezone
-from polymorphic.models import PolymorphicModel
-from datetime import datetime, timedelta
-from django.utils.timezone import get_current_timezone
-import shutil, os, humanize, uuid, humanize
+from django.conf import settings
+from django.contrib.auth.models import User
+import uuid, humanize, os, time, shutil, pytz
+from datetime import datetime
 
-class Settings(models.Model):
-    name = models.CharField(max_length=50)
 
-class Storage(models.Model):
-    base_path = models.TextField()
-    primary = models.BooleanField()
+class StorageProviderType:
+    LOCAL_PATH_NAME = 'Local Storage'
+    LOCAL_PATH = 'LOCAL_PATH'
 
-    @property
-    def available(self):
-        return os.path.exists(self.base_path)
+    VALUES = [LOCAL_PATH]
+    TYPES = [(LOCAL_PATH_NAME, LOCAL_PATH)]
 
-    def __str__(self):
-        return self.base_path
+
+class FileObjectType:
+    FOLDER = 'FOLDER'
+    FILE = 'FILE'
+
+
+class FileExt:
+    TYPE_MOVIE = 'movie'
+    TYPE_MUSIC = 'music'
+    TYPE_PICTURE = 'picture'
+    TYPE_CODE = 'code'
+    TYPE_COMPRESSED = 'compressed'
+    TYPE_EXECUTABLE = 'executable'
+    TYPE_LIBRARY = 'library'
+    TYPE_BOOK = 'book'
+
+    _TYPE_TO_EXT = {
+        TYPE_MOVIE: ['mp4', 'webm'],
+        TYPE_MUSIC: ('mp3', 'm4a', 'ogg', 'flac'),
+        TYPE_PICTURE: ('jpg', 'bmp', 'gif', 'png'),
+        TYPE_CODE: ('cpp', 'java', 'py', 'php', 'cs', 'txt'),
+        TYPE_COMPRESSED: ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
+                                       'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx'),
+        TYPE_EXECUTABLE: ('exe', 'sh', 'bat'),
+        TYPE_LIBRARY: ('dll', 'so'),
+        TYPE_BOOK: ('epub', 'mobi', 'pdf')
+
+    }
+    _EXT_TO_TYPE = {}
+    for key, values in _TYPE_TO_EXT.items():
+        for val in values:
+            _EXT_TO_TYPE[val] = key
 
     @staticmethod
-    def natural_space(value):
-        unit = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-        idx = 0
-        while value > 2**10:
-            value /= 2**10
-            idx += 1
-        value_str = '{:.1f}'.format(value)
-        if value_str.endswith('.0'):
-            value_str = value_str[:-2]
-        return '{:s} {:s}'.format(value_str, unit[idx])
+    def resolve_extension(ext: str) -> str:
+        return FileExt._EXT_TO_TYPE.get(ext.lower(), None)
+
+
+class System(models.Model):
+    initialized = models.BooleanField(default=False)
+    init_key = models.TextField(default=None, null=True)
+
+    def __str__(self):
+        return 'System'
+
+
+class StorageProvider(models.Model):
+    name = models.TextField()
+    type = models.CharField(max_length=10)
+    path = models.TextField()
+    indexing = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
     @property
-    def total_space(self):
-        return shutil.disk_usage(self.base_path)[0]
-
-    @property
-    def total_space_natural(self):
-        return Storage.natural_space(self.total_space)
+    def space(self):
+        return shutil.disk_usage(self.path)
 
     @property
     def used_space(self):
-        return shutil.disk_usage(self.base_path)[1]
+        return self.space[1]
 
     @property
-    def used_space_natural(self):
-        return Storage.natural_space(self.used_space)
+    def total_space(self):
+        return self.space[0]
 
-    @property
-    def free_space(self):
-        return shutil.disk_usage(self.base_path)[2]
 
-    @property
-    def free_space_natural(self):
-        return Storage.natural_space(self.free_space)
-        
-class File(PolymorphicModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class LocalFileObjectManager(models.Manager):
+    def get_queryset(self):
+        return super(LocalFileObjectManager, self).get_queryset().order_by('-obj_type', 'name').select_related('storage_provider', 'parent')
+
+
+class LocalFileObject(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.TextField(db_index=True)
-    relative_path = models.TextField(unique=True, db_index=True)
-    parent_folder = models.ForeignKey('FolderObject', on_delete=models.CASCADE, null=True)
-    last_modified = models.DateTimeField()
-    content_type = models.TextField(default='application/octet-stream')
+    obj_type = models.CharField(max_length=10)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    storage_provider = models.ForeignKey(StorageProvider, on_delete=models.CASCADE)
+    rel_path = models.TextField(null=True, blank=True)
+    extension = models.TextField(null=True, blank=True)
+    type = models.TextField(null=True, blank=True)
+    objects = LocalFileObjectManager()
+    metadata = models.JSONField(null=True, default=None)
+
+    def _update_extension(self):
+        if self.obj_type == FileObjectType.FOLDER:
+            self.extension = None
+        elif self.obj_type == FileObjectType.FILE:
+            self.extension = self.name.lower().split('.')[-1]
+
+    def _update_type(self):
+        if self.obj_type == FileObjectType.FOLDER:
+            self.type = None
+        elif self.obj_type == FileObjectType.FILE:
+            self.type = FileExt.resolve_extension(self.extension)
+
+    def update_name(self, new_name: str):
+        if self.name != new_name:
+            self.name = new_name
+            split = self.rel_path.split(os.path.sep)
+            split[-1] = self.name
+            self.rel_path = os.path.sep.join(split)
+            self.save(update_fields=['name', 'rel_path'])
+
+    @property
+    def full_path(self):
+        return os.path.join(self.storage_provider.path, self.rel_path)
+
+    @property
+    def last_modified(self):
+        timestamp = os.path.getmtime(self.full_path)
+        return datetime.fromtimestamp(timestamp, tz=pytz.timezone(settings.TIME_ZONE))
+
+    @property
+    def size(self):
+        return os.path.getsize(self.full_path)
+
+    def save(self, *args, **kwargs):
+        self._update_extension()
+        self._update_type()
+        super(LocalFileObject, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.relative_path
+        return self.full_path
 
-    @property
-    def class_name(self):
-        return self.__class__.__name__
+class Playlist(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    name = models.TextField(db_index=True)
+    files = models.ManyToManyField(LocalFileObject, through='PlaylistFile')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    @property
-    def natural_last_modified(self):
-        last_m = self.last_modified
-        delta = datetime.now(tz=get_current_timezone()) - last_m
-        return humanize.naturaldelta(delta)+' ago' if delta < timedelta(days=2) else humanize.naturalday(last_m)
+    def __str__(self):
+        return self.name
 
-    @property
-    def natural_size(self):
-        return '-'
+class PlaylistFile(models.Model):
+    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
+    file = models.ForeignKey(LocalFileObject, on_delete=models.CASCADE)
+    sequence = models.IntegerField()
 
-class FolderObject(File):
-    pass
-
-class FileObject(File):
-    size = models.BigIntegerField()
-
-    @property
-    def natural_size(self):
-        return Storage.natural_space(self.size)
-
-class PictureFileObject(FileObject):
-    body_make = models.TextField(blank=True, null=True, db_index=True)
-    body_model = models.TextField(blank=True, null=True, db_index=True)
-    lens_make = models.TextField(blank=True, null=True, db_index=True)
-    lens_model = models.TextField(blank=True, null=True, db_index=True)
-    iso = models.TextField(blank=True, null=True)
-    aperture = models.TextField(blank=True, null=True)
-    shutter_speed = models.TextField(blank=True, null=True)
-    focal_length = models.TextField(blank=True, null=True)
-
-class MusicFileObject(FileObject):
-    title = models.TextField(db_index=True)
-    artist = models.TextField(default="Unknown Artist", db_index=True)
-    album = models.TextField(default="Unknown Album", db_index=True)
-    genre = models.TextField(default="", blank=True, db_index=True)
-
-class FileTypes:
-    PICTURE = "PICTURE"
-    MUSIC = "MUSIC"
-    VIDEO = "VIDEO"
-    COMPRESSED = "COMPRESSED"
-    CODE = "CODE"
-    EXECUTABLE = "EXECUTABLE"
-    LIBRARY = "LIBRARY"
-    BOOK = "BOOK"
-    OTHER = "OTHER"
-
-    @staticmethod
-    def get_type(file_path):
-        file_path = os.path.basename(file_path).lower()
-        file_ext = file_path.split('.')[-1]
-        if file_ext in ("mp4", "webm"):
-            return FileTypes.VIDEO
-        elif file_ext in ("mp3", "m4a", "ogg", 'flac'):
-            return FileTypes.MUSIC
-        elif file_ext in ("jpg", "bmp", "gif", "png"):
-            return FileTypes.PICTURE
-        elif file_ext in ('rar', 'zip', '7z', 'arj', 'bz2', 'cab', 'gz', 'iso',
-                                       'lz', 'lzh', 'tar', 'uue', 'xz', 'z', 'zipx'):
-            return FileTypes.COMPRESSED
-        elif file_ext in ('cpp', 'java', 'py', 'php', 'cs', 'txt', 'log'):
-            return FileTypes.CODE
-        elif file_ext in ('exe', 'sh', 'bat'):
-            return FileTypes.EXECUTABLE
-        elif file_ext in ('dll', 'so'):
-            return FileTypes.LIBRARY
-        elif file_ext in ('epub', 'mobi', 'pdf'):
-            return FileTypes.BOOK
-        return FileTypes.OTHER
+    class Meta:
+        ordering = ('sequence',)

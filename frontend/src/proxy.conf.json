@@ -1,0 +1,14 @@
+{
+  "/drive/web-api": {
+    "target": "http://localhost:8000",
+    "secure": false
+  },
+  "/drive/download": {
+    "target": "http://localhost:8000",
+    "secure": false
+  },
+  "/drive/static": {
+    "target": "http://localhost:8000",
+    "secure": false
+  }
+}
