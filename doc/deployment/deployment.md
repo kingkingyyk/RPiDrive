@@ -2,6 +2,7 @@
 
 ## Basic Setup
 * Currently supported OS are `Raspbian` & `Ubuntu`. You may try other Linux distro but they are not guaranteed to work.
+* The available releases are [here](https://gitlab.com/kingkingyyk/RPiDrive/container_registry/1473316)
 * Install [Docker](https://docs.docker.com/engine/install/) & [Docker-Compose](https://docs.docker.com/compose/install/).
 * Create a new folder with the following empty folders :
 ```bash
@@ -64,7 +65,7 @@ services:
       - ./postgres:/var/lib/postgresql/data
     restart: always
   web:
-    image: "registry.gitlab.com/kingkingyyk/rpidrive:latest"
+    image: "registry.gitlab.com/kingkingyyk/rpidrive:<version>"
     container_name: rpidrive
     environment:
       - TZ='<timezone in config.yaml>'
