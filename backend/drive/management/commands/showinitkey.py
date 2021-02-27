@@ -12,5 +12,6 @@ class Command(BaseCommand):
             system = System()
         if not system.init_key:
             system.init_key = str(uuid.uuid4())
-        system.save()
+        if save_system:
+            system.save()
         print('Initialization Key : '+system.init_key)
