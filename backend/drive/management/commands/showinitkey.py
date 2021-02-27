@@ -7,7 +7,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         system = System.objects.first()
-        if system.init_key is None:
+        save_system = not system or not system.init_key
+        if not system:
+            system = System()
+        if not system.init_key:
             system.init_key = str(uuid.uuid4())
-            system.save()
+        system.save()
         print('Initialization Key : '+system.init_key)
