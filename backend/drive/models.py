@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Prefetch
 from django.conf import settings
 from django.contrib.auth.models import User
 import uuid, humanize, os, time, shutil, pytz
@@ -58,11 +59,18 @@ class System(models.Model):
         return 'System'
 
 
+class StorageProviderObjectManager(models.Manager):
+    def get_queryset(self):
+        return super(StorageProvider, self).get_queryset().prefetch_related(
+            Prefetch('storageprovideruser_set', queryset=StorageProviderUser.objects.select_related('user')))
+
+
 class StorageProvider(models.Model):
     name = models.TextField()
     type = models.CharField(max_length=10)
     path = models.TextField()
     indexing = models.BooleanField(default=False)
+    permissions = models.ManyToManyField(User, through='StorageProviderUser')
 
     def __str__(self):
         return self.name
@@ -154,3 +162,23 @@ class PlaylistFile(models.Model):
 
     class Meta:
         ordering = ('sequence',)
+
+class StorageProviderUser(models.Model):
+    storage_provider = models.ForeignKey(
+        StorageProvider, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE)
+    permission = models.IntegerField()
+
+    class PERMISSION:
+        NONE = 0
+        READ = 10
+        READ_WRITE = 20
+
+    PERMISSIONS  = (PERMISSION.READ,
+                    PERMISSION.READ_WRITE, )
+    PERMISSION_CHOICES = [
+        (PERMISSION.NONE, 'None'),
+        (PERMISSION.READ, 'Read'),
+        (PERMISSION.READ_WRITE, 'Read & Write')
+    ]

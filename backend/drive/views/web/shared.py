@@ -1,6 +1,8 @@
+from django.contrib.auth.models import User
 from django.http.response import JsonResponse
 from django.conf import settings
 from datetime import datetime, timedelta
+from drive.models import StorageProvider
 import redis
 import logging
 import json
@@ -70,3 +72,10 @@ def requires_admin(func):
         else:
             return generate_error_response('No permission to perform required action', status=401)
     return wrapper
+
+def get_storage_provider_permission(sp: StorageProvider, user: User):
+    perm = sp.storageprovideruser_set.filter(user=user).first()
+    return StorageProviderUser.PERMISSION.NONE if not perm else perm.permission
+
+def has_storage_provider_permission(sp: StorageProvider, user: User, required_level: int):
+    return user.is_superuser or get_storage_provider_permission(sp, user) >= required_level

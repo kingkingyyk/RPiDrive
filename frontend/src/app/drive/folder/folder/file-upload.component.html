@@ -10,9 +10,8 @@
 <h3>Progress</h3>
 <ul>
     <li *ngFor="let file of files" [@fadeInOut]="file.state">
-        <mat-progress-bar [value]="file.progress"></mat-progress-bar>
         <span id="file-label">
-            {{file.data.name}}
+            {{file.data.name}} - {{file.progress}}%
             <a title="Retry" (click)="retryFile(file)" *ngIf="file.canRetry">
                 <mat-icon>refresh</mat-icon>
             </a>

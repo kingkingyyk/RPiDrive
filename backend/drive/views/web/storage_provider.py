@@ -1,11 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.db.models import Prefetch
 from drive.models import *
 from .local_file_object import *
 from ...utils.indexer import LocalStorageProviderIndexer
 from ...core.storage_provider import create_storage_provider_helper
-from .shared import generate_error_response
+from .shared import generate_error_response, has_storage_provider_permission
 from django.core.cache import cache
 import json
 import os
@@ -20,6 +21,7 @@ class StorageProviderRequest:
     TOTAL_SPACE_KEY = 'totalSpace'
     INDEXING_KEY = 'indexing'
     ROOT_FOLDER_KEY = 'rootFolder'
+    PERMISSION_KEY = 'permissions'
 
     @staticmethod
     def _inspect_type(sp_type):
@@ -48,7 +50,9 @@ def get_storage_provider_cache_key(pk: int):
     return 'storage-provider-{}'.format(pk)
 
 
-def serialize_storage_provider(request, sp, disk_space=False, refresh_cache=False):
+def serialize_storage_provider(
+    request, sp, disk_space=False, permission=False,
+    refresh_cache=False):
     cache_key = get_storage_provider_cache_key(sp)
 
     if not cache.has_key(cache_key) or refresh_cache:
@@ -72,6 +76,18 @@ def serialize_storage_provider(request, sp, disk_space=False, refresh_cache=Fals
     if disk_space:
         data[StorageProviderRequest.USED_SPACE_KEY] = sp.used_space
         data[StorageProviderRequest.TOTAL_SPACE_KEY] = sp.total_space
+
+    if permission:
+        data[StorageProviderRequest.PERMISSION_KEY] = [
+            {
+                'user': {
+                    'id': x.user.pk,
+                    'username': x.user.username
+                },
+                'permission': x.permission
+            } 
+            for x in sp.storageprovideruser_set.all()
+        ]
         
     return data
 
@@ -92,16 +108,18 @@ def get_storage_provider_types(request):
 @require_GET
 @catch_error
 def get_storage_providers(request):
-    data = [
-        serialize_storage_provider(request, x, disk_space=True)
-        for x in StorageProvider.objects.all()
-    ]
+    data = []
+    for x in StorageProvider.objects.prefetch_related(
+        'storageprovideruser_set').all():
+        if has_storage_provider_permission(x, request.user, StorageProviderUser.PERMISSION.READ):
+            data.append(serialize_storage_provider(data))
     return JsonResponse({'values': data})
 
 
 @login_required()
 @require_POST
 @catch_error
+@requires_admin
 def create_storage_provider(request):
     data = json.loads(request.body)
 
@@ -125,19 +143,51 @@ def manage_storage_provider(request, provider_id):
         sp = StorageProvider.objects.get(pk=provider_id)
     except:
         raise Exception('Provider not found!')
+
+    required_levels = {
+        'GET': StorageProviderUser.PERMISSION.READ,
+        'POST': StorageProviderUser.PERMISSION.READ_WRITE,
+        'DELETE': StorageProviderUser.PERMISSION.READ_WRITE
+    }
+    if not has_storage_provider_permission(sp, request.user, required_levels[request.method]):
+        return generate_error_response('No permission to access the resource',
+                                        status=403)
+
     if request.method == 'GET':
         return JsonResponse(serialize_storage_provider(request, sp))
     elif request.method == 'POST':
+        data = json.loads(request.body)
+        action = request.GET.get('action', 'basic')
+
         with transaction.atomic():
-            data = json.loads(request.body)
-            old_path = sp.path
-            sp.name = data['name']
-            if not os.path.exists(data['path']):
-                return generate_error_response('Path doesn\'t exist!')
-            sp.path = data['path']
-            sp.save()
-        if sp.path != old_path:
-            perform_index(request, sp.pk)
+            if action == 'basic':
+                sp.name = data[StorageProviderRequest.NAME_KEY]
+
+                old_path = sp.path
+                if not os.path.exists(data[StorageProviderRequest.PATH_KEY]):
+                    return generate_error_response('Path doesn\'t exist!')
+                sp.path = data[StorageProviderRequest.PATH_KEY]
+            
+                sp.save()
+
+                if sp.path != old_path:
+                    perform_index(request, sp.pk)
+            elif action == 'permission':
+                StorageProviderPermission.objects.filter(
+                    storage_provider=sp).delete()
+
+                perms = []
+                user_pks = User.objects.all().values_list('pk', flat=True)
+                for x in data[StorageProviderRequest.PERMISSION_KEY]:
+                    if x['permission'] not in StorageProviderUser.PERMISSIONS:
+                        raise Exception('Invalid permission type!')
+                    if x['user'] not in user_pks:
+                        raise Exception('User not found!')
+                    perms.append(StorageProviderPermission(
+                        storage_provider=sp, permission=x['permission'],
+                        user_id=x['user']))
+                StorageProviderUser.objects.bulk_create(perms)
+
         return JsonResponse(serialize_storage_provider(request, sp, True, refresh_cache=True))
     elif request.method == 'DELETE':
         sp.delete()
@@ -146,9 +196,28 @@ def manage_storage_provider(request, provider_id):
 
 
 @login_required()
+@require_GET
+@catch_error
+def get_sp_permission_choices(request):
+    values = [
+        {'name': x[1], 'value': x[0]}
+        for x in StorageProviderUser.PERMISSION_CHOICES
+    ]
+    return {'values': values}
+
+
+@login_required()
 @require_POST
 @catch_error
 def perform_index(request, provider_id):
+    try:
+        sp = StorageProvider.objects.get(pk=provider_id)
+    except:
+        raise Exception('Provider not found!')
+
+    if has_storage_provider_permission(sp, request.user, StorageProviderUser.PERMISSION.READ_WRITE):
+        return generate_error_response('No permission to do such action', status=403)
+
     for fo in LocalFileObject.objects.select_related('storage_provider').filter(parent=None, storage_provider__pk=provider_id):
         LocalStorageProviderIndexer.sync(fo, True)
     return JsonResponse({})
