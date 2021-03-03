@@ -16,17 +16,17 @@
                         </ng-container>
 
                         <ng-container *ngIf="metadata">
-                            <h2 mat-dialog-title>
+                            <h2 mat-dialog-title style="margin-left: 10px;">
                                 <mat-icon>{{ getFileIcon() }}</mat-icon>
                                 {{ metadata.title ? metadata.title : file.name}}
+                                <p class="metadata">
+                                    <span *ngIf="metadata.artist">{{metadata.artist}}</span>
+                                    -
+                                    <span *ngIf="metadata.album">
+                                        {{metadata.album}}
+                                    </span>
+                                </p>
                             </h2>
-                            <p class="metadata" *ngIf="metadata.artist">
-                                {{metadata.artist}}
-                            </p>
-                
-                            <p class="metadata" *ngIf="metadata.album">
-                                {{metadata.album}}
-                            </p>
                         </ng-container>
                     </td>
                 </tr>
