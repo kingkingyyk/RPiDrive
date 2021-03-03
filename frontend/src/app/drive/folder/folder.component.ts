@@ -878,7 +878,7 @@ export class DialogDeleteFileComponent {
       this.service.deleteFile(this.filesToDelete[lastIdx].id).subscribe(() => {
         this.deleteSuccess++;
       }, error => {
-        this.errorText = 'Error deleting' + this.filesToDelete[lastIdx].name + ':' + error.error['error'];
+        this.errorText = this.filesToDelete[lastIdx].name + ' error :' + error.error['error'];
       }).add(() => {
         this.loadingLevel--;
         this.filesToDelete.pop();
@@ -949,7 +949,7 @@ export class DialogMoveFileComponent {
         this.files = this.files.filter(x => x !== file);
         this.successCount++;
       }, error => {
-        this.errorText += 'Error moving ' + file.name + '!\n'
+        this.errorText += 'Error moving ' + file.name + '!\n' + error.error['error'];
       }).add(() => {
         this.loadingLevel--
         if (this.loadingLevel == 0 && !this.errorText) {
