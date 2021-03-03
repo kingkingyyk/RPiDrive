@@ -9,6 +9,7 @@ from ...core.local_file_object import serve, update_file_metadata
 import json
 import os
 
+
 def serialize_playlist(playlist: Playlist, load_list: bool=True):
     ret = {
         'id': playlist.pk,
