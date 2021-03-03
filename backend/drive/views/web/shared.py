@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.http.response import JsonResponse
 from django.conf import settings
 from datetime import datetime, timedelta
-from drive.models import StorageProvider
+from drive.models import StorageProvider, StorageProviderUser
 import redis
 import logging
 import json

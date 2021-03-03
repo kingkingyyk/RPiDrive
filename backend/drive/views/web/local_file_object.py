@@ -10,11 +10,11 @@ from drive.models import *
 from datetime import timezone
 from ...core.local_file_object import move_file
 from ...core.local_file_object import serve, update_file_metadata
-from .shared import generate_error_response, catch_error
+from .shared import generate_error_response, catch_error, has_storage_provider_permission
 from ...utils.indexer import Metadata
 from django.core.cache import cache
 
-
+# ========================= CACHE ============================
 def get_file_cache_key(pk: str):
     return 'file-{}'.format(pk)
 
@@ -34,6 +34,18 @@ def clear_file_cache(pk: str):
     cache.delete(get_file_cache_key(pk)+'-last_modified')
     cache.delete(get_file_cache_key(pk)+'-size')
 
+# ========================= CACHE ============================
+def has_permission(request, file: LocalFileObject):
+    required_perms = {
+        'GET': StorageProviderUser.PERMISSION.READ,
+        'POST': StorageProviderUser.PERMISSION.READ_WRITE,
+        'DELETE': StorageProviderUser.PERMISSION.READ_WRITE,
+    }
+    return has_storage_provider_permission(
+        file.storage_provider, request.user,
+        required_perms[request.method])
+
+# ========================= OPERATIONS ============================
 
 def serialize_file_object(file: LocalFileObject,
                           trace_parents=False,
@@ -98,6 +110,10 @@ def manage_file(request, file_id):
         return generate_error_response('Object not found', 404)
 
     file = LocalFileObject.objects.get(id=file_id)
+    if not has_permission(request, file):
+        return generate_error_response('No permission to perform the operation!',
+                                        403)
+
     if request.method == 'GET':
         action = request.GET.get('action', 'download')
         trace_parents = request.GET.get('traceParents', 'false') == 'true'
@@ -147,6 +163,9 @@ def request_download_file(request, file_id):
         return generate_error_response('Object not found', 404)
 
     file = LocalFileObject.objects.get(id=file_id)
+    if not has_permission(request, file):
+        return generate_error_response('No permission to access this resource.',
+                                       403)
     if file.obj_type == FileObjectType.FOLDER:
         return HttpResponse(None, status=404)
 
@@ -157,9 +176,12 @@ def request_download_file(request, file_id):
 @catch_error
 def search_file(request):
     keyword = request.GET['keyword']
-    fo = LocalFileObject.objects.filter(name__search=keyword).all()
-    result = {'values': [serialize_file_object(x, trace_storage_provider=True) for x in fo],
-              }
+    result_files = LocalFileObject.objects.filter(name__search=keyword).all()
+    result = []
+    for file in result_files:
+        if has_permission(request, file):
+            result.append(serialize_file_object(x, trace_storage_provider=True))
+    result = {'values': result}
     return JsonResponse(result)
     
 def get_children(file):
