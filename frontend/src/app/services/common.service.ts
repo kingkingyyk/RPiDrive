@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 export class CommonService {
   private static URL_DRIVE_ROOT = '/drive/web-api/';
   private static URL_GET_STORAGE_PROVIDER_TYPES = 'storage-provider-types';
+  private static URL_GET_STORAGE_PROVIDER_PERMISSIONS = 'storage-provider-permissions';
   private static URL_GET_STORAGE_PROVIDERS: string = 'storage-providers';
   private static URL_CREATE_STORAGE_PROVIDER: string = 'storage-providers/create';
   private static URL_INDEX_STORAGE_PROVDER: string = 'storage-providers/<id>/index';
@@ -59,55 +60,71 @@ export class CommonService {
   }
   // ================ STORAGE PROVIDER ===============
   getStorageProviderTypes(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_STORAGE_PROVIDER_TYPES), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_STORAGE_PROVIDER_TYPES), { withCredentials: true });
+  }
+
+  getStorageProviderPermissions(): Observable<any> {
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_STORAGE_PROVIDER_PERMISSIONS), { withCredentials: true });
   }
 
   getStorageProviders(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_STORAGE_PROVIDERS), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_STORAGE_PROVIDERS), { withCredentials: true });
   }
 
   createStorageProvider(storageProvider: StorageProvider): Observable<any> {
     return this.http.post(this.constructDriveAPIUrl(CommonService.URL_CREATE_STORAGE_PROVIDER),
-      storageProvider, {withCredentials: true});
+      storageProvider, { withCredentials: true });
   }
 
   storageProviderPerformIndex(id: number): Observable<any> {
     return this.http.post(this.constructDriveAPIUrl(CommonService.URL_INDEX_STORAGE_PROVDER.replace('<id>', id.toString())),
-      {}, {withCredentials: true});
+      {}, { withCredentials: true });
   }
 
-  getStorageProvider(id: number): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_MANAGE_STORAGE_PROVDER.replace('<id>', id.toString())), {withCredentials: true});
+  getStorageProvider(id: number, permissions: boolean): Observable<any> {
+    const reqParams = new HttpParams()
+      .set('permissions', permissions ? 'true' : 'false');
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_MANAGE_STORAGE_PROVDER.replace('<id>', id.toString())),
+      { params: reqParams, withCredentials: true });
   }
 
   updateStorageProvider(storageProvider: StorageProvider): Observable<any> {
+    const reqParams = new HttpParams()
+    .set('action', 'basic');
     return this.http.post(this.constructDriveAPIUrl(CommonService.URL_MANAGE_STORAGE_PROVDER.replace('<id>', storageProvider.id.toString())),
-      storageProvider, {withCredentials: true});
+      storageProvider, { params: reqParams, withCredentials: true });
+  }
+
+  updateStorageProviderPermissions(storageProvider: StorageProvider): Observable<any> {
+    const reqParams = new HttpParams()
+    .set('action', 'permissions');
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_MANAGE_STORAGE_PROVDER.replace('<id>', storageProvider.id.toString())),
+      storageProvider, { params: reqParams, withCredentials: true });
   }
 
   deleteStorageProvider(id: number): Observable<any> {
-    return this.http.delete(this.constructDriveAPIUrl(CommonService.URL_MANAGE_STORAGE_PROVDER.replace('<id>', id.toString())), {withCredentials: true});
+    return this.http.delete(this.constructDriveAPIUrl(CommonService.URL_MANAGE_STORAGE_PROVDER.replace('<id>', id.toString())), { withCredentials: true });
   }
 
   // ================ SYSTEM ===============
   isSystemInitialized(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_INITIALIZE_SYSTEM), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_INITIALIZE_SYSTEM), { withCredentials: true });
   }
 
   initializeSystem(is: InitializeSystem): Observable<any> {
-    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_INITIALIZE_SYSTEM), is, {withCredentials: true});
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_INITIALIZE_SYSTEM), is, { withCredentials: true });
   }
 
   isLoggedIn(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_IS_LOGGED_IN), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_IS_LOGGED_IN), { withCredentials: true });
   }
 
   login(login: Login): Observable<any> {
-    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_LOGIN), login, {withCredentials: true});
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_LOGIN), login, { withCredentials: true });
   }
 
   logout(): Observable<any> {
-    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_LOGOUT), {}, {withCredentials: true});
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_LOGOUT), {}, { withCredentials: true });
   }
 
   // ================ FILE OBJECT ===============
@@ -172,7 +189,7 @@ export class CommonService {
   }
 
   deleteFile(id: string): Observable<any> {
-    return this.http.delete(this.constructFileUrl(id), {withCredentials: true});
+    return this.http.delete(this.constructFileUrl(id), { withCredentials: true });
   }
 
   getFileContent(id: string): Observable<any> {
@@ -199,56 +216,56 @@ export class CommonService {
 
   // ================ PLAYLIST ===============
   getPlaylists(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_PLAYLISTS), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_PLAYLISTS), { withCredentials: true });
   }
 
   createPlaylist(playlist: any): Observable<any> {
-    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_CREATE_PLAYLIST), playlist, {withCredentials: true});
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_CREATE_PLAYLIST), playlist, { withCredentials: true });
   }
 
   getPlaylist(id: string): Observable<any> {
-    return this.http.get(this.constructPlaylistUrl(id), {withCredentials: true});
+    return this.http.get(this.constructPlaylistUrl(id), { withCredentials: true });
   }
 
   savePlaylist(id: string, data: any): Observable<any> {
-    return this.http.post(this.constructPlaylistUrl(id), data, {withCredentials: true});
+    return this.http.post(this.constructPlaylistUrl(id), data, { withCredentials: true });
   }
 
   deletePlaylist(id: string): Observable<any> {
-    return this.http.delete(this.constructPlaylistUrl(id), {withCredentials: true});
+    return this.http.delete(this.constructPlaylistUrl(id), { withCredentials: true });
   }
 
   // ================ USER ===============
   getUsers(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_USERS), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_USERS), { withCredentials: true });
   }
 
   createUser(user: User): Observable<any> {
-    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_CREATE_USER), user, {withCredentials: true});
+    return this.http.post(this.constructDriveAPIUrl(CommonService.URL_CREATE_USER), user, { withCredentials: true });
   }
 
   getUser(id: number): Observable<any> {
-    return this.http.get(this.constructUserUrl(id), {withCredentials: true});
+    return this.http.get(this.constructUserUrl(id), { withCredentials: true });
   }
 
   updateUser(id: number, user: User): Observable<any> {
-    return this.http.post(this.constructUserUrl(id), user, {withCredentials: true});
+    return this.http.post(this.constructUserUrl(id), user, { withCredentials: true });
   }
 
   deleteUser(id: number): Observable<any> {
-    return this.http.delete(this.constructUserUrl(id), {withCredentials: true});
+    return this.http.delete(this.constructUserUrl(id), { withCredentials: true });
   }
 
   getCurrentUser(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_CURRENT_USER), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_CURRENT_USER), { withCredentials: true });
   }
   // ================ NETWORK ===============
   getNetworkUsage(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_NETWORK_USAGE), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_NETWORK_USAGE), { withCredentials: true });
   }
 
   // ================ SYSTEM INFO ===============
   getSystemInfo(): Observable<any> {
-    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_SYSTEM_INFO), {withCredentials: true});
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_SYSTEM_INFO), { withCredentials: true });
   }
 }

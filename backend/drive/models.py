@@ -174,11 +174,13 @@ class StorageProviderUser(models.Model):
         NONE = 0
         READ = 10
         READ_WRITE = 20
+        ADMIN = 30
 
-    PERMISSIONS  = (PERMISSION.READ,
+    PERMISSIONS  = (PERMISSION.NONE,
+                    PERMISSION.READ,
                     PERMISSION.READ_WRITE, )
     PERMISSION_CHOICES = [
         (PERMISSION.NONE, 'None'),
         (PERMISSION.READ, 'Read'),
-        (PERMISSION.READ_WRITE, 'Read & Write')
+        (PERMISSION.READ_WRITE, 'Read & Write'),
     ]

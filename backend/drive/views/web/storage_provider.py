@@ -6,7 +6,7 @@ from drive.models import *
 from .local_file_object import *
 from ...utils.indexer import LocalStorageProviderIndexer
 from ...core.storage_provider import create_storage_provider_helper
-from .shared import generate_error_response, has_storage_provider_permission
+from .shared import generate_error_response, has_storage_provider_permission, requires_admin
 from django.core.cache import cache
 import json
 import os
@@ -112,7 +112,7 @@ def get_storage_providers(request):
     for x in StorageProvider.objects.prefetch_related(
         'storageprovideruser_set').all():
         if has_storage_provider_permission(x, request.user, StorageProviderUser.PERMISSION.READ):
-            data.append(serialize_storage_provider(data))
+            data.append(serialize_storage_provider(request, x, disk_space=True))
     return JsonResponse({'values': data})
 
 
@@ -146,18 +146,24 @@ def manage_storage_provider(request, provider_id):
 
     required_levels = {
         'GET': StorageProviderUser.PERMISSION.READ,
-        'POST': StorageProviderUser.PERMISSION.READ_WRITE,
-        'DELETE': StorageProviderUser.PERMISSION.READ_WRITE
+        'POST': StorageProviderUser.PERMISSION.ADMIN,
+        'DELETE': StorageProviderUser.PERMISSION.ADMIN
     }
     if not has_storage_provider_permission(sp, request.user, required_levels[request.method]):
-        return generate_error_response('No permission to access the resource',
+        return generate_error_response('No permission to perform the operation.',
                                         status=403)
 
     if request.method == 'GET':
-        return JsonResponse(serialize_storage_provider(request, sp))
+        query_perm = bool(request.GET.get('permissions', 'true'))
+        if query_perm and not request.user.is_superuser:
+            return generate_error_response('No permission to access the resource.',
+                                            status=403)
+        return JsonResponse(serialize_storage_provider(request, sp, permission=True))
     elif request.method == 'POST':
         data = json.loads(request.body)
-        action = request.GET.get('action', 'basic')
+        action = request.GET.get('action')
+        if action not in ('basic', 'permissions'):
+            return generate_error_response('Bad request')
 
         with transaction.atomic():
             if action == 'basic':
@@ -172,8 +178,8 @@ def manage_storage_provider(request, provider_id):
 
                 if sp.path != old_path:
                     perform_index(request, sp.pk)
-            elif action == 'permission':
-                StorageProviderPermission.objects.filter(
+            elif action == 'permissions':
+                StorageProviderUser.objects.filter(
                     storage_provider=sp).delete()
 
                 perms = []
@@ -181,11 +187,11 @@ def manage_storage_provider(request, provider_id):
                 for x in data[StorageProviderRequest.PERMISSION_KEY]:
                     if x['permission'] not in StorageProviderUser.PERMISSIONS:
                         raise Exception('Invalid permission type!')
-                    if x['user'] not in user_pks:
+                    if x['user']['id'] not in user_pks:
                         raise Exception('User not found!')
-                    perms.append(StorageProviderPermission(
+                    perms.append(StorageProviderUser(
                         storage_provider=sp, permission=x['permission'],
-                        user_id=x['user']))
+                        user_id=x['user']['id']))
                 StorageProviderUser.objects.bulk_create(perms)
 
         return JsonResponse(serialize_storage_provider(request, sp, True, refresh_cache=True))
@@ -198,12 +204,12 @@ def manage_storage_provider(request, provider_id):
 @login_required()
 @require_GET
 @catch_error
-def get_sp_permission_choices(request):
+def get_storage_provider_permissions(request):
     values = [
         {'name': x[1], 'value': x[0]}
         for x in StorageProviderUser.PERMISSION_CHOICES
     ]
-    return {'values': values}
+    return JsonResponse({'values': values})
 
 
 @login_required()
@@ -215,8 +221,10 @@ def perform_index(request, provider_id):
     except:
         raise Exception('Provider not found!')
 
-    if has_storage_provider_permission(sp, request.user, StorageProviderUser.PERMISSION.READ_WRITE):
-        return generate_error_response('No permission to do such action', status=403)
+    if not has_storage_provider_permission(
+        sp, request.user, StorageProviderUser.PERMISSION.READ_WRITE):
+        return generate_error_response(
+            'No permission to perform the operation.', status=403)
 
     for fo in LocalFileObject.objects.select_related('storage_provider').filter(parent=None, storage_provider__pk=provider_id):
         LocalStorageProviderIndexer.sync(fo, True)

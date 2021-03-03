@@ -69,7 +69,8 @@
         <button mat-menu-item [disabled]="true">{{item.name}}</button>
         <mat-divider></mat-divider>
         <button mat-menu-item [disabled]="item.indexing" (click)="performIndex(item)"><mat-icon>query_stats</mat-icon>Perform Index</button>
-		<button mat-menu-item [disabled]="item.indexing" (click)="editStorageProvider(item)"><mat-icon>edit</mat-icon>Edit</button>
+		<button mat-menu-item [disabled]="item.indexing" (click)="editStorageProvider(item)"><mat-icon>edit</mat-icon>Manage</button>
+        <button mat-menu-item [disabled]="item.indexing" (click)="editStorageProviderPermissions(item)"><mat-icon>supervisor_account</mat-icon>Permissions</button>
 		<button mat-menu-item [disabled]="item.indexing" (click)="deleteStorageProvider(item)"><mat-icon color="warn">delete</mat-icon>Delete</button>
 	</ng-template>
 </mat-menu>

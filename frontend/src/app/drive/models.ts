@@ -9,6 +9,20 @@ export interface StorageProviderType {
     value: string;
 }
 
+export interface GetStorageProviderPermissionsResponse {
+    values: StorageProviderPermission[];
+}
+
+export interface StorageProviderPermission {
+    name: string;
+    value: number;
+}
+
+export class StorageProviderUser {
+    user: User;
+    permission: number;
+}
+
 export class StorageProvider {
     id: number;
     name: string;
@@ -18,6 +32,7 @@ export class StorageProvider {
     totalSpace: number;
     rootFolder: string;
     indexing: boolean;
+    permissions: StorageProviderUser[];
 
     construct(data: any) {
         this.id = data['id'];

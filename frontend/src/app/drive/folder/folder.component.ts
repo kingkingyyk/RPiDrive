@@ -7,7 +7,7 @@ import { CommonService } from 'src/app/services/common.service';
 import { FileObject, GetStorageProvidersResponse, StorageProvider, 
          FileObjectType, FileExt, GetStorageProviderTypesResponse, 
          StorageProviderType, FileUploadModel, 
-         FilePreviewType, Metadata, SearchResultResponse } from '../models';
+         FilePreviewType, Metadata, SearchResultResponse, User, GetUsersResponse, GetStorageProviderPermissionsResponse, StorageProviderPermission, StorageProviderUser } from '../models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -20,6 +20,7 @@ import { of } from 'rxjs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MediaMatcher } from '@angular/cdk/layout';
 import { MatSidenav } from '@angular/material/sidenav';
+import { MatTab } from '@angular/material/tabs';
 
 
 abstract class Utils {
@@ -222,7 +223,7 @@ export class StorageProviderTableComponent implements AfterViewInit {
         { duration: 3000 });
       storageProvider.indexing = true;
     }, error => {
-      this.snackBar.open('Failed to start indexing on ' + storageProvider.name + '.',
+      this.snackBar.open(error.error['error'],
         'Close',
         { duration: 3000 });
     })
@@ -244,6 +245,13 @@ export class StorageProviderTableComponent implements AfterViewInit {
     });
     diagRef.afterClosed().subscribe((data) => {
       if (data) window.location.reload();
+    });
+  }
+
+  editStorageProviderPermissions(storageProvider: StorageProvider): void {
+    const diagRef = this.dialog.open(DialogStorageProviderPermissionsComponent, {
+      disableClose: true,
+      data: storageProvider
     });
   }
 
@@ -317,6 +325,92 @@ export class DialogEditStorageProviderComponent {
     }
   }
 
+}
+
+@Component({
+  selector: 'dialog-storage-provider-permissions',
+  templateUrl: './storage-provider/permissions.component.html'
+})
+export class DialogStorageProviderPermissionsComponent {
+  loadingLevel: number = 0;
+  initialDataErrorText: string;
+  errorText: string;
+
+  selectedUser: User = null;
+  users: User[];
+  spPermissions: StorageProviderPermission[];
+
+  permissionTableDataSource: MatTableDataSource<StorageProviderUser>;
+  permissionTableDisplayedColumns: string[] = ['username', 'permission'];
+
+  constructor(private service: CommonService,
+    private dialogRef: MatDialogRef<DialogStorageProviderPermissionsComponent>,
+    @Inject(MAT_DIALOG_DATA) public storageProvider: StorageProvider,
+    private snackBar: MatSnackBar) {
+      this.permissionTableDataSource = new MatTableDataSource();
+      this.loadInitialData();
+  }
+
+  loadInitialData() {
+    this.loadingLevel++;
+    this.service.getUsers().subscribe((response : GetUsersResponse) => {
+      this.users = response.values;
+    }, error => {
+      this.initialDataErrorText = error.error['error'];
+    }).add(() => this.loadingLevel--);
+
+    this.loadingLevel++;
+    this.service.getStorageProviderPermissions().subscribe((response : GetStorageProviderPermissionsResponse) => {
+      this.spPermissions = response.values;
+    }, error => {
+      this.initialDataErrorText = error.error['error'];
+    }).add(() => this.loadingLevel--);
+
+    this.loadingLevel++;
+    this.service.getStorageProvider(this.storageProvider.id, true).subscribe((response : StorageProvider) => {
+      this.storageProvider = response;
+      this.updateTable();
+    }, error => {
+      this.initialDataErrorText = error.error['error'];
+    }).add(() => this.loadingLevel--);
+  }
+
+  userExistsInPermissions(user: User) {
+    for (let p of this.storageProvider.permissions) if (p.user.id === user.id) return true;
+    return false;
+  }
+
+  updateTable() {
+    this.permissionTableDataSource.data = this.storageProvider.permissions;
+  }
+
+  addPermission(user: User) {
+    this.selectedUser = null;
+
+    let p = new StorageProviderUser();
+    p.user = user;
+    p.permission = this.spPermissions[0].value;
+    this.storageProvider.permissions.push(p);
+    this.updateTable();
+  }
+
+  removePermission(perm : StorageProviderUser) {
+    this.storageProvider.permissions = this.storageProvider.permissions.filter(x => x!=perm);
+    this.updateTable();
+  }
+
+  savePermissions() {
+    this.loadingLevel++;
+    this.errorText = null;
+    this.service.updateStorageProviderPermissions(this.storageProvider).subscribe((response: StorageProvider) => {
+      this.snackBar.open('Permission updated successfully', 'Close', {
+        duration: 3000
+      });
+      this.dialogRef.close();
+    }, error => {
+      this.errorText = error.error['error'];
+    }).add(() => this.loadingLevel-- );
+  }
 }
 
 @Component({

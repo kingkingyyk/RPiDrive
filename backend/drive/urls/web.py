@@ -3,6 +3,7 @@ from drive.views.web import *
 
 urlpatterns = [
     path(r'storage-provider-types', get_storage_provider_types),
+    path(r'storage-provider-permissions', get_storage_provider_permissions),
 
     path(r'storage-providers', get_storage_providers),
     path(r'storage-providers/create', create_storage_provider),
