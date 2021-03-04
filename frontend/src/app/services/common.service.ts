@@ -185,7 +185,7 @@ export class CommonService {
   uploadFiles(parentId: string, formData: FormData): Observable<any> {
     const reqParams = new HttpParams()
       .set('action', 'new-files');
-    return this.http.post(this.constructFileUrl(parentId), formData, { params: reqParams, reportProgress: true, withCredentials: true });
+    return this.http.post(this.constructFileUrl(parentId), formData, { params: reqParams, reportProgress: true, observe: "events", withCredentials: true });
   }
 
   deleteFile(id: string): Observable<any> {
