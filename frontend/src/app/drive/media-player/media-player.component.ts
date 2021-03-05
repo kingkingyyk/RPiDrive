@@ -63,9 +63,9 @@ export class MediaPlayerComponent implements OnInit {
       this.playlists = data.values;
     }).add(() => {
       this.loadingPlaylists = false;
+
       let plid = this.route.firstChild?.snapshot.params['playlistid'];
       if (plid) {
-        plid = parseInt(plid);
         for (let pl of this.playlists) if (pl.id === plid) {
           this.uiSelectedPlaylist = [pl];
           this.selectedPlaylist = pl;
