@@ -45,7 +45,7 @@ version: "3"
 
 services:
   redis:
-    image: "redis:6.0.10-alpine"
+    image: "redis:6.2.1-buster"
     container_name: "redis"
     expose:
       - "6379"

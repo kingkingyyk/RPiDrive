@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   redis:
-    image: "redis:6.0.10-alpine"
+    image: "redis:6.2.1-buster"
     container_name: "redis"
     ports:
       - "6379:6379"
