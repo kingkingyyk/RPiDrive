@@ -719,9 +719,6 @@ export class DialogFileUploadComponent {
   }
 
   ngOnInit() {
-    this.complete.subscribe((data: object) => {
-      window.location.reload();
-    });
   }
 
 
