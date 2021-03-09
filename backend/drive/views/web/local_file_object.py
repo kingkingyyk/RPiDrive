@@ -182,7 +182,7 @@ def search_file(request):
     result = []
     for file in result_files:
         if has_permission(request, file):
-            result.append(serialize_file_object(x, trace_storage_provider=True))
+            result.append(serialize_file_object(file, trace_storage_provider=True))
     result = {'values': result}
     return JsonResponse(result)
     
