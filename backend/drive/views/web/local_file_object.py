@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models import Value
+from django.db.models.functions import Substr, Concat
 from django.http.response import JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from drive.models import *
@@ -208,10 +210,22 @@ def rename_file(file, new_name):
         return generate_error_response('Sibling already has same name!', 400)
 
     # Good to go
+    old_path = file.rel_path
     with transaction.atomic():
         parent_path = os.path.dirname(file.full_path)
         os.rename(file.full_path, os.path.join(parent_path, new_name))
-        LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id).update_name(new_name)
+        file = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
+        file.update_name(new_name)
+
+        if file.obj_type == FileObjectType.FOLDER:
+            old_path += os.path.sep
+            new_path = file.rel_path + os.path.sep
+            print(old_path)
+            print(new_path)
+            LocalFileObject.objects.select_for_update(of=('self,')).filter(
+                storage_provider__pk=file.storage_provider.pk, rel_path__startswith=old_path).update(
+                    rel_path=Concat(Value(new_path), Substr('rel_path', len(old_path))))
+        
 
     return JsonResponse({})
 
