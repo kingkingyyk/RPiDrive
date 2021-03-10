@@ -1,12 +1,18 @@
-from django.test import TestCase
-from ..utils.indexer import LocalStorageProviderIndexer, InvalidStorageProviderTypeException
-from ..models import StorageProvider, StorageProviderType, FileObjectType, LocalFileObject, FileExt
-from django.apps import apps
 import os
 import shutil
+from django.test import TestCase
+from drive.utils.indexer import LocalStorageProviderIndexer, InvalidStorageProviderTypeException
+from drive.models import (
+    StorageProvider,
+    StorageProviderType,
+    FileObjectType,
+    LocalFileObject,
+    FileExt
+)
 
 
 class TestLocalStorageProviderIndexer(TestCase):
+    """Test indexer"""
     _TEST_PATH = 'test-indexer-temp'
 
     def setUp(self):
@@ -19,36 +25,38 @@ class TestLocalStorageProviderIndexer(TestCase):
             TestLocalStorageProviderIndexer._TEST_PATH, 'folder2')
         folder3 = os.path.join(folder2, 'folder3')
         folders = [folder1, folder2, folder3]
-        for f in folders:
-            os.makedirs(f, exist_ok=True)
+        for folder in folders:
+            os.makedirs(folder, exist_ok=True)
         file1 = os.path.join(folder1, 'file1.txt')
         file2 = os.path.join(folder2, 'file2.mp3')
         file3 = os.path.join(folder3, 'file3.jpg')
         file4 = os.path.join(
             TestLocalStorageProviderIndexer._TEST_PATH, 'file4.py')
         files = [file1, file2, file3, file4]
-        for f in files:
-            with open(f, 'w+') as fh:
-                fh.write(f)
+        for file in files:
+            with open(file, 'w+') as f_h:
+                f_h.write(file)
 
         # Create DB objects
-        sp = StorageProvider(name='test', type=StorageProviderType.LOCAL_PATH,
-                             path=TestLocalStorageProviderIndexer._TEST_PATH)
-        sp.save()
+        s_p = StorageProvider(name='test', type=StorageProviderType.LOCAL_PATH,
+                              path=TestLocalStorageProviderIndexer._TEST_PATH)
+        s_p.save()
 
-        root = LocalFileObject.objects.create(
-            name='ROOT', obj_type=FileObjectType.FOLDER, rel_path='', storage_provider=sp)
+        LocalFileObject.objects.create(
+            name='ROOT', obj_type=FileObjectType.FOLDER, rel_path='', storage_provider=s_p)
 
     def tearDown(self):
         shutil.rmtree(TestLocalStorageProviderIndexer._TEST_PATH)
         StorageProvider.objects.all().delete()
         LocalFileObject.objects.all().delete()
 
-    def test_construct_fs_tree(self):
-        sp = StorageProvider.objects.first()
-        path = sp.path
+    def test_construct_fs_tree(self): # pylint: disable=too-many-locals
+        """Test constructing LocalFileObject tree"""
+        s_p = StorageProvider.objects.first()
+        path = s_p.path
 
-        root = LocalStorageProviderIndexer._construct_fs_tree(sp)
+        # pylint: disable=protected-access
+        root = LocalStorageProviderIndexer._construct_fs_tree(s_p)
         root.children.sort(key=lambda x : x.name)
         self.assertEqual(root.path, path, 'Root children size')
         self.assertEqual(len(root.children), 3, 'Root children size')
@@ -103,14 +111,17 @@ class TestLocalStorageProviderIndexer(TestCase):
         self.assertEqual(len(file3.children), 0, 'File3 children size')
 
     def test_construct_db_tree(self):
-        sp = StorageProvider.objects.first()
-        root = LocalFileObject.objects.get(storage_provider=sp)
+        """Test creating LocalFileObject tree from file system"""
+        s_p = StorageProvider.objects.first()
+        root = LocalFileObject.objects.get(storage_provider=s_p)
+        # pylint: disable=protected-access
         qs = LocalStorageProviderIndexer._construct_db_tree(root)
         self.assertIsNotNone(qs)
 
     def test_clean_sync_db(self):
-        sp = StorageProvider.objects.first()
-        root = LocalFileObject.objects.get(storage_provider=sp)
+        """Test synchronize LocalFileObject with file system"""
+        s_p = StorageProvider.objects.first()
+        root = LocalFileObject.objects.get(storage_provider=s_p)
         LocalStorageProviderIndexer.sync(root)
 
         lfos = LocalFileObject.objects.order_by('rel_path').all()
@@ -135,7 +146,7 @@ class TestLocalStorageProviderIndexer(TestCase):
                     lfo.parent.pk, expected_parent.pk, 'Wrong parent')
             else:
                 self.assertIsNone(lfo.parent, 'Wrong parent')
-            self.assertEqual(lfo.storage_provider.pk, sp.pk,
+            self.assertEqual(lfo.storage_provider.pk, s_p.pk,
                              'Wring storage_provider')
             self.assertIsNotNone(lfo.last_modified, 'Wrong last_modified')
             self.assertEqual(lfo.full_path, os.path.join(
@@ -159,8 +170,9 @@ class TestLocalStorageProviderIndexer(TestCase):
                     lfo.extension), 'Wrong file.type')
 
     def test_sync_db_deletion(self):
-        sp = StorageProvider.objects.first()
-        root = LocalFileObject.objects.get(storage_provider=sp)
+        """Test synchronizing deleted file/folder"""
+        s_p = StorageProvider.objects.first()
+        root = LocalFileObject.objects.get(storage_provider=s_p)
         LocalStorageProviderIndexer.sync(root)
 
         root_id = LocalFileObject.objects.get(rel_path='').pk
@@ -182,8 +194,9 @@ class TestLocalStorageProviderIndexer(TestCase):
             self.assertEqual(lfo.pk, result, 'LocalFileObject.ID')
 
     def test_non_local_storage_provider(self):
-        sp = StorageProvider.objects.first()
-        root = LocalFileObject.objects.get(storage_provider=sp)
+        """Test throwing error on invalid storage provider type"""
+        s_p = StorageProvider.objects.first()
+        root = LocalFileObject.objects.get(storage_provider=s_p)
         root.storage_provider.type = 'dummy'
         with self.assertRaises(InvalidStorageProviderTypeException):
             LocalStorageProviderIndexer.sync(root)

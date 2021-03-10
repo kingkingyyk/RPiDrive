@@ -1,14 +1,15 @@
+import json
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from .shared import generate_error_response, login_protect
-import json
+from django.views.decorators.http import require_GET, require_POST
+from drive.views.web.shared import generate_error_response, login_protect
+
 
 @require_GET
 def is_logged_in(request):
+    """Return is logged in"""
     flag = request.user.is_authenticated
     return JsonResponse({'result': flag}, status=200 if flag else 403)
 
@@ -16,6 +17,7 @@ def is_logged_in(request):
 @login_protect
 @require_POST
 def user_login(request):
+    """Perform login"""
     data = json.loads(request.body)
     username = data['username']
     password = data['password']
@@ -28,6 +30,7 @@ def user_login(request):
 @login_required()
 @require_POST
 def user_logout(request):
+    """Perform logout"""
     logout(request)
     response = JsonResponse({})
     response.delete_cookie('csrftoken')

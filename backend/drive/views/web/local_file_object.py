@@ -1,27 +1,37 @@
 import json
+import os
 import shutil
-from django.conf import settings
+from datetime import timezone
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Value
 from django.db.models.functions import Substr, Concat
 from django.http.response import JsonResponse, HttpResponse
-from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from drive.models import *
-from datetime import timezone
-from ...core.local_file_object import move_file
-from ...core.local_file_object import serve, update_file_metadata
-from .shared import generate_error_response, catch_error, has_storage_provider_permission
-from ...utils.indexer import Metadata
-from django.core.cache import cache
+from django.views.decorators.http import require_GET, require_http_methods
+from drive.models import (
+    FileObjectType,
+    LocalFileObject,
+    StorageProviderUser,
+)
+from drive.core.local_file_object import move_file
+from drive.core.local_file_object import serve, update_file_metadata
+from drive.views.web.shared import (
+    generate_error_response,
+    catch_error,
+    has_storage_provider_permission
+)
+from drive.utils.indexer import Metadata
+
 
 # ========================= CACHE ============================
-def get_file_cache_key(pk: str):
-    return 'file-{}'.format(pk)
+def get_file_cache_key(p_k: str):
+    """Return cache key for file"""
+    return 'file-{}'.format(p_k)
 
 
 def get_cached_file_data(file):
+    """Return cached file data"""
     cache_key = get_file_cache_key(file.pk)+'-data'
     if not cache.has_key(cache_key):
         data = {
@@ -32,12 +42,14 @@ def get_cached_file_data(file):
     return cache.get(cache_key)
 
 
-def clear_file_cache(pk: str):
-    cache.delete(get_file_cache_key(pk)+'-last_modified')
-    cache.delete(get_file_cache_key(pk)+'-size')
+def clear_file_cache(p_k: str):
+    """Clear file data from cache"""
+    cache.delete(get_file_cache_key(p_k)+'-last_modified')
+    cache.delete(get_file_cache_key(p_k)+'-size')
 
 # ========================= CACHE ============================
 def has_permission(request, file: LocalFileObject):
+    """Return user has permission on the file"""
     required_perms = {
         'GET': StorageProviderUser.PERMISSION.READ,
         'POST': StorageProviderUser.PERMISSION.READ_WRITE,
@@ -54,6 +66,7 @@ def serialize_file_object(file: LocalFileObject,
                           trace_children=False,
                           trace_storage_provider=False,
                           metadata=False):
+    """Convert file object into dictionary"""
     data = {
         'id': file.id,
         'name': file.name,
@@ -104,10 +117,12 @@ def serialize_file_object(file: LocalFileObject,
     return data
 
 
+# pylint: disable=too-many-return-statements,too-many-branches
 @login_required()
 @require_http_methods(['GET', 'POST', 'DELETE'])
 @catch_error
 def manage_file(request, file_id):
+    """Handle get/update/delete of file"""
     if not LocalFileObject.objects.filter(id=file_id).exists():
         return generate_error_response('Object not found', 404)
 
@@ -123,22 +138,22 @@ def manage_file(request, file_id):
         trace_storage_provider = request.GET.get('traceStorageProvider', 'false') == 'true'
         trace_metadata = request.GET.get('metadata', 'false') == 'true'
         if action == 'entity':
-            data = serialize_file_object(file, 
+            data = serialize_file_object(file,
                                          trace_parents=trace_parents,
                                          trace_children=trace_children,
                                          trace_storage_provider=trace_storage_provider,
                                          metadata=trace_metadata)
             return JsonResponse(data)
-        elif action == 'metadata':
+        if action == 'metadata':
             return read_file_metadata(file)
-        elif action == 'album-image':
+        if action == 'album-image':
             return HttpResponse(Metadata.get_album_image(file),
                         content_type='image/jpg')
-        elif file.obj_type == FileObjectType.FOLDER and action == 'children':
+        if file.obj_type == FileObjectType.FOLDER and action == 'children':
             return get_children(file)
-        else:
-            return generate_error_response('Unknown action', 400)
-    elif request.method == 'POST':
+
+        return generate_error_response('Unknown action', 400)
+    if request.method == 'POST':
         action = request.GET.get('action', 'rename')
         if action == 'new-files':
             return create_files(file, request)
@@ -146,21 +161,21 @@ def manage_file(request, file_id):
         data = json.loads(request.body)
         if action == 'rename':
             return rename_file(file, data['name'])
-        elif action == 'move':
+        if action == 'move':
             return verify_and_move_file(file_id, data['destination'], data['strategy'])
-        elif action == 'new-folder':
+        if action == 'new-folder':
             return create_new_folder(file, data['name'])
-        else:
-            return generate_error_response('Unknown action', 400)
-    elif request.method == 'DELETE':
+
+        return generate_error_response('Unknown action', 400)
+    if request.method == 'DELETE':
         return delete_file(file)
-    else:
-        return generate_error_response('Method not allowed', 405)
+    return generate_error_response('Method not allowed', 405)
 
 @login_required()
 @require_GET
 @catch_error
 def request_download_file(request, file_id):
+    """Check user & serve file"""
     if not LocalFileObject.objects.filter(id=file_id).exists():
         return generate_error_response('Object not found', 404)
 
@@ -177,6 +192,7 @@ def request_download_file(request, file_id):
 @require_GET
 @catch_error
 def search_file(request):
+    """Search file"""
     keyword = request.GET['keyword']
     result_files = LocalFileObject.objects.filter(name__search=keyword).all()
     result = []
@@ -185,8 +201,9 @@ def search_file(request):
             result.append(serialize_file_object(file, trace_storage_provider=True))
     result = {'values': result}
     return JsonResponse(result)
-    
+
 def get_children(file):
+    """Get file/folders in the folder"""
     if file.obj_type == FileObjectType.FILE:
         return generate_error_response('This action is only available for folders.', 400)
     values = [serialize_file_object(
@@ -195,6 +212,7 @@ def get_children(file):
 
 
 def rename_file(file, new_name):
+    """Rename file"""
     # Same name, do nothing
     if new_name == file.name:
         return JsonResponse({})
@@ -204,8 +222,8 @@ def rename_file(file, new_name):
         return generate_error_response('Invalid filename')
 
     # Verify siblings has different name than the target name
-    sibling_names = [x for x in LocalFileObject.objects.filter(
-        parent__id=file.parent.id).values_list('name', flat=True)]
+    sibling_names = LocalFileObject.objects.filter(
+        parent__id=file.parent.id).values_list('name', flat=True)
     if new_name in sibling_names:
         return generate_error_response('Sibling already has same name!', 400)
 
@@ -223,14 +241,15 @@ def rename_file(file, new_name):
             print(old_path)
             print(new_path)
             LocalFileObject.objects.select_for_update(of=('self,')).filter(
-                storage_provider__pk=file.storage_provider.pk, rel_path__startswith=old_path).update(
+                storage_provider__pk=file.storage_provider.pk,
+                rel_path__startswith=old_path).update(
                     rel_path=Concat(Value(new_path), Substr('rel_path', len(old_path))))
-        
 
     return JsonResponse({})
 
 
 def verify_and_move_file(src_id, dest_id, strategy):
+    """Move file"""
     # Verify folder exists
     dest_file_obj = LocalFileObject.objects.filter(id=dest_id).first()
     if not dest_file_obj:
@@ -250,45 +269,48 @@ def verify_and_move_file(src_id, dest_id, strategy):
 
 
 def create_new_folder(file, folder_name):
+    """Create new folder"""
     if file.obj_type != FileObjectType.FOLDER:
         return generate_error_response('Only can create folder in a folder!', 400)
 
     # Verify destination doesn't have file/folder with same name
-    sibling_names = [x for x in LocalFileObject.objects.filter(
-        parent__id=file.id).values_list('name', flat=True)]
+    sibling_names = LocalFileObject.objects.filter(
+        parent__id=file.id).values_list('name', flat=True)
     if folder_name in sibling_names:
         return generate_error_response('Sibling already has same name!', 400)
 
     parent_path = file.full_path
     if parent_path.endswith(os.path.sep):
         parent_path = parent_path[:-1]
-    fp = os.path.abspath(os.path.join(parent_path, folder_name))
+    f_p = os.path.abspath(os.path.join(parent_path, folder_name))
 
-    if not fp.startswith(parent_path+os.path.sep):
+    if not f_p.startswith(parent_path+os.path.sep):
         return generate_error_response('Invalid name!', 400)
 
     with transaction.atomic():
         file = LocalFileObject.objects.select_for_update(of=('self',)).get(pk=file.id)
-        os.mkdir(fp)
-        fo = LocalFileObject(name=folder_name,
-                             obj_type=FileObjectType.FOLDER,
-                             parent=file,
-                             storage_provider=file.storage_provider,
-                             rel_path=os.path.join(file.rel_path, folder_name)
-                             )
-        fo.save()
-    return JsonResponse(serialize_file_object(fo), status=201)
+        os.mkdir(f_p)
+        f_o = LocalFileObject(name=folder_name,
+                              obj_type=FileObjectType.FOLDER,
+                              parent=file,
+                              storage_provider=file.storage_provider,
+                              rel_path=os.path.join(file.rel_path, folder_name)
+                              )
+        f_o.save()
+    return JsonResponse(serialize_file_object(f_o), status=201)
 
 
 def serve_file(request, file: LocalFileObject):
-    fp = file.full_path
-    return serve(request, fp)
+    """Serve file"""
+    return serve(request, file.full_path)
 
 def read_file_metadata(file):
+    """Get file metadata"""
     update_file_metadata(file)
     return JsonResponse(file.metadata)
 
 def create_files(file, request):
+    """Handles incoming file"""
     if file.obj_type != FileObjectType.FOLDER:
         return generate_error_response('Destination must be a folder!', 400)
 
@@ -297,31 +319,32 @@ def create_files(file, request):
         with transaction.atomic():
             file = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
             for temp_file in request.FILES.getlist(form):
-                fn = temp_file.name
-                if os.path.exists(os.path.join(file.full_path, fn)):
+                f_n = temp_file.name
+                if os.path.exists(os.path.join(file.full_path, f_n)):
                     counter = 1
                     while True:
-                        temp = fn.split('.')
+                        temp = f_n.split('.')
                         temp[-1 if len(temp) == 1 else -2] += ' ({})'.format(str(counter))
                         temp_fn = '.'.join(temp)
                         if not os.path.exists(os.path.join(file.full_path, temp_fn)):
-                            fn = temp_fn
+                            f_n = temp_fn
                             break
                         counter += 1
-                fp = os.path.join(file.full_path, fn)
-                with open(fp, 'wb+') as f:
-                    shutil.copyfileobj(temp_file.file, f, 10485760)
-                fo = LocalFileObject(name=fn,
-                                     obj_type=FileObjectType.FILE,
-                                     parent=file,
-                                     storage_provider=file.storage_provider,
-                                     rel_path=os.path.join(file.rel_path, fn)
-                                     )
-                fo.save()
+                f_p = os.path.join(file.full_path, f_n)
+                with open(f_p, 'wb+') as f_h:
+                    shutil.copyfileobj(temp_file.file, f_h, 10485760)
+                f_o = LocalFileObject(name=f_n,
+                                      obj_type=FileObjectType.FILE,
+                                      parent=file,
+                                      storage_provider=file.storage_provider,
+                                      rel_path=os.path.join(file.rel_path, f_n)
+                                      )
+                f_o.save()
     return JsonResponse({}, status=201)
 
 
 def delete_file(file):
+    """Delete file"""
     with transaction.atomic():
         if os.path.isfile(file.full_path):
             os.remove(file.full_path)

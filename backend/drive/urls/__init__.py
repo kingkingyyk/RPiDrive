@@ -1,9 +1,11 @@
-from .web import urlpatterns as web
-from drive.views.web import request_download_file
 from django.shortcuts import render
 from django.urls import path, include, re_path
+from drive.views.web import request_download_file
+from .web import urlpatterns as web
 
+# pylint: disable=unused-argument
 def index(request, **kwargs):
+    """Returns main page"""
     return render(request, 'drive/index.html')
 
 urlpatterns = [

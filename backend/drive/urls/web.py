@@ -1,5 +1,27 @@
-from django.urls import path, include
-from drive.views.web import *
+from django.urls import path
+from drive.views.web import (
+    get_storage_provider_types,
+    get_storage_provider_permissions,
+    get_storage_providers,
+    create_storage_provider,
+    perform_index,
+    manage_storage_provider,
+    search_file,
+    manage_file,
+    get_playlists,
+    create_playlist,
+    manage_playlist,
+    initialize_system,
+    get_network_info,
+    get_system_info,
+    create_user,
+    get_current_user,
+    manage_user,
+    get_users,
+    user_login,
+    user_logout,
+    is_logged_in,
+)
 
 urlpatterns = [
     path(r'storage-provider-types', get_storage_provider_types),

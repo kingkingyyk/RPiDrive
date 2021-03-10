@@ -1,23 +1,30 @@
-from ..models import *
-from threading import Thread
-import os
 import json
 import logging
+import os
 import traceback
+from threading import Thread
 import epub_meta
 from tinytag import TinyTag
 from exif import Image
-from PyPDF2 import PdfFileReader
 from mobi import Mobi
-
+from PyPDF2 import PdfFileReader
+from drive.models import (
+    FileExt,
+    FileObjectType,
+    LocalFileObject,
+    StorageProvider,
+    StorageProviderType,
+)
 
 class InvalidStorageProviderTypeException(Exception):
-    pass
-
+    """InvalidStorageProviderTypeException"""
 
 class LocalStorageProviderIndexer:
+    """LocalStorageProviderIndexer"""
+
     LOGGER = logging.getLogger(__name__)
     class FSFileObj:
+        """FSFileObj"""
         def __init__(self, name, path):
             self.name = name
             self.path = path
@@ -25,6 +32,7 @@ class LocalStorageProviderIndexer:
 
     @staticmethod
     def sync(root: LocalFileObject, background=False):
+        """Perform LocalFileObject and file system sync"""
         if background:
             Thread(target=LocalStorageProviderIndexer.sync_helper,
                    args=(root,)).start()
@@ -33,6 +41,7 @@ class LocalStorageProviderIndexer:
 
     @staticmethod
     def sync_helper(root: LocalFileObject):
+        """Sync helper"""
         LocalStorageProviderIndexer.LOGGER.debug('Indexing started')
         storage_provider = root.storage_provider
         StorageProvider.objects.filter(pk=root.storage_provider.pk).update(indexing=True)
@@ -43,7 +52,7 @@ class LocalStorageProviderIndexer:
                 storage_provider)
             db_tree = LocalStorageProviderIndexer._construct_db_tree(root)
             LocalStorageProviderIndexer._sync_trees(fs_tree, db_tree)
-        except:
+        except: # pylint: disable=bare-except
             print(traceback.format_exc())
         StorageProvider.objects.filter(pk=root.storage_provider.pk).update(indexing=False)
         LocalStorageProviderIndexer.LOGGER.debug('Indexing done')
@@ -55,11 +64,11 @@ class LocalStorageProviderIndexer:
         stk = [root]
         while stk:
             curr_parent = stk.pop()
-            for fn in os.listdir(curr_parent.path):
-                fp = os.path.join(curr_parent.path, fn)
-                fobj = LocalStorageProviderIndexer.FSFileObj(fn, fp)
+            for f_n in os.listdir(curr_parent.path):
+                f_p = os.path.join(curr_parent.path, f_n)
+                fobj = LocalStorageProviderIndexer.FSFileObj(f_n, f_p)
                 curr_parent.children.append(fobj)
-                if os.path.isdir(fp):
+                if os.path.isdir(f_p):
                     stk.append(fobj)
         return root
 
@@ -72,44 +81,49 @@ class LocalStorageProviderIndexer:
         fs_stk = [fs_root]
         db_stk = [db_root]
 
-        for fo in LocalFileObject.objects.filter(storage_provider=db_root.storage_provider).all():
-            if not os.path.exists(fo.full_path):
-                fo.delete()
+        for f_o in LocalFileObject.objects.filter(
+            storage_provider=db_root.storage_provider).all():
+            if not os.path.exists(f_o.full_path):
+                f_o.delete()
 
         while fs_stk:
-            fs = fs_stk.pop()
-            db = db_stk.pop()
+            f_s = fs_stk.pop()
+            d_b = db_stk.pop()
 
-            fs_files = set(os.listdir(fs.path))
+            fs_files = set(os.listdir(f_s.path))
             db_files = set(x for x in LocalFileObject.objects.filter(
-                parent__pk=db.pk).values_list('name', flat=True))
+                parent__pk=d_b.pk).values_list('name', flat=True))
 
             new_fs_files = fs_files - db_files
 
-            for f in fs_files:
-                fp = os.path.join(fs.path, f)
+            for file in fs_files:
+                f_p = os.path.join(f_s.path, file)
                 db_obj = None
-                if f in new_fs_files:
-                    LocalStorageProviderIndexer.LOGGER.debug('Indexing path {}'.format(fp))
-                    db_obj = LocalFileObject.objects.create(name=f,
-                                                            obj_type=FileObjectType.FOLDER if os.path.isdir(
-                                                                fp) else FileObjectType.FILE,
-                                                            parent=db,
-                                                            storage_provider=db.storage_provider,
-                                                            rel_path=fp[len(fs_root.path)+1:])
-                if os.path.isdir(fp):
+                if file in new_fs_files:
+                    LocalStorageProviderIndexer.LOGGER.debug('Indexing path %s', f_p)
+                    db_obj = LocalFileObject.objects.create(
+                        name=file,
+                        obj_type=FileObjectType.FOLDER if os.path.isdir(
+                            f_p) else FileObjectType.FILE,
+                        parent=d_b,
+                        storage_provider=d_b.storage_provider,
+                        rel_path=f_p[len(fs_root.path)+1:])
+                if os.path.isdir(f_p):
                     if not db_obj:
-                        db_obj = LocalFileObject.objects.get(name=f,
+                        db_obj = LocalFileObject.objects.get(name=file,
                                                              obj_type=FileObjectType.FOLDER,
-                                                             parent=db)
-                    fs_stk.append(next(x for x in fs.children if x.name == f))
+                                                             parent=d_b)
+                    fs_stk.append(next(x for x in f_s.children if x.name == file))
                     db_stk.append(db_obj)
 
 
 class Metadata:
+    """File Metadata"""
 
+    # pylint: disable=bare-except
     @staticmethod
     def extract(file: LocalFileObject):
+        """Extract metadata from file"""
         data = {}
         if file.type in [FileExt.TYPE_MUSIC, FileExt.TYPE_MOVIE]:
             try:
@@ -119,8 +133,8 @@ class Metadata:
                 print(traceback.format_exc())
         elif file.type == FileExt.TYPE_PICTURE:
             try:
-                with open(file.full_path, 'rb') as fh:
-                    img = Image(fh)
+                with open(file.full_path, 'rb') as f_h:
+                    img = Image(f_h)
                 if img.has_exif:
                     data = {key: img[key] for key in dir(img)}
             except:
@@ -128,8 +142,8 @@ class Metadata:
         elif file.type == FileExt.TYPE_BOOK:
             if file.extension == 'pdf':
                 try:
-                    with open(file.full_path, 'rb') as fh:
-                        data = PdfFileReader(fh).getDocumentInfo()
+                    with open(file.full_path, 'rb') as f_h:
+                        data = PdfFileReader(f_h).getDocumentInfo()
                 except:
                     print(traceback.format_exc())
             elif file.extension == 'epub':
@@ -147,8 +161,7 @@ class Metadata:
 
     @staticmethod
     def get_album_image(file: LocalFileObject) -> bytes:
-        data = {}
+        """Extract album image from file"""
         if file.type == FileExt.TYPE_MUSIC:
             return TinyTag.get(file.full_path, image=True).get_image()
-        else:
-            return b''
+        return b''

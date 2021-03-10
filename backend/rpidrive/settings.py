@@ -1,6 +1,6 @@
 import os
-from yaml import safe_load as load_yaml
 from pathlib import Path
+from yaml import safe_load as load_yaml
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,7 +36,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
 ]
 
 if not DEBUG:
@@ -152,6 +151,7 @@ if _TEMP_DIR:
     if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
         os.makedirs(FILE_UPLOAD_TEMP_DIR)
 
+#pylint: disable=pointless-string-statement
 """
 if DEBUG:
     LOGGING = {

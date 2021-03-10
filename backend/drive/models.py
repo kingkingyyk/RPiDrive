@@ -1,12 +1,16 @@
+import os
+import shutil
+import uuid
+from datetime import datetime
 from django.db import models
 from django.db.models import Prefetch
 from django.conf import settings
 from django.contrib.auth.models import User
-import uuid, humanize, os, time, shutil, pytz
-from datetime import datetime
+import pytz
 
 
 class StorageProviderType:
+    """StorageProviderType definitions"""
     LOCAL_PATH_NAME = 'Local Storage'
     LOCAL_PATH = 'LOCAL_PATH'
 
@@ -15,11 +19,13 @@ class StorageProviderType:
 
 
 class FileObjectType:
+    """FileObjectType definitions"""
     FOLDER = 'FOLDER'
     FILE = 'FILE'
 
 
 class FileExt:
+    """FileExt definitions"""
     TYPE_MOVIE = 'movie'
     TYPE_MUSIC = 'music'
     TYPE_PICTURE = 'picture'
@@ -48,10 +54,12 @@ class FileExt:
 
     @staticmethod
     def resolve_extension(ext: str) -> str:
+        """Convert ext to type"""
         return FileExt._EXT_TO_TYPE.get(ext.lower(), None)
 
 
 class System(models.Model):
+    """System definition"""
     initialized = models.BooleanField(default=False)
     init_key = models.TextField(default=None, null=True)
 
@@ -60,45 +68,61 @@ class System(models.Model):
 
 
 class StorageProviderObjectManager(models.Manager):
+    """Default StorageProvider query set"""
     def get_queryset(self):
-        return super(StorageProvider, self).get_queryset().prefetch_related(
-            Prefetch('storageprovideruser_set', queryset=StorageProviderUser.objects.select_related('user')))
+        """Provides queryset"""
+        return super().get_queryset().prefetch_related(
+            Prefetch('storageprovideruser_set',
+            queryset=StorageProviderUser.objects.select_related('user')))
 
 
 class StorageProvider(models.Model):
+    """StorageProvider definition"""
     name = models.TextField()
     type = models.CharField(max_length=10)
     path = models.TextField()
     indexing = models.BooleanField(default=False)
     permissions = models.ManyToManyField(User, through='StorageProviderUser')
 
+    objects = StorageProviderObjectManager()
+
     def __str__(self):
         return self.name
 
     @property
     def space(self):
+        """Returns disk usage values"""
         return shutil.disk_usage(self.path)
 
     @property
     def used_space(self):
+        """Returns used space"""
         return self.space[1]
 
     @property
     def total_space(self):
+        """Returns total space"""
         return self.space[0]
 
 
 class LocalFileObjectManager(models.Manager):
+    """LocalFileObject default query set"""
     def get_queryset(self):
-        return super(LocalFileObjectManager, self).get_queryset().order_by('-obj_type', 'name').select_related('storage_provider', 'parent')
+        """Returns query set"""
+        return super().get_queryset().order_by(
+            '-obj_type', 'name').select_related('storage_provider', 'parent')
 
 
 class LocalFileObject(models.Model):
+    """LocalFileObject definition"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.TextField(db_index=True)
     obj_type = models.CharField(max_length=10)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
-    storage_provider = models.ForeignKey(StorageProvider, on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE,
+                               null=True, blank=True,
+                               related_name='children')
+    storage_provider = models.ForeignKey(StorageProvider,
+                                         on_delete=models.CASCADE)
     rel_path = models.TextField(null=True, blank=True)
     extension = models.TextField(null=True, blank=True)
     type = models.TextField(null=True, blank=True)
@@ -118,6 +142,7 @@ class LocalFileObject(models.Model):
             self.type = FileExt.resolve_extension(self.extension)
 
     def update_name(self, new_name: str):
+        """Update name and rel_path"""
         if self.name != new_name:
             self.name = new_name
             split = self.rel_path.split(os.path.sep)
@@ -127,26 +152,32 @@ class LocalFileObject(models.Model):
 
     @property
     def full_path(self):
+        """Returns full path of this file"""
         return os.path.join(self.storage_provider.path, self.rel_path)
 
     @property
     def last_modified(self):
+        """Returns last modified of this file"""
         timestamp = os.path.getmtime(self.full_path)
         return datetime.fromtimestamp(timestamp, tz=pytz.timezone(settings.TIME_ZONE))
 
     @property
     def size(self):
+        """Returns size of this file"""
         return os.path.getsize(self.full_path)
 
+    # pylint: disable=signature-differs
     def save(self, *args, **kwargs):
+        """Save method"""
         self._update_extension()
         self._update_type()
-        super(LocalFileObject, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.full_path
 
 class Playlist(models.Model):
+    """Playlist definition"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.TextField(db_index=True)
     files = models.ManyToManyField(LocalFileObject, through='PlaylistFile')
@@ -156,6 +187,7 @@ class Playlist(models.Model):
         return self.name
 
 class PlaylistFile(models.Model):
+    """PlaylistFile definition"""
     playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
     file = models.ForeignKey(LocalFileObject, on_delete=models.CASCADE)
     sequence = models.IntegerField()
@@ -164,6 +196,7 @@ class PlaylistFile(models.Model):
         ordering = ('sequence',)
 
 class StorageProviderUser(models.Model):
+    """StorageProvider permission definition"""
     storage_provider = models.ForeignKey(
         StorageProvider, on_delete=models.CASCADE)
     user = models.ForeignKey(
@@ -171,6 +204,7 @@ class StorageProviderUser(models.Model):
     permission = models.IntegerField()
 
     class PERMISSION:
+        """Permission levels"""
         NONE = 0
         READ = 10
         READ_WRITE = 20

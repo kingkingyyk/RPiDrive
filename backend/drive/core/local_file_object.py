@@ -1,17 +1,16 @@
-from ..models import LocalFileObject, FileObjectType
-from ..utils.range_file_wrapper import range_re, RangeFileWrapper
-from django.db.models import Value
-from django.db.models.functions import Replace
-from django.http import StreamingHttpResponse
-from urllib.parse import quote
-from wsgiref.util import FileWrapper
-from ..utils.indexer import Metadata
+import mimetypes
 import os
 import shutil
-import mimetypes
+from urllib.parse import quote
+from wsgiref.util import FileWrapper
+from django.http import StreamingHttpResponse
+from ..models import LocalFileObject, FileObjectType
+from ..utils.indexer import Metadata
+from ..utils.range_file_wrapper import range_re, RangeFileWrapper
 
 
 def generate_new_file_name(name, used_names):
+    """Search for a filename that is not being used yet"""
     for i in range(1, 100000):
         name_split = name.split('.')
         name_split[-2 if len(name_split) > 1 else -1] += ' ({})'.format(i)
@@ -24,6 +23,7 @@ def generate_new_file_name(name, used_names):
 def move_file(src: LocalFileObject,
               dest: LocalFileObject,
               strategy: str):
+    """Move file and update database"""
     if strategy not in ('overwrite', 'rename'):
         raise Exception('Invalid strategy')
 
@@ -91,11 +91,12 @@ def move_file(src: LocalFileObject,
 
 
 def serve(request, file_path: str):
+    """Serve file to HTTP request"""
     range_header = request.META.get('HTTP_RANGE', '').strip()
     range_match = range_re.match(range_header)
     size = os.path.getsize(file_path)
 
-    content_type, encoding = content_type = mimetypes.guess_type(file_path)
+    content_type = mimetypes.guess_type(file_path)[0]
     content_type = 'application/octet-stream'
     if range_match:
         first_byte, last_byte = range_match.groups()
@@ -104,8 +105,11 @@ def serve(request, file_path: str):
         if last_byte >= size:
             last_byte = size - 1
         length = last_byte - first_byte + 1
-        resp = StreamingHttpResponse(RangeFileWrapper(open(
-            file_path, 'rb'), offset=first_byte, length=length), status=206, content_type=content_type)
+        resp = StreamingHttpResponse(
+            RangeFileWrapper(open(file_path, 'rb'),
+                             offset=first_byte,
+                             length=length),
+            status=206, content_type=content_type)
         resp['Content-Length'] = str(length)
         resp['Content-Range'] = 'bytes %s-%s/%s' % (
             first_byte, last_byte, size)
@@ -113,17 +117,18 @@ def serve(request, file_path: str):
         resp = StreamingHttpResponse(FileWrapper(
             open(file_path, 'rb')), content_type=content_type)
         resp['Content-Length'] = str(size)
-    fn = os.path.basename(file_path)
+    f_n = os.path.basename(file_path)
     try:
-        fn.encode('ascii')
-        fn = 'filename="{}"'.format(fn)
-    except:
-        fn = "filename*=utf-8''{}".format(quote(fn))
-    resp['Content-Disposition'] = 'attachment; '+fn
+        f_n.encode('ascii')
+        f_n = 'filename="{}"'.format(f_n)
+    except: #pylint: disable=bare-except
+        f_n = "filename*=utf-8''{}".format(quote(f_n))
+    resp['Content-Disposition'] = 'attachment; '+f_n
     resp['Accept-Ranges'] = 'bytes'
     return resp
 
-def update_file_metadata(file):
+def update_file_metadata(file: LocalFileObject):
+    """Save file metadata if missing"""
     if file.metadata is None:
         file.metadata = Metadata.extract(file)
         LocalFileObject.objects.filter(pk=file.pk).update(metadata=file.metadata)

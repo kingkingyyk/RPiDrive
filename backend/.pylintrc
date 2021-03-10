@@ -1,0 +1,8 @@
+[MASTER]
+load-plugins=pylint_django
+jobs=4
+ignore=migrations
+django-settings-module=rpidrive.settings
+
+[MESSAGES CONTROL]
+disable=missing-module-docstring,imported-auth-user,too-few-public-methods

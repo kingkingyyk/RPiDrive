@@ -1,14 +1,15 @@
+import json
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.http.response import JsonResponse
 from django.db import transaction
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from .shared import generate_error_response, requires_admin
-from django.core.cache import cache
-import json
+from drive.views.web.shared import generate_error_response, requires_admin
 
 
 class UserRequest:
+    """List of key in user request"""
     ID_KEY = 'id'
     USERNAME_KEY = 'username'
     PASSWORD_KEY = 'password'
@@ -20,10 +21,12 @@ class UserRequest:
     LAST_LOGIN_KEY = 'lastLogin'
 
 
-def get_user_cache_key(id: int):
-    return 'user-{}'.format(id)
+def get_user_cache_key(p_k: int):
+    """Return cache key for user"""
+    return 'user-{}'.format(p_k)
 
 def serialize_user(user: User, refresh_cache: bool=False):
+    """Convert user object into dictionary"""
     cache_key = get_user_cache_key(user.pk)
     if not cache.has_key(cache_key) or refresh_cache:
         data = {
@@ -43,6 +46,7 @@ def serialize_user(user: User, refresh_cache: bool=False):
 @requires_admin
 @require_GET
 def get_users(request):
+    """Return all users"""
     users = User.objects.all()
     return JsonResponse({'values': [serialize_user(x) for x in users]})
 
@@ -50,6 +54,7 @@ def get_users(request):
 @requires_admin
 @require_POST
 def create_user(request):
+    """Create user"""
     data = json.loads(request.body)
     user = User(
         username=data[UserRequest.USERNAME_KEY],
@@ -67,6 +72,7 @@ def create_user(request):
 @login_required()
 @require_GET
 def get_current_user(request):
+    """Return current user"""
     user = request.user
     return JsonResponse(serialize_user(user))
 
@@ -74,12 +80,13 @@ def get_current_user(request):
 @requires_admin
 @require_http_methods(['GET', 'POST', 'DELETE'])
 def manage_user(request, user_id):
+    """Get/update/delete user"""
     user = User.objects.filter(pk=user_id).first()
     if not user:
         return generate_error_response('User not found', status=404)
     if request.method == 'GET':
         return JsonResponse(serialize_user(user))
-    elif request.method == 'POST':
+    if request.method == 'POST':
         data = json.loads(request.body)
         with transaction.atomic():
             if data.get(UserRequest.PASSWORD_KEY, None):
@@ -96,7 +103,8 @@ def manage_user(request, user_id):
             )
         user = User.objects.get(pk=user_id)
         return JsonResponse(serialize_user(user, refresh_cache=True))
-    elif request.method == 'DELETE':
+    if request.method == 'DELETE':
         user.delete()
         cache.delete(get_user_cache_key(user.pk))
         return JsonResponse({})
+    return JsonResponse({}, status=405)

@@ -1,8 +1,10 @@
-from django.core.management.base import BaseCommand, CommandError
-from ...models import System
 import uuid
+from django.core.management.base import BaseCommand
+from drive.models import System
+
 
 class Command(BaseCommand):
+    """Command to display initialization key"""
     help = 'Display the initialization key'
 
     def handle(self, *args, **options):
