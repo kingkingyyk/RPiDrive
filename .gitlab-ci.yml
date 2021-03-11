@@ -4,10 +4,9 @@ stages:
   - package
 
 "Test Backend":
-  image: python:3.9-slim-buster
+  image: registry.gitlab.com/kingkingyyk/rpidrive:lib-1.0.0
   stage: test
   before_script:
-    - apt update && apt install libpq-dev gcc -y
     - pip install -r backend/requirements.txt
     - pip install -r backend/requirements-test.txt
     - pip install -r backend/requirements-ci.txt
