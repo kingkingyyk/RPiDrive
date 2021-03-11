@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM registry.gitlab.com/kingkingyyk/rpidrive:lib-1.0.0
 
 ADD build.tar.gz /
 
