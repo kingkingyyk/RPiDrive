@@ -11,4 +11,4 @@ RUN chmod +x start.sh &&\
 
 EXPOSE 8000
 
-CMD "/app/start.sh"
+RUN "/app/start.sh"
