@@ -4,6 +4,8 @@ ADD build.tar.gz /
 
 WORKDIR /app
 
+ENV MODE=standalone
+
 RUN chmod +x start.sh &&\
     apt update && \
     apt install gcc libpq-dev g++ libffi-dev make -y && \

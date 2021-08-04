@@ -959,7 +959,7 @@ export class DialogMoveFileComponent {
 
   filterBlockFolder(children: FileObject[]) {
     let ids = this.files.map(x => x.id);
-    return children.filter(x => !ids.includes(x.id));
+    return children.filter(x => !ids.includes(x.id) && x.objType === FileObjectType.FOLDER);
   }
 }
 
