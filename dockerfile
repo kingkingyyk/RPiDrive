@@ -11,4 +11,5 @@ RUN chmod +x start.sh &&\
 
 EXPOSE 8000
 
-ENTRYPOINT ["/bin/bash", "/app/start.sh"]
+ENTRYPOINT ["/bin/bash"]
+CMD ["/app/start.sh"]
