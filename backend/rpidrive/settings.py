@@ -79,7 +79,7 @@ elif DB_ENGINE == 'django.db.backends.postgresql_psycopg2':
         'NAME': CONFIG_DICT['database']['name'],
         'USER': CONFIG_DICT['database']['user'],
         'PASSWORD': CONFIG_DICT['database']['password'],
-        'CONN_MAX_AGE': 300,
+        'CONN_MAX_AGE': 5,
     }
 else:
     raise Exception('Invalid db engine!')
