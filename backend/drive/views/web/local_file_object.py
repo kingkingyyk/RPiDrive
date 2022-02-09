@@ -3,7 +3,6 @@ import os
 import shutil
 from datetime import timezone
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Value
 from django.db.models.functions import Substr, Concat
@@ -24,30 +23,6 @@ from drive.views.web.shared import (
 from drive.utils.indexer import Metadata
 
 
-# ========================= CACHE ============================
-def get_file_cache_key(p_k: str):
-    """Return cache key for file"""
-    return 'file-{}'.format(p_k)
-
-
-def get_cached_file_data(file):
-    """Return cached file data"""
-    cache_key = get_file_cache_key(file.pk)+'-data'
-    if not cache.has_key(cache_key):
-        data = {
-            'lastModified': file.last_modified.astimezone(timezone.utc),
-            'size': file.size
-        }
-        cache.set(cache_key, data)
-    return cache.get(cache_key)
-
-
-def clear_file_cache(p_k: str):
-    """Clear file data from cache"""
-    cache.delete(get_file_cache_key(p_k)+'-last_modified')
-    cache.delete(get_file_cache_key(p_k)+'-size')
-
-# ========================= CACHE ============================
 def has_permission(request, file: LocalFileObject):
     """Return user has permission on the file"""
     required_perms = {
@@ -74,8 +49,8 @@ def serialize_file_object(file: LocalFileObject,
         'relPath': file.rel_path,
         'extension': file.extension,
         'type': file.type,
-        'lastModified': get_cached_file_data(file)['lastModified'],
-        'size': get_cached_file_data(file)['size'],
+        'lastModified': file.last_modified.astimezone(timezone.utc),
+        'size': file.size,
     }
     if file.parent:
         data['parent'] = {
@@ -351,5 +326,4 @@ def delete_file(file):
         elif os.path.isdir(file.full_path):
             shutil.rmtree(file.full_path)
         LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id).delete()
-        clear_file_cache(id)
     return JsonResponse({}, status=200)

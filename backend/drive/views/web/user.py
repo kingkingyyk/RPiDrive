@@ -1,7 +1,6 @@
 import json
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.http.response import JsonResponse
 from django.db import transaction
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
@@ -20,27 +19,19 @@ class UserRequest:
     IS_SUPERUSER_KEY = 'isSuperuser'
     LAST_LOGIN_KEY = 'lastLogin'
 
-
-def get_user_cache_key(p_k: int):
-    """Return cache key for user"""
-    return 'user-{}'.format(p_k)
-
-def serialize_user(user: User, refresh_cache: bool=False):
+def serialize_user(user: User):
     """Convert user object into dictionary"""
-    cache_key = get_user_cache_key(user.pk)
-    if not cache.has_key(cache_key) or refresh_cache:
-        data = {
-            UserRequest.ID_KEY: user.pk,
-            UserRequest.USERNAME_KEY: user.username,
-            UserRequest.FIRST_NAME_KEY: user.first_name,
-            UserRequest.LAST_NAME_KEY: user.last_name,
-            UserRequest.EMAIL_KEY: user.email,
-            UserRequest.IS_ACTIVE_KEY: user.is_active,
-            UserRequest.IS_SUPERUSER_KEY: user.is_superuser,
-            UserRequest.LAST_LOGIN_KEY: user.last_login,
-        }
-        cache.set(user.pk, data)
-    return cache.get(user.pk)
+    data = {
+        UserRequest.ID_KEY: user.pk,
+        UserRequest.USERNAME_KEY: user.username,
+        UserRequest.FIRST_NAME_KEY: user.first_name,
+        UserRequest.LAST_NAME_KEY: user.last_name,
+        UserRequest.EMAIL_KEY: user.email,
+        UserRequest.IS_ACTIVE_KEY: user.is_active,
+        UserRequest.IS_SUPERUSER_KEY: user.is_superuser,
+        UserRequest.LAST_LOGIN_KEY: user.last_login,
+    }
+    return data
 
 @login_required()
 @requires_admin
@@ -102,9 +93,8 @@ def manage_user(request, user_id):
                 is_staff=data[UserRequest.IS_SUPERUSER_KEY]
             )
         user = User.objects.get(pk=user_id)
-        return JsonResponse(serialize_user(user, refresh_cache=True))
+        return JsonResponse(serialize_user(user))
     if request.method == 'DELETE':
         user.delete()
-        cache.delete(get_user_cache_key(user.pk))
         return JsonResponse({})
     return JsonResponse({}, status=405)
