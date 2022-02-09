@@ -4,7 +4,7 @@ ADD build.tar.gz /
 
 WORKDIR /app
 
-ENV MODE=standalone
+ENV MODE=web
 
 RUN chmod +x start.sh &&\
     pip install --no-cache-dir -r requirements.txt
