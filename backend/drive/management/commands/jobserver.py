@@ -1,4 +1,5 @@
 import logging
+from operator import index
 import time
 from threading import Thread
 import traceback
@@ -35,5 +36,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         indexer_period_seconds = settings.INDEXER_PERIOD*60
-        Thread(target=Command.do_sync, args=(indexer_period_seconds,)).start()
         logging.info('Started periodic indexing every %s minutes.', settings.INDEXER_PERIOD)
+        Command.do_sync(indexer_period_seconds)
