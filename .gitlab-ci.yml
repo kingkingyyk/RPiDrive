@@ -28,7 +28,7 @@ stages:
   coverage: '/^TOTAL.+?(\d+.\d+\%)$/'
 
 "Build":
-  image: node:17.4.0-alpine3.15
+  image: node:16.13.2-alpine3.15
   stage: build
   script:
     - cd ci-snippets
