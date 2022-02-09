@@ -5,4 +5,4 @@ ignore=migrations
 django-settings-module=rpidrive.settings
 
 [MESSAGES CONTROL]
-disable=missing-module-docstring,imported-auth-user,too-few-public-methods,duplicate-code
+disable=missing-module-docstring,imported-auth-user,too-few-public-methods,duplicate-code,consider-using-f-string,consider-using-with,unspecified-encoding

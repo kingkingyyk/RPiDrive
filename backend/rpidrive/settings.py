@@ -151,6 +151,8 @@ if _TEMP_DIR:
     if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
         os.makedirs(FILE_UPLOAD_TEMP_DIR)
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 #pylint: disable=pointless-string-statement
 """
 if DEBUG:
