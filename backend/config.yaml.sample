@@ -22,3 +22,5 @@ security:
         block-duration: <int:value>
 reverse-proxy:
     ip-header: 'HTTP_X_FORWARDED_FOR'
+hostname:
+    - example.com

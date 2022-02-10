@@ -42,6 +42,7 @@ MIDDLEWARE = [
 
 if not DEBUG:
     MIDDLEWARE.append('django.middleware.csrf.CsrfViewMiddleware')
+    CSRF_TRUSTED_ORIGINS = CONFIG_DICT['hostname']
 
 ROOT_URLCONF = 'rpidrive.urls'
 
