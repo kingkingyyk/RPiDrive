@@ -38,6 +38,8 @@ security:
         block-duration: 600
 reverse-proxy:
     ip-header: null
+hostname:
+  - https://www.myurl.com
 ```
 * Create a `docker-compose.yml` file in the new folder (Fill in your values when needed) :
 ```yaml
@@ -45,7 +47,7 @@ version: "3"
 
 services:
   redis:
-    image: "redis:6.2.1-buster"
+    image: "redis:6.2.6-bullseye"
     container_name: "redis"
     expose:
       - "6379"
@@ -53,7 +55,7 @@ services:
       - ./redis:/data
     restart: always
   db:
-    image: "postgres:12.4"
+    image: "postgres:12.8"
     container_name: "postgres"
     expose:
       - "5432"
@@ -69,11 +71,29 @@ services:
     container_name: rpidrive
     environment:
       - TZ='<timezone in config.yaml>'
+      - MODE=web
     ports:
       - "8000:8000"
     volumes:
       - ./temp:/drive/temp-dir
       - ./config.yaml:/app/config.yaml
+      - ./migrations:/app/drive/migrations
+      - <Path in host containing data>:<Mounted path in container>
+      # Feel free to mount if you have more paths!
+    depends_on:
+      - redis
+      - db
+    restart: always
+  core:
+    image: "registry.gitlab.com/kingkingyyk/rpidrive:<version>"
+    container_name: rpidrive
+    environment:
+      - TZ='<timezone in config.yaml>'
+      - MODE=core
+    volumes:
+      - ./temp:/drive/temp-dir
+      - ./config.yaml:/app/config.yaml
+      - ./migrations:/app/drive/migrations
       - <Path in host containing data>:<Mounted path in container>
       # Feel free to mount if you have more paths!
     depends_on:
