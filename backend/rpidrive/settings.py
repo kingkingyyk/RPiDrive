@@ -32,9 +32,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -82,7 +80,7 @@ elif DB_ENGINE == 'django.db.backends.postgresql_psycopg2':
         'NAME': CONFIG_DICT['database']['name'],
         'USER': CONFIG_DICT['database']['user'],
         'PASSWORD': CONFIG_DICT['database']['password'],
-        'CONN_MAX_AGE': 1,
+        'CONN_MAX_AGE': 60,
     }
 else:
     raise Exception('Invalid db engine!')

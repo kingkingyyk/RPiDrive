@@ -4,6 +4,7 @@ import time
 import traceback
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.core.cache import cache
 from drive.models import LocalFileObject
 from drive.utils.indexer import LocalStorageProviderIndexer
 
@@ -22,6 +23,7 @@ class Command(BaseCommand):
                 'storage_provider').filter(parent=None).all():
                 try:
                     LocalStorageProviderIndexer.sync(f_o)
+                    cache.delete('storage-provider-{}'.format(f_o.storage_provider.pk))
                     logging.info('Done indexing...')
                 except KeyboardInterrupt:
                     return
