@@ -17,3 +17,5 @@ security:
         block-duration: 600
 reverse-proxy:
     ip-header: null
+hostname:
+    - localhost
