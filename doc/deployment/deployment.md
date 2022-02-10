@@ -14,30 +14,30 @@ temp
 * Create a `config.yaml` file in the new folder with the content below (Fill in your values when needed) :
 ```yaml
 web:
-    debug: false
-    secret-key: '<your secret key from Djecrety>'
-    time-zone: '<your timezone in tz database, i.e. Asia/Kuala_Lumpur>'
-    temp-dir: '/drive/temp-dir'
+  debug: false
+  secret-key: '<your secret key from Djecrety>'
+  time-zone: '<your timezone in tz database, i.e. Asia/Kuala_Lumpur>'
+  temp-dir: '/drive/temp-dir'
 indexer:
-    period: 180
+  period: 180
 database:
-    engine: 'django.db.backends.postgresql_psycopg2'
-    host: 'postgres'
-    port: 5432
-    name: '<put a database name>'
-    user: '<put a database user>'
-    password: '<put a database password>'
+  engine: 'django.db.backends.postgresql_psycopg2'
+  host: 'postgres'
+  port: 5432
+  name: '<put a database name>'
+  user: '<put a database user>'
+  password: '<put a database password>'
 redis:
-    host: 'redis'
-    port: 6379
-    # Don't set to 1, which is used by cache
-    db: 0 
+  host: 'redis'
+  port: 6379
+  # Don't set to 1, which is used by cache
+  db: 0 
 security:
-    login-protect:
-        max-retries: 5
-        block-duration: 600
+  spam-protect:
+    max-retries: 5
+    block-duration: 600
 reverse-proxy:
-    ip-header: null
+  ip-header: null
 hostname:
   - https://www.myurl.com
 ```
