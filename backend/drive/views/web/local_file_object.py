@@ -3,7 +3,6 @@ import os
 import shutil
 from datetime import timezone
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Value
 from django.db.models.functions import Substr, Concat
@@ -14,6 +13,7 @@ from drive.models import (
     LocalFileObject,
     StorageProviderUser,
 )
+from drive.cache import ModelCache
 from drive.core.local_file_object import move_file
 from drive.core.local_file_object import serve, update_file_metadata
 from drive.views.web.shared import (
@@ -24,30 +24,16 @@ from drive.views.web.shared import (
 from drive.utils.indexer import Metadata
 
 
-# ========================= CACHE ============================
-def get_file_cache_key(p_k: str):
-    """Return cache key for file"""
-    return 'file-{}'.format(p_k)
-
-
-def get_cached_file_data(file):
+def get_file_stat(file):
     """Return cached file data"""
-    cache_key = get_file_cache_key(file.pk)+'-data'
-    if not cache.has_key(cache_key):
+    if not ModelCache.exists(file):
         data = {
             'lastModified': file.last_modified.astimezone(timezone.utc),
             'size': file.size
         }
-        cache.set(cache_key, data)
-    return cache.get(cache_key)
+        ModelCache.set(file, data)
+    return ModelCache.get(file)
 
-
-def clear_file_cache(p_k: str):
-    """Clear file data from cache"""
-    cache.delete(get_file_cache_key(p_k)+'-last_modified')
-    cache.delete(get_file_cache_key(p_k)+'-size')
-
-# ========================= CACHE ============================
 def has_permission(request, file: LocalFileObject):
     """Return user has permission on the file"""
     required_perms = {
@@ -59,14 +45,13 @@ def has_permission(request, file: LocalFileObject):
         file.storage_provider, request.user,
         required_perms[request.method])
 
-# ========================= OPERATIONS ============================
-
 def serialize_file_object(file: LocalFileObject,
                           trace_parents=False,
                           trace_children=False,
                           trace_storage_provider=False,
                           metadata=False):
     """Convert file object into dictionary"""
+    file_stat = get_file_stat(file)
     data = {
         'id': file.id,
         'name': file.name,
@@ -74,8 +59,8 @@ def serialize_file_object(file: LocalFileObject,
         'relPath': file.rel_path,
         'extension': file.extension,
         'type': file.type,
-        'lastModified': get_cached_file_data(file)['lastModified'],
-        'size': get_cached_file_data(file)['size'],
+        'lastModified': file_stat['lastModified'],
+        'size': file_stat['size'],
     }
     if file.parent:
         data['parent'] = {
@@ -350,6 +335,6 @@ def delete_file(file):
             os.remove(file.full_path)
         elif os.path.isdir(file.full_path):
             shutil.rmtree(file.full_path)
+        ModelCache.clear(file)
         LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id).delete()
-        clear_file_cache(id)
     return JsonResponse({}, status=200)

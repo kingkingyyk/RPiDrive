@@ -1,10 +1,10 @@
 import json
 import os
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.db import transaction
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from drive.cache import ModelCache
 from drive.core.storage_provider import create_storage_provider_helper
 from drive.models import (
     LocalFileObject,
@@ -56,19 +56,11 @@ class StorageProviderRequest:
             raise Exception('Path {} doesn\'t exist!'.format(
                 data[StorageProviderRequest.PATH_KEY]))
 
-
-def get_storage_provider_cache_key(p_k: int):
-    """Return cache key for storage provider"""
-    return 'storage-provider-{}'.format(p_k)
-
-
 def serialize_storage_provider(
     request, s_p, disk_space=False, permission=False,
     refresh_cache=False):
     """Convert storage provider into dictionary"""
-    cache_key = get_storage_provider_cache_key(s_p)
-
-    if not cache.has_key(cache_key) or refresh_cache:
+    if not ModelCache.exists(s_p) or refresh_cache:
         root_folder = LocalFileObject.objects\
             .select_related('parent', 'storage_provider')\
             .filter(storage_provider__pk=s_p.pk, parent=None)\
@@ -81,9 +73,9 @@ def serialize_storage_provider(
             StorageProviderRequest.PATH_KEY: s_p.path,
             StorageProviderRequest.ROOT_FOLDER_KEY: root_folder.pk,
         }
-        cache.set(cache_key, data)
+        ModelCache.set(s_p, data)
 
-    data = cache.get(cache_key)
+    data = ModelCache.get(s_p)
     data[StorageProviderRequest.INDEXING_KEY] = s_p.indexing
 
     if disk_space:
@@ -216,8 +208,8 @@ def manage_storage_provider(request, provider_id):
 
         return JsonResponse(serialize_storage_provider(request, s_p, True, refresh_cache=True))
     if request.method == 'DELETE':
+        ModelCache.clear(s_p)
         s_p.delete()
-        cache.delete(s_p.pk)
         return JsonResponse({})
     return JsonResponse({}, status=405)
 
