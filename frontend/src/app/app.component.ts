@@ -31,7 +31,7 @@ export class CheckLoginComponent implements OnInit, OnDestroy {
     this.service.isLoggedIn().subscribe((data : IsLoggedInResponse) => {
       if (!data.result) window.open(Url.getLoginAbsURL(), '_self');
     }, error => {
-      window.open(Url.getLoginAbsURL(), '_self');
+      window.open(Url.getLoginAbsURL()+'?'+new URLSearchParams({next: window.location.pathname}), '_self');
     });
   }
 

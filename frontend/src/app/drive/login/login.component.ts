@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonService } from 'src/app/services/common.service';
 import { IsLoggedInResponse } from '../models';
 import { Url } from '../urls';
@@ -15,8 +15,10 @@ export class LoginComponent implements OnInit {
   loadingLevel: number = 0;
   loginForm: FormGroup;
   loginError: string = '';
+  nextUrl: string = null;
 
   constructor(private service: CommonService,
+              private route: ActivatedRoute,
               private router: Router,
               private formBuilder: FormBuilder,
               private titleService: Title) {
@@ -29,9 +31,13 @@ export class LoginComponent implements OnInit {
       password: ['', Validators.required]
     })
 
+    this.route.queryParams.subscribe(params => {
+      this.nextUrl = params['next'];
+    });
+
     this.loadingLevel += 1;
     this.service.isLoggedIn().subscribe((data : IsLoggedInResponse) => {
-      this.router.navigateByUrl(Url.getRootURL());
+      this.router.navigateByUrl(this.nextUrl || Url.getRootURL());
     }).add(() => {
       this.loadingLevel -= 1;
     })
@@ -41,7 +47,7 @@ export class LoginComponent implements OnInit {
     this.loginError = '';
     this.loadingLevel += 1;
     this.service.login(this.loginForm.value).subscribe((data : IsLoggedInResponse) => {
-      this.router.navigateByUrl(Url.getRootURL());
+      this.router.navigateByUrl(this.nextUrl || Url.getRootURL());
     }, error => {
       this.loginError = error.error['error']
     }).add(() => {
