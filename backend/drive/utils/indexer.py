@@ -2,12 +2,12 @@ import json
 import logging
 import os
 import traceback
-from threading import Thread
 import epub_meta
 from tinytag import TinyTag
 from exif import Image
 from mobi import Mobi
 from PyPDF2 import PdfFileReader
+from django.utils import timezone
 from drive.models import (
     FileExt,
     FileObjectType,
@@ -31,17 +31,8 @@ class LocalStorageProviderIndexer:
             self.children = []
 
     @staticmethod
-    def sync(root: LocalFileObject, background=False):
+    def sync(root: LocalFileObject):
         """Perform LocalFileObject and file system sync"""
-        if background:
-            Thread(target=LocalStorageProviderIndexer.sync_helper,
-                   args=(root,)).start()
-        else:
-            LocalStorageProviderIndexer.sync_helper(root)
-
-    @staticmethod
-    def sync_helper(root: LocalFileObject):
-        """Sync helper"""
         LocalStorageProviderIndexer.LOGGER.debug('Indexing started')
         storage_provider = root.storage_provider
         StorageProvider.objects.filter(pk=root.storage_provider.pk).update(indexing=True)
@@ -54,7 +45,9 @@ class LocalStorageProviderIndexer:
             LocalStorageProviderIndexer._sync_trees(fs_tree, db_tree)
         except: # pylint: disable=bare-except
             print(traceback.format_exc())
-        StorageProvider.objects.filter(pk=root.storage_provider.pk).update(indexing=False)
+        StorageProvider.objects.filter(
+            pk=root.storage_provider.pk).update(
+                indexing=False, last_indexed=timezone.now())
         LocalStorageProviderIndexer.LOGGER.debug('Indexing done')
 
     @staticmethod

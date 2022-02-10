@@ -250,7 +250,6 @@ def perform_index(request, provider_id):
         return generate_error_response(
             'No permission to perform the operation.', status=403)
 
-    for f_o in LocalFileObject.objects.select_related(
-        'storage_provider').filter(parent=None, storage_provider__pk=provider_id):
-        LocalStorageProviderIndexer.sync(f_o, True)
+    s_p.indexing = True
+    s_p.save(update_fields=['indexing'])
     return JsonResponse({})

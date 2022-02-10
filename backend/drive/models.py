@@ -83,6 +83,7 @@ class StorageProvider(models.Model):
     path = models.TextField()
     indexing = models.BooleanField(default=False)
     permissions = models.ManyToManyField(User, through='StorageProviderUser')
+    last_indexed = models.DateTimeField(default=None, null=True)
 
     objects = StorageProviderObjectManager()
 
