@@ -13,14 +13,12 @@ from drive.models import (
     StorageProviderUser,
     User,
 )
-#from drive.views.web.local_file_object import *
 from drive.views.web.shared import (
     catch_error,
     generate_error_response,
     has_storage_provider_permission,
     requires_admin,
 )
-from drive.utils.indexer import LocalStorageProviderIndexer
 
 
 class StorageProviderRequest:

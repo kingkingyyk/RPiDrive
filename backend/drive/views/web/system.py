@@ -14,7 +14,6 @@ from drive.core.storage_provider import create_storage_provider_helper
 from drive.models import System
 from drive.views.web.shared import generate_error_response, requires_admin
 from drive.views.web.storage_provider import StorageProviderRequest
-from drive.utils.indexer import LocalStorageProviderIndexer
 
 class InitializeSystemRequest:
     """InitializeSystem request keys"""
@@ -83,8 +82,6 @@ def initialize_system(request):
 
             # Flag system as initialized
             System.objects.update(initialized=True)
-
-        LocalStorageProviderIndexer.sync(file_obj, True)
         return JsonResponse({}, status=200)
     return JsonResponse({}, status=405)
 
