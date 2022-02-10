@@ -4,12 +4,21 @@ import traceback
 from datetime import datetime, timedelta
 import redis
 from django.contrib.auth.models import User
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 from django.conf import settings
 from drive.models import StorageProvider, StorageProviderUser
 
+_REDIS_POOL = None
 
-LOGGER = logging.getLogger(__name__)
+def get_redis_pool():
+    """Get redis pool object"""
+    global _REDIS_POOL # pylint: disable=global-statement
+    if not _REDIS_POOL:
+        _REDIS_POOL = redis.ConnectionPool(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            db=settings.REDIS_DB)
+    return _REDIS_POOL
 
 def generate_error_response(msg, status=400):
     """Return a json response with error message"""
@@ -22,23 +31,20 @@ def catch_error(func):
         try:
             return func(*args, **kwargs)
         except Exception as exp: # pylint: disable=broad-except
-            LOGGER.error(traceback.format_exc())
+            logging.error(traceback.format_exc())
             return generate_error_response(str(exp), status=500)
     return wrapper
 
-def login_protect(func):
-    """For wrapping login method to block brute force attack"""
-    def wrapper(request):
+def spam_protect(func):
+    """For wrapping method to block brute force attack"""
+    def wrapper(request, *args, **kwargs): # pylint: disable=unused-argument
         remote_addr = None
         if settings.REVERSE_PROXY_IP_HEADER:
             remote_addr = request.META.get(settings.REVERSE_PROXY_IP_HEADER).split(',')[0]
         else:
             remote_addr = request.META.get('REMOTE_ADDR')
 
-        pool = redis.ConnectionPool(host=settings.REDIS_HOST,
-                                    port=settings.REDIS_PORT,
-                                    db=settings.REDIS_DB)
-        r_dict = redis.Redis(connection_pool=pool)
+        r_dict = redis.Redis(connection_pool=get_redis_pool())
         remote_profile_str = r_dict.get(remote_addr)
         if remote_profile_str:
             remote_profile = json.loads(remote_profile_str)
@@ -46,21 +52,28 @@ def login_protect(func):
             if next_allowed_time:
                 next_allowed_time = datetime.fromisoformat(next_allowed_time)
             if next_allowed_time and next_allowed_time > datetime.now():
-                return JsonResponse(
-                    {'error': 'Login blocked temporarily due to too many failed attempts!'},
-                    status=403)
+                error_text = 'Request blocked temporarily due to too many failed attempts!'
+                if request.content_type == 'application/json':
+                    return JsonResponse(
+                        dict(error=error_text),
+                        status=403)
+                return HttpResponse(f'<html>{error_text}</html>', status=403)
         result = func(request)
-        if result.status_code == 200:
+        if 200 <= result.status_code < 300:
             r_dict.delete(remote_addr)
-        else:
+        elif result.status_code in {401, 403, 404}:
             if remote_profile_str:
                 remote_profile = json.loads(remote_profile_str)
             else:
                 remote_profile = {'failureCount': 0}
             remote_profile['failureCount'] += 1
-            if remote_profile['failureCount'] >= settings.LOGIN_MAX_RETRIES:
+            if remote_profile['failureCount'] >= settings.SPAM_MAX_RETRIES:
                 remote_profile['nextAllowedTime'] = (datetime.now() + \
-                    timedelta(seconds=settings.LOGIN_BLOCK_DURATION)).isoformat()
+                    timedelta(seconds=settings.SPAM_BLOCK_DURATION)).isoformat()
+                logging.warning(
+                    'Blocked %s until %s.',
+                    remote_addr,
+                    remote_profile['nextAllowedTime'])
 
             remote_profile_str = json.dumps(remote_profile)
             def save(pipe: redis.client.Pipeline):
@@ -69,6 +82,11 @@ def login_protect(func):
             r_dict.transaction(save)
         return result
     return wrapper
+
+def reset_spam_protect():
+    """For resetting login block"""
+    r_dict = redis.Redis(connection_pool=get_redis_pool())
+    r_dict.flushdb()
 
 def requires_admin(func):
     """Wrapper for method that request admin privilege"""

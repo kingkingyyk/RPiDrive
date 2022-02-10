@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
-from drive.views.web.shared import generate_error_response, login_protect
+from drive.views.web.shared import generate_error_response, spam_protect
 
 
 @require_GET
@@ -14,7 +14,7 @@ def is_logged_in(request):
     return JsonResponse({'result': flag}, status=200 if flag else 403)
 
 @csrf_exempt
-@login_protect
+@spam_protect
 @require_POST
 def user_login(request):
     """Perform login"""

@@ -9,8 +9,6 @@ from django.utils import timezone
 from drive.models import LocalFileObject
 from drive.utils.indexer import LocalStorageProviderIndexer
 
-logging.basicConfig(level=logging.INFO)
-
 class Command(BaseCommand):
     """Command to start jobserver"""
     help = 'Run Job Server'

@@ -137,8 +137,8 @@ CACHES = {
     }
 }
 
-LOGIN_MAX_RETRIES = CONFIG_DICT['security']['login-protect']['max-retries']
-LOGIN_BLOCK_DURATION = CONFIG_DICT['security']['login-protect']['block-duration']
+SPAM_MAX_RETRIES = CONFIG_DICT['security']['spam-protect']['max-retries']
+SPAM_BLOCK_DURATION = CONFIG_DICT['security']['spam-protect']['block-duration']
 
 INDEXER_PERIOD = CONFIG_DICT['indexer']['period']
 
@@ -154,24 +154,27 @@ if _TEMP_DIR:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-#pylint: disable=pointless-string-statement
-"""
-if DEBUG:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-            },
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '[{asctime}] {levelname} {message}',
+            'style': '{',
         },
-        'loggers': {
-            'django': {
-                'handlers': ['console'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
-    }
-"""
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

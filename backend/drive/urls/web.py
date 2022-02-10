@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from drive.views.web import (
     get_storage_provider_types,
     get_storage_provider_permissions,
@@ -22,6 +22,7 @@ from drive.views.web import (
     user_logout,
     is_logged_in,
 )
+from rpidrive.views import page_not_found
 
 urlpatterns = [
     path(r'storage-provider-types', get_storage_provider_types),
@@ -51,4 +52,7 @@ urlpatterns = [
     path(r'auth/login', user_login),
     path(r'auth/logout', user_logout),
     path(r'auth/logged-in', is_logged_in),
+
+    re_path(r'^(?P<path>.*)/$', page_not_found),
+    re_path(r'$', page_not_found),
 ]

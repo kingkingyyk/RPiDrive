@@ -21,8 +21,6 @@ class InvalidStorageProviderTypeException(Exception):
 
 class LocalStorageProviderIndexer:
     """LocalStorageProviderIndexer"""
-
-    LOGGER = logging.getLogger(__name__)
     class FSFileObj:
         """FSFileObj"""
         def __init__(self, name, path):
@@ -33,7 +31,7 @@ class LocalStorageProviderIndexer:
     @staticmethod
     def sync(root: LocalFileObject):
         """Perform LocalFileObject and file system sync"""
-        LocalStorageProviderIndexer.LOGGER.debug('Indexing started')
+        logging.info('Indexing started')
         storage_provider = root.storage_provider
         StorageProvider.objects.filter(pk=root.storage_provider.pk).update(indexing=True)
         if storage_provider.type != StorageProviderType.LOCAL_PATH:
@@ -48,7 +46,7 @@ class LocalStorageProviderIndexer:
         StorageProvider.objects.filter(
             pk=root.storage_provider.pk).update(
                 indexing=False, last_indexed=timezone.now())
-        LocalStorageProviderIndexer.LOGGER.debug('Indexing done')
+        logging.info('Indexing done')
 
     @staticmethod
     def _construct_fs_tree(storage_provider: StorageProvider):
@@ -93,7 +91,7 @@ class LocalStorageProviderIndexer:
                 f_p = os.path.join(f_s.path, file)
                 db_obj = None
                 if file in new_fs_files:
-                    LocalStorageProviderIndexer.LOGGER.debug('Indexing path %s', f_p)
+                    logging.debug('Indexing path %s', f_p)
                     db_obj = LocalFileObject.objects.create(
                         name=file,
                         obj_type=FileObjectType.FOLDER if os.path.isdir(
