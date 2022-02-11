@@ -21,7 +21,7 @@ class Command(BaseCommand):
             s_p = f_o.storage_provider
             flag = s_p.indexing or \
                 not s_p.last_indexed or \
-                s_p.last_indexed + timedelta(period) <= timezone.now()
+                s_p.last_indexed + timedelta(minutes=period) <= timezone.now()
             if not flag:
                 break
             logging.info(f'Started indexing {s_p.name}...')
