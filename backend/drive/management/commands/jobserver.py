@@ -37,8 +37,7 @@ class Command(BaseCommand):
                 logging.error('Failed indexing - %s', str(traceback.format_exc()))
 
     def handle(self, *args, **options):
-        indexer_period_seconds = settings.INDEXER_PERIOD*60
         logging.info('Started periodic indexing every %s minutes.', settings.INDEXER_PERIOD)
         while True:
-            Command.sync_all(indexer_period_seconds)
+            Command.sync_all(settings.INDEXER_PERIOD)
             time.sleep(5.0)
