@@ -159,8 +159,6 @@ class TestLocalStorageProviderIndexer(TestCase):
                     lfo.obj_type, FileObjectType.FOLDER, 'Wrong folder.obj_type')
                 self.assertIsNone(lfo.type, 'Wrong folder.type')
             elif os.path.isfile(lfo.full_path):
-                print(lfo.name)
-                print(lfo.extension)
                 self.assertIsNotNone(lfo.extension, 'Wrong file.extension #1')
                 self.assertTrue(lfo.name.endswith(
                     '.'+lfo.extension), 'Wrong file.extension #2')

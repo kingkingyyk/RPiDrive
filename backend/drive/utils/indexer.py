@@ -4,6 +4,7 @@ import os
 import traceback
 
 from datetime import datetime
+from typing import Dict
 
 import epub_meta
 
@@ -25,6 +26,8 @@ class InvalidStorageProviderTypeException(Exception):
 
 class LocalStorageProviderIndexer:
     """LocalStorageProviderIndexer"""
+    _ATTRS_UPDATE = ['last_modified', 'size']
+
     class FSFileObj:
         """FSFileObj"""
         def __init__(self, name, path):
@@ -33,11 +36,35 @@ class LocalStorageProviderIndexer:
             self.children = []
 
     @staticmethod
+    def _get_attr_values(f_p: str) -> Dict:
+        return {
+            'last_modified': datetime.fromtimestamp(
+                os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+            'size': os.path.getsize(f_p)
+        }
+
+    @staticmethod
+    def _sync_attrs(f_o: LocalFileObject):
+        attr_values = LocalStorageProviderIndexer._get_attr_values(
+            f_o.full_path)
+        attr_update = []
+        for attr in LocalStorageProviderIndexer._ATTRS_UPDATE:
+            if attr_values[attr] != getattr(f_o, attr):
+                setattr(f_o, attr, attr_values[attr])
+                attr_update.append(attr)
+        if attr_update:
+            f_o.save(update_fields=attr_update)
+
+    @staticmethod
     def sync(root: LocalFileObject):
         """Perform LocalFileObject and file system sync"""
         logging.info('Indexing started')
+        LocalStorageProviderIndexer._sync_attrs(root)
         storage_provider = root.storage_provider
-        StorageProvider.objects.filter(pk=root.storage_provider.pk).update(indexing=True)
+        if not storage_provider.indexing:
+            storage_provider.indexing = True
+            storage_provider.save(update_fields=['indexing'])
+
         if storage_provider.type != StorageProviderType.LOCAL_PATH:
             raise InvalidStorageProviderTypeException()
         try:
@@ -47,9 +74,10 @@ class LocalStorageProviderIndexer:
             LocalStorageProviderIndexer._sync_trees(fs_tree, db_tree)
         except: # pylint: disable=bare-except
             print(traceback.format_exc())
-        StorageProvider.objects.filter(
-            pk=root.storage_provider.pk).update(
-                indexing=False, last_indexed=timezone.now())
+
+        storage_provider.indexing = False
+        storage_provider.last_indexed = timezone.now()
+        storage_provider.save(update_fields=['indexing', 'last_indexed'])
         logging.info('Indexing done')
 
     @staticmethod
@@ -75,7 +103,6 @@ class LocalStorageProviderIndexer:
     def _sync_trees(fs_root, db_root): # pylint: disable=too-many-locals
         fs_stk = [fs_root]
         db_stk = [db_root]
-        attrs_delta = ['last_modified', 'size']
 
         for f_o in LocalFileObject.objects.filter(
             storage_provider=db_root.storage_provider).all():
@@ -96,11 +123,6 @@ class LocalStorageProviderIndexer:
                 f_p = os.path.join(f_s.path, file)
                 db_obj = None
 
-                attr_values = {
-                    'last_modified': datetime.fromtimestamp(
-                        os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
-                    'size': os.path.getsize(f_p)
-                }
                 if file in new_fs_files:
                     logging.debug('Indexing path %s', f_p)
                     db_obj = LocalFileObject.objects.create(
@@ -110,17 +132,11 @@ class LocalStorageProviderIndexer:
                         parent=d_b,
                         storage_provider=d_b.storage_provider,
                         rel_path=f_p[len(fs_root.path)+1:],
-                        **attr_values,
+                        **LocalStorageProviderIndexer._get_attr_values(
+                            f_p),
                     )
                 else:
-                    db_obj = db_files[file]
-                    attr_update = []
-                    for attr in attrs_delta:
-                        if attr_values[attr] != getattr(db_obj, attr):
-                            setattr(db_obj, attr, attr_values[attr])
-                            attr_update.append(attr)
-                    if attr_update:
-                        db_obj.save(update_fields=attr_update)
+                    LocalStorageProviderIndexer._sync_attrs(db_files[file])
                 if os.path.isdir(f_p):
                     if not db_obj:
                         db_obj = LocalFileObject.objects.get(
