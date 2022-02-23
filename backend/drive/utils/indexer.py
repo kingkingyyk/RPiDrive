@@ -12,7 +12,6 @@ from tinytag import TinyTag
 from exif import Image
 from mobi import Mobi
 from PyPDF2 import PdfFileReader
-from django.utils import timezone
 from drive.models import (
     FileExt,
     FileObjectType,
@@ -73,7 +72,7 @@ class LocalStorageProviderIndexer:
         return root
 
     @staticmethod
-    def _sync_trees(fs_root, db_root):
+    def _sync_trees(fs_root, db_root): # pylint: disable=too-many-locals
         fs_stk = [fs_root]
         db_stk = [db_root]
         attrs_delta = ['last_modified', 'size']
