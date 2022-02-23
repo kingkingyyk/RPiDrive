@@ -96,7 +96,7 @@ class LocalStorageProviderIndexer:
                 f_p = os.path.join(f_s.path, file)
                 db_obj = None
 
-                attr_value = {
+                attr_values = {
                     'last_modified': datetime.fromtimestamp(
                         os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
                     'size': os.path.getsize(f_p)
@@ -110,16 +110,14 @@ class LocalStorageProviderIndexer:
                         parent=d_b,
                         storage_provider=d_b.storage_provider,
                         rel_path=f_p[len(fs_root.path)+1:],
-                        timestamp=attr_value['timestamp'],
-                        size=attr_value['size'],
+                        **attr_values,
                     )
                 else:
-                    print(file)
                     db_obj = db_files[file]
                     attr_update = []
                     for attr in attrs_delta:
-                        if attr_value[attr] != getattr(db_obj, attr):
-                            setattr(db_obj, attr, attr_value[attr])
+                        if attr_values[attr] != getattr(db_obj, attr):
+                            setattr(db_obj, attr, attr_values[attr])
                             attr_update.append(attr)
                     if attr_update:
                         db_obj.save(update_fields=attr_update)
