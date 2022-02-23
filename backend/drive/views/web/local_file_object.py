@@ -1,12 +1,16 @@
 import json
 import os
 import shutil
-from datetime import timezone
+from datetime import (
+    timezone as dt_tz,
+    datetime
+)
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Value
 from django.db.models.functions import Substr, Concat
 from django.http.response import JsonResponse, HttpResponse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods
 from drive.models import (
     FileObjectType,
@@ -48,7 +52,7 @@ def serialize_file_object(file: LocalFileObject,
         'relPath': file.rel_path,
         'extension': file.extension,
         'type': file.type,
-        'lastModified': file.last_modified.astimezone(timezone.utc),
+        'lastModified': file.last_modified.astimezone(dt_tz.utc),
         'size': file.size,
     }
     if file.parent:
@@ -264,12 +268,16 @@ def create_new_folder(file, folder_name):
     with transaction.atomic():
         file = LocalFileObject.objects.select_for_update(of=('self',)).get(pk=file.id)
         os.mkdir(f_p)
-        f_o = LocalFileObject(name=folder_name,
-                              obj_type=FileObjectType.FOLDER,
-                              parent=file,
-                              storage_provider=file.storage_provider,
-                              rel_path=os.path.join(file.rel_path, folder_name)
-                              )
+        f_o = LocalFileObject(
+            name=folder_name,
+            obj_type=FileObjectType.FOLDER,
+            parent=file,
+            storage_provider=file.storage_provider,
+            rel_path=os.path.join(file.rel_path, folder_name),
+            last_modified=datetime.fromtimestamp(
+                        os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+            size=os.path.getsize(f_p),
+        )
         f_o.save()
     return JsonResponse(serialize_file_object(f_o), status=201)
 
@@ -307,12 +315,16 @@ def create_files(file, request):
                 f_p = os.path.join(file.full_path, f_n)
                 with open(f_p, 'wb+') as f_h:
                     shutil.copyfileobj(temp_file.file, f_h, 10485760)
-                f_o = LocalFileObject(name=f_n,
-                                      obj_type=FileObjectType.FILE,
-                                      parent=file,
-                                      storage_provider=file.storage_provider,
-                                      rel_path=os.path.join(file.rel_path, f_n)
-                                      )
+                f_o = LocalFileObject(
+                    name=f_n,
+                    obj_type=FileObjectType.FILE,
+                    parent=file,
+                    storage_provider=file.storage_provider,
+                    rel_path=os.path.join(file.rel_path, f_n),
+                    last_modified=datetime.fromtimestamp(
+                                os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+                    size=os.path.getsize(f_p),
+                )
                 f_o.save()
     return JsonResponse({}, status=201)
 
