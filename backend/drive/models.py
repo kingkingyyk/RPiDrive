@@ -127,6 +127,8 @@ class LocalFileObject(models.Model):
     rel_path = models.TextField(null=True, blank=True)
     extension = models.TextField(null=True, blank=True)
     type = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, default=None)
+    size = models.PositiveBigIntegerField(default=0)
     objects = LocalFileObjectManager()
     metadata = models.JSONField(null=True, default=None)
 
@@ -155,17 +157,6 @@ class LocalFileObject(models.Model):
     def full_path(self):
         """Returns full path of this file"""
         return os.path.join(self.storage_provider.path, self.rel_path)
-
-    @property
-    def last_modified(self):
-        """Returns last modified of this file"""
-        timestamp = os.path.getmtime(self.full_path)
-        return datetime.fromtimestamp(timestamp, tz=pytz.timezone(settings.TIME_ZONE))
-
-    @property
-    def size(self):
-        """Returns size of this file"""
-        return os.path.getsize(self.full_path)
 
     # pylint: disable=signature-differs
     def save(self, *args, **kwargs):

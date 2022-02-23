@@ -24,16 +24,6 @@ from drive.views.web.shared import (
 from drive.utils.indexer import Metadata
 
 
-def get_file_stat(file):
-    """Return cached file data"""
-    if not ModelCache.exists(file):
-        data = {
-            'lastModified': file.last_modified.astimezone(timezone.utc),
-            'size': file.size
-        }
-        ModelCache.set(file, data)
-    return ModelCache.get(file)
-
 def has_permission(request, file: LocalFileObject):
     """Return user has permission on the file"""
     required_perms = {
@@ -51,7 +41,6 @@ def serialize_file_object(file: LocalFileObject,
                           trace_storage_provider=False,
                           metadata=False):
     """Convert file object into dictionary"""
-    file_stat = get_file_stat(file)
     data = {
         'id': file.id,
         'name': file.name,
@@ -59,8 +48,8 @@ def serialize_file_object(file: LocalFileObject,
         'relPath': file.rel_path,
         'extension': file.extension,
         'type': file.type,
-        'lastModified': file_stat['lastModified'],
-        'size': file_stat['size'],
+        'lastModified': file.last_modified.astimezone(timezone.utc),
+        'size': file.size,
     }
     if file.parent:
         data['parent'] = {

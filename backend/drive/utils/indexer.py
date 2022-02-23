@@ -2,7 +2,12 @@ import json
 import logging
 import os
 import traceback
+
+from datetime import datetime
+
 import epub_meta
+
+from django.utils import timezone
 from tinytag import TinyTag
 from exif import Image
 from mobi import Mobi
@@ -71,6 +76,7 @@ class LocalStorageProviderIndexer:
     def _sync_trees(fs_root, db_root):
         fs_stk = [fs_root]
         db_stk = [db_root]
+        attrs_delta = ['last_modified', 'size']
 
         for f_o in LocalFileObject.objects.filter(
             storage_provider=db_root.storage_provider).all():
@@ -82,14 +88,20 @@ class LocalStorageProviderIndexer:
             d_b = db_stk.pop()
 
             fs_files = set(os.listdir(f_s.path))
-            db_files = set(x for x in LocalFileObject.objects.filter(
-                parent__pk=d_b.pk).values_list('name', flat=True))
+            db_files = {x.name: x for x in LocalFileObject.objects.filter(
+                parent__pk=d_b.pk).all()}
 
-            new_fs_files = fs_files - db_files
+            new_fs_files = fs_files - db_files.keys()
 
             for file in fs_files:
                 f_p = os.path.join(f_s.path, file)
                 db_obj = None
+
+                attr_value = {
+                    'last_modified': datetime.fromtimestamp(
+                        os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+                    'size': os.path.getsize(f_p)
+                }
                 if file in new_fs_files:
                     logging.debug('Indexing path %s', f_p)
                     db_obj = LocalFileObject.objects.create(
@@ -98,12 +110,27 @@ class LocalStorageProviderIndexer:
                             f_p) else FileObjectType.FILE,
                         parent=d_b,
                         storage_provider=d_b.storage_provider,
-                        rel_path=f_p[len(fs_root.path)+1:])
+                        rel_path=f_p[len(fs_root.path)+1:],
+                        timestamp=attr_value['timestamp'],
+                        size=attr_value['size'],
+                    )
+                else:
+                    print(file)
+                    db_obj = db_files[file]
+                    attr_update = []
+                    for attr in attrs_delta:
+                        if attr_value[attr] != getattr(db_obj, attr):
+                            setattr(db_obj, attr, attr_value[attr])
+                            attr_update.append(attr)
+                    if attr_update:
+                        db_obj.save(update_fields=attr_update)
                 if os.path.isdir(f_p):
                     if not db_obj:
-                        db_obj = LocalFileObject.objects.get(name=file,
-                                                             obj_type=FileObjectType.FOLDER,
-                                                             parent=d_b)
+                        db_obj = LocalFileObject.objects.get(
+                            name=file,
+                            obj_type=FileObjectType.FOLDER,
+                            parent=d_b
+                        )
                     fs_stk.append(next(x for x in f_s.children if x.name == file))
                     db_stk.append(db_obj)
 
