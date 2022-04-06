@@ -3,6 +3,9 @@ stages:
   - build
   - package
 
+include:
+- template: Security/SAST.gitlab-ci.yml
+
 "Test Backend":
   image: registry.gitlab.com/kingkingyyk/rpidrive:lib-1.0.0
   stage: test
@@ -26,6 +29,9 @@ stages:
     paths:
       - backend/unit-test-badge.svg
   coverage: '/^TOTAL.+?(\d+.\d+\%)$/'
+
+sast:
+  stage: test
 
 "Build":
   image: node:16.13.2-alpine3.15
