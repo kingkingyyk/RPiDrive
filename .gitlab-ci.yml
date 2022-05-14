@@ -24,7 +24,9 @@ include:
     - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='unit test' --file='unit-test-badge.svg' coverage
   artifacts:
     reports:
-      cobertura: backend/test-reports/unit-test-coverage.xml
+      coverage_report:
+        ​coverage_format: cobertura
+        path: backend/test-reports/unit-test-coverage.xml
       junit: backend/test-reports/unit-test.xml
     paths:
       - backend/unit-test-badge.svg
