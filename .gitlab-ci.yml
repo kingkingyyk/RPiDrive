@@ -25,7 +25,7 @@ include:
   artifacts:
     reports:
       coverage_report:
-        ​coverage_format: cobertura
+        coverage_format: cobertura
         path: backend/test-reports/unit-test-coverage.xml
       junit: backend/test-reports/unit-test.xml
     paths:
