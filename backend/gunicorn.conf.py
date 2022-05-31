@@ -5,7 +5,6 @@ def post_fork(server, worker):
     patch_psycopg()
 
 bind = '0.0.0.0:8000'
-workers = cpu_count()
-threads = 4
+workers = 2
 worker_class = 'gevent'
-timeout = 86400
+worker_connections = 40
