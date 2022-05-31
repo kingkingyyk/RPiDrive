@@ -86,7 +86,7 @@ services:
     restart: always
   core:
     image: "registry.gitlab.com/kingkingyyk/rpidrive:<version>"
-    container_name: rpidrive
+    container_name: rpidrive_core
     environment:
       - TZ='<timezone in config.yaml>'
       - MODE=core

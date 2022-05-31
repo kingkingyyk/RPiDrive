@@ -24,7 +24,9 @@ include:
     - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='unit test' --file='unit-test-badge.svg' coverage
   artifacts:
     reports:
-      cobertura: backend/test-reports/unit-test-coverage.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/test-reports/unit-test-coverage.xml
       junit: backend/test-reports/unit-test.xml
     paths:
       - backend/unit-test-badge.svg
@@ -54,7 +56,7 @@ sast:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
     CI_REGISTRY: registry.gitlab.com
-    CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_NAME
+    CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_SLUG
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
