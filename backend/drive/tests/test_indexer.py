@@ -75,6 +75,7 @@ class TestLocalStorageProviderIndexer(TestCase):
             path, folder1_name), 'Folder1 path')
         self.assertEqual(len(folder1.children), 1, 'Folder1 children size')
 
+        folder1.children.sort(key=lambda x : x.name)
         file1 = folder1.children[0]
         file1_name = 'file1.txt'
         self.assertEqual(file1.name, file1_name, 'File1 name')
@@ -89,6 +90,7 @@ class TestLocalStorageProviderIndexer(TestCase):
             path, folder2_name), 'Folder2 path')
         self.assertEqual(len(folder2.children), 2, 'Folder2 children size')
 
+        folder2.children.sort(key=lambda x : x.name)
         file2 = folder2.children[0]
         file2_name = 'file2.mp3'
         self.assertEqual(file2.name, file2_name, 'File2 name')

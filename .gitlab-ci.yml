@@ -7,12 +7,14 @@ include:
 - template: Security/SAST.gitlab-ci.yml
 
 "Test Backend":
-  image: registry.gitlab.com/kingkingyyk/rpidrive:lib-1.0.0
+  image: python:3.9-slim-buster
   stage: test
   tags:
     - linux
     - docker
   before_script:
+    - apt update
+    - apt install gcc libpq-dev g++ libffi-dev make -y
     - pip install -r backend/requirements.txt
     - pip install -r backend/requirements-test.txt
     - pip install -r backend/requirements-ci.txt
