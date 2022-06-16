@@ -9,6 +9,9 @@ include:
 "Test Backend":
   image: registry.gitlab.com/kingkingyyk/rpidrive:lib-1.0.0
   stage: test
+  tags:
+    - linux
+    - docker
   before_script:
     - pip install -r backend/requirements.txt
     - pip install -r backend/requirements-test.txt
@@ -34,10 +37,16 @@ include:
 
 sast:
   stage: test
+  tags:
+    - linux
+    - docker
 
 "Build":
   image: node:16.13.2-alpine3.15
   stage: build
+  tags:
+    - linux
+    - docker
   script:
     - cd ci-snippets
     - sh build.sh
@@ -48,6 +57,9 @@ sast:
 "Package Docker":
   image: jdrouet/docker-with-buildx:stable
   stage: package
+  tags:
+    - linux
+    - docker
   services:
     - docker:dind
   dependencies:
