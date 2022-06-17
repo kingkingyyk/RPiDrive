@@ -324,8 +324,10 @@ def create_files(file, request):
                 with open(f_p, 'wb+') as f_h:
                     for chunk in temp_file.chunks():
                         f_h.write(chunk)
-            elif isinstance(temp_file, TemporaryFileUploadHandler)
+            elif isinstance(temp_file, TemporaryFileUploadHandler):
                 shutil.move(temp_file.temporary_file_path(), f_p)
+            else:
+                raise Exception(f'{temp_file} unknown upload handler.')
 
             f_o = LocalFileObject(
                 name=f_n,
