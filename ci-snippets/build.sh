@@ -4,7 +4,7 @@ cd ../frontend
 npm install --global npm@6
 npm install @angular/cli -g
 npm install
-ng build --prod --aot --deployUrl=/drive/static/ --outputPath=../backend/static/
+ng build --aot --deploy-url=/drive/static/ --output-path=../backend/static/
 cd ../backend
 mv -f static/index.html drive/templates/drive/index.html
 rm requirements-ci.txt
