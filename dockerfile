@@ -8,8 +8,9 @@ ENV MODE=web
 
 RUN chmod +x start.sh &&\
     apt update &&\
-    apt install libpq-dev libffi-dev -y &&\
-    pip install --no-cache-dir -r requirements.txt
+    apt install gcc libpq-dev g++ libffi-dev make -y &&\
+    pip install --no-cache-dir -r requirements.txt &&\
+    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8000
 
