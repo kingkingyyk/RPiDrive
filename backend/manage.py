@@ -1,5 +1,18 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+
+try:
+    from gevent import monkey
+    monkey.patch_all()
+except ImportError:
+    pass
+
+try:
+    from psycogreen.gevent import patch_psycopg
+    patch_psycopg()
+except ImportError:
+    pass
+
 import os
 import sys
 
