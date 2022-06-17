@@ -8,3 +8,4 @@ bind = '0.0.0.0:8000'
 workers = 2
 worker_class = 'gevent'
 worker_connections = 40
+timeout = 600
