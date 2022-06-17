@@ -1,7 +1,7 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MediaMatcher } from '@angular/cdk/layout';
 import { ChangeDetectorRef, Component, Inject, Injectable, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatSidenav } from '@angular/material/sidenav';
@@ -111,12 +111,12 @@ export class MediaPlayerComponent implements OnInit {
 export class DialogCreatePlaylistComponent {
   loading: boolean = false;
   errorText: string;
-  formControl: FormControl;
+  formControl: UntypedFormControl;
 
   constructor(private service: CommonService,
     @Inject(MAT_DIALOG_DATA) public playlist: Playlist,
     private dialogRef: MatDialogRef<DialogCreatePlaylistComponent>) {
-    this.formControl = new FormControl(playlist ? playlist.name: '', Validators.required);
+    this.formControl = new UntypedFormControl(playlist ? playlist.name: '', Validators.required);
   }
 
   createOrUpdatePlaylist() {

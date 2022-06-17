@@ -10,7 +10,7 @@ import { FileObject, GetStorageProvidersResponse, StorageProvider,
          FilePreviewType, Metadata, SearchResultResponse, User, GetUsersResponse, GetStorageProviderPermissionsResponse, StorageProviderPermission, StorageProviderUser } from '../models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Url } from '../urls';
@@ -274,23 +274,23 @@ export class StorageProviderTableComponent implements AfterViewInit {
 export class DialogEditStorageProviderComponent {
   loading: boolean = false;
   errorText: string;
-  formGroup: FormGroup;
+  formGroup: UntypedFormGroup;
 
   storageProviderTypes: StorageProviderType[];
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<DialogEditStorageProviderComponent>,
     @Inject(MAT_DIALOG_DATA) public storageProvider: StorageProvider,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private snackBar: MatSnackBar) {
 
     this.loading = true;
     this.service.getStorageProviderTypes().subscribe((data: GetStorageProviderTypesResponse) => {
       this.storageProviderTypes = data.values;
       this.formGroup = this.formBuilder.group({
-        name: new FormControl(storageProvider ? storageProvider.name : '', Validators.required),
-        type: new FormControl(storageProvider ? storageProvider.type : '', Validators.required),
-        path: new FormControl(storageProvider ? storageProvider.path : '', Validators.required)
+        name: new UntypedFormControl(storageProvider ? storageProvider.name : '', Validators.required),
+        type: new UntypedFormControl(storageProvider ? storageProvider.type : '', Validators.required),
+        path: new UntypedFormControl(storageProvider ? storageProvider.path : '', Validators.required)
       })
     }).add(() => {
       this.loading = false;
@@ -669,13 +669,13 @@ export class FolderTableComponent {
 export class DialogCreateFolderComponent {
   loading: boolean = false;
   errorText: string;
-  formControl: FormControl;
+  formControl: UntypedFormControl;
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<DialogCreateFolderComponent>,
     @Inject(MAT_DIALOG_DATA) public folderId: string,
     private snackBar: MatSnackBar) {
-    this.formControl = new FormControl('', Validators.required);
+    this.formControl = new UntypedFormControl('', Validators.required);
   }
 
   createFolder() {
@@ -970,13 +970,13 @@ export class DialogMoveFileComponent {
 export class DialogRenameFileComponent {
   loading: boolean = false;
   errorText: string;
-  formControl: FormControl;
+  formControl: UntypedFormControl;
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<DialogCreateFolderComponent>,
     @Inject(MAT_DIALOG_DATA) public file: FileObject,
     private snackBar: MatSnackBar) {
-    this.formControl = new FormControl(file.name, Validators.required);
+    this.formControl = new UntypedFormControl(file.name, Validators.required);
   }
 
   renameFile() {

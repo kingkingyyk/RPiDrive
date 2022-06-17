@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonService } from 'src/app/services/common.service';
 import { Url } from 'src/app/drive/urls';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { GetStorageProviderTypesResponse, StorageProviderType } from '../models';
 import { Title } from '@angular/platform-browser';
 
@@ -13,13 +13,13 @@ import { Title } from '@angular/platform-browser';
 })
 export class SetupComponent implements OnInit {
   loadingLevel: number = 0;
-  setupForm: FormGroup;
+  setupForm: UntypedFormGroup;
   storageProviderTypes: StorageProviderType [] = [];
   submissionError: string = '';
   
   constructor(private service: CommonService,
               private router: Router,
-              private formBuilder: FormBuilder,
+              private formBuilder: UntypedFormBuilder,
               private titleService: Title) {
                 this.titleService.setTitle('Setup - RPi Drive');
               }

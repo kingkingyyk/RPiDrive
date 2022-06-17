@@ -1,6 +1,6 @@
 import { MediaMatcher } from '@angular/cdk/layout';
 import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatSidenav } from '@angular/material/sidenav';
@@ -177,13 +177,13 @@ export class UserSettingsComponent implements OnInit {
 export class EditUserComponent implements OnInit {
   loading: boolean = false;
   errorText: string = '';
-  formGroup: FormGroup;
+  formGroup: UntypedFormGroup;
   passwordPlaceholder: string = 'THIS IS A PASSWORD';
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<EditUserComponent>,
     @Inject(MAT_DIALOG_DATA) public user: User,
-    private formBuilder: FormBuilder) { }
+    private formBuilder: UntypedFormBuilder) { }
 
   ngOnInit() {
     let usernameValue = '';
