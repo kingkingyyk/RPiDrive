@@ -23,7 +23,7 @@
       "dom"
     ],
     "types": [
-      "wicg-mediasession"
+      "@types/wicg-mediasession"
     ]
   },
   "angularCompilerOptions": {
