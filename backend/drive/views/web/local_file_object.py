@@ -5,8 +5,8 @@ from datetime import (
     timezone as dt_tz,
     datetime
 )
-from django.core.files.uploadhandler import (
-    MemoryFileUploadHandler,
+from django.core.files.uploadedfile import (
+    InMemoryUploadedFile,
     TemporaryUploadedFile,
 )
 from django.contrib.auth.decorators import login_required
@@ -320,11 +320,11 @@ def create_files(file, request):
                     counter += 1
             f_p = os.path.join(file.full_path, f_n)
 
-            if isinstance(temp_file, MemoryFileUploadHandler):
+            if isinstance(temp_file, InMemoryUploadedFile):
                 with open(f_p, 'wb+') as f_h:
                     for chunk in temp_file.chunks():
                         f_h.write(chunk)
-            elif isinstance(temp_file, TemporaryFileUploadHandler):
+            elif isinstance(temp_file, TemporaryUploadedFile):
                 shutil.move(temp_file.temporary_file_path(), f_p)
             else:
                 raise Exception(f'{temp_file} unknown upload handler.')
