@@ -1,14 +1,14 @@
 version: "3.8"
 services:
   redis:
-    image: "redis:6.2.1-buster"
+    image: "redis:7.0.2-bullseye"
     container_name: "redis"
     ports:
       - "6379:6379"
     volumes:
       - ./docker-data/redis:/data
   db:
-    image: "postgres:12.4"
+    image: "postgres:12.11"
     container_name: "postgres"
     ports:
       - "5432:5432"

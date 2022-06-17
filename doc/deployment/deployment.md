@@ -47,7 +47,7 @@ version: "3"
 
 services:
   redis:
-    image: "redis:6.2.6-bullseye"
+    image: "redis:7.0.2-bullseye"
     container_name: "redis"
     expose:
       - "6379"
@@ -55,7 +55,7 @@ services:
       - ./redis:/data
     restart: always
   db:
-    image: "postgres:12.8"
+    image: "postgres:12.11"
     container_name: "postgres"
     expose:
       - "5432"
