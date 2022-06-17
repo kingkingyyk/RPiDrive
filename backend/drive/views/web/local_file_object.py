@@ -5,6 +5,10 @@ from datetime import (
     timezone as dt_tz,
     datetime
 )
+from django.core.uploadhandler import (
+    MemoryFileUploadHandler,
+    TemporaryUploadedFile,
+)
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Value
@@ -297,35 +301,43 @@ def create_files(file, request):
         return generate_error_response('Destination must be a folder!', 400)
 
     form = 'files'
-    if request.FILES[form]:
-        with transaction.atomic():
-            file = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
-            for temp_file in request.FILES.getlist(form):
-                f_n = temp_file.name
-                if os.path.exists(os.path.join(file.full_path, f_n)):
-                    counter = 1
-                    while True:
-                        temp = f_n.split('.')
-                        temp[-1 if len(temp) == 1 else -2] += ' ({})'.format(str(counter))
-                        temp_fn = '.'.join(temp)
-                        if not os.path.exists(os.path.join(file.full_path, temp_fn)):
-                            f_n = temp_fn
-                            break
-                        counter += 1
-                f_p = os.path.join(file.full_path, f_n)
+    if not request.FILES[form]:
+        return generate_error_response('No file was uploaded.', 400)
+    
+    with transaction.atomic():
+        file = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
+        for temp_file in request.FILES.getlist(form):
+            f_n = temp_file.name
+            if os.path.exists(os.path.join(file.full_path, f_n)):
+                counter = 1
+                while True:
+                    temp = f_n.split('.')
+                    temp[-1 if len(temp) == 1 else -2] += ' ({})'.format(str(counter))
+                    temp_fn = '.'.join(temp)
+                    if not os.path.exists(os.path.join(file.full_path, temp_fn)):
+                        f_n = temp_fn
+                        break
+                    counter += 1
+            f_p = os.path.join(file.full_path, f_n)
+            
+            if isinstance(temp_file, MemoryFileUploadHandler):
                 with open(f_p, 'wb+') as f_h:
-                    shutil.copyfileobj(temp_file.file, f_h, 10485760)
-                f_o = LocalFileObject(
-                    name=f_n,
-                    obj_type=FileObjectType.FILE,
-                    parent=file,
-                    storage_provider=file.storage_provider,
-                    rel_path=os.path.join(file.rel_path, f_n),
-                    last_modified=datetime.fromtimestamp(
-                                os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
-                    size=os.path.getsize(f_p),
-                )
-                f_o.save()
+                    for chunk in temp_file.chunks():
+                        f_h.write(chunk)
+            elif isinstance(temp_file, TemporaryFileUploadHandler)
+                shutil.move(temp_file.temporary_file_path(), f_p)
+
+            f_o = LocalFileObject(
+                name=f_n,
+                obj_type=FileObjectType.FILE,
+                parent=file,
+                storage_provider=file.storage_provider,
+                rel_path=os.path.join(file.rel_path, f_n),
+                last_modified=datetime.fromtimestamp(
+                            os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+                size=os.path.getsize(f_p),
+            )
+            f_o.save()
     return JsonResponse({}, status=201)
 
 
