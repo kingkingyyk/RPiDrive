@@ -5,7 +5,7 @@ from datetime import (
     timezone as dt_tz,
     datetime
 )
-from django.core.uploadhandler import (
+from django.core.files.uploadhandler import (
     MemoryFileUploadHandler,
     TemporaryUploadedFile,
 )
@@ -303,7 +303,7 @@ def create_files(file, request):
     form = 'files'
     if not request.FILES[form]:
         return generate_error_response('No file was uploaded.', 400)
-    
+
     with transaction.atomic():
         file = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
         for temp_file in request.FILES.getlist(form):
@@ -319,7 +319,7 @@ def create_files(file, request):
                         break
                     counter += 1
             f_p = os.path.join(file.full_path, f_n)
-            
+
             if isinstance(temp_file, MemoryFileUploadHandler):
                 with open(f_p, 'wb+') as f_h:
                     for chunk in temp_file.chunks():
