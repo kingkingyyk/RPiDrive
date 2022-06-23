@@ -326,7 +326,7 @@ def create_files(file, request):
                         f_h.write(chunk)
             elif isinstance(temp_file, TemporaryUploadedFile):
                 shutil.move(temp_file.temporary_file_path(), f_p)
-                os.chmod(f_p, 0o644)
+                os.chmod(f_p, 0o640)
             else:
                 raise Exception(f'{temp_file} unknown upload handler.')
 
