@@ -1,0 +1,59 @@
+<h1>System</h1>
+<mat-divider style="margin-bottom: 24px;"></mat-divider>
+
+<mat-progress-bar mode="indeterminate" *ngIf="!currData"></mat-progress-bar>
+
+<mat-list *ngIf="currData">
+    <div mat-subheader>CPU</div>
+    <mat-list-item>
+        <mat-icon mat-list-icon>developer_board</mat-icon>
+        <div mat-line>Cores</div>
+        <div mat-line>{{ currData.cpuCount }}</div>
+    </mat-list-item>
+    <mat-list-item>
+        <mat-icon mat-list-icon>developer_board</mat-icon>
+        <div mat-line>Frequency</div>
+        <div mat-line>{{ currData.cpuFrequency }} MHz</div>
+    </mat-list-item>
+    <mat-list-item>
+        <mat-icon mat-list-icon>developer_board</mat-icon>
+        <div mat-line>Usage</div>
+        <div mat-line>{{ currData.cpuUsage }} %</div>
+    </mat-list-item>
+    <mat-divider></mat-divider>
+    <div mat-subheader>Memory</div>
+    <mat-list-item>
+        <mat-icon mat-list-icon>memory</mat-icon>
+        <div mat-line>Total</div>
+        <div mat-line>{{ currData.memTotal | filesize }}</div>
+    </mat-list-item>
+    <mat-list-item>
+        <mat-icon mat-list-icon>memory</mat-icon>
+        <div mat-line>Used</div>
+        <div mat-line>{{ currData.memUsed | filesize }}</div>
+    </mat-list-item>
+    <mat-divider></mat-divider>
+    <div mat-subheader>Disks</div>
+    <mat-list-item *ngFor="let disk of currData.disks">
+        <mat-icon mat-list-icon>storage</mat-icon>
+        <div mat-line>{{ disk.path }}</div>
+        <div mat-line>{{ disk.used | filesize }} ({{ disk.percent}}%) used of {{ disk.total | filesize }}</div>
+    </mat-list-item>
+    <mat-divider></mat-divider>
+    <div mat-subheader>Software</div>
+    <mat-list-item>
+        <mat-icon mat-list-icon>apps</mat-icon>
+        <div mat-line>OS</div>
+        <div mat-line>{{ currData.osName }}</div>
+    </mat-list-item>
+    <mat-list-item>
+        <mat-icon mat-list-icon>apps</mat-icon>
+        <div mat-line>Architecture</div>
+        <div mat-line>{{ currData.osArch }}</div>
+    </mat-list-item>
+    <mat-list-item>
+        <mat-icon mat-list-icon>apps</mat-icon>
+        <div mat-line>Python</div>
+        <div mat-line>{{ currData.pythonVersion }}</div>
+    </mat-list-item>
+</mat-list>

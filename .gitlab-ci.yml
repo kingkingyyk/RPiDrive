@@ -1,0 +1,89 @@
+stages:
+  - test
+  - build
+  - package
+
+include:
+- template: Security/SAST.gitlab-ci.yml
+
+"Test Backend":
+  image: python:3.10-slim-bullseye
+  stage: test
+  tags:
+    - linux
+    - docker
+  before_script:
+    - apt update
+    - apt install gcc libpq-dev g++ libffi-dev make -y
+    - pip install -r backend/requirements.txt
+    - pip install -r backend/requirements-test.txt
+    - pip install -r backend/requirements-ci.txt
+    - cp backend/config-test.yaml backend/config.yaml
+  script:
+    - cd backend
+    - pylint drive
+    - coverage run -m pytest --ds=rpidrive.settings --junitxml=test-reports/unit-test.xml
+    - coverage report --show-missing --precision=2
+    - coverage xml -o ./test-reports/unit-test-coverage.xml
+    - coverage xml
+    - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='unit test' --file='unit-test-badge.svg' coverage
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/test-reports/unit-test-coverage.xml
+      junit: backend/test-reports/unit-test.xml
+    paths:
+      - backend/unit-test-badge.svg
+  coverage: '/^TOTAL.+?(\d+.\d+\%)$/'
+
+sast:
+  stage: test
+  tags:
+    - linux
+    - docker
+
+"Build":
+  image: node:16.13.2-alpine3.15
+  stage: build
+  tags:
+    - linux
+    - docker
+  script:
+    - cd ci-snippets
+    - sh build.sh
+  artifacts:
+    paths:
+      - build.tar.gz
+
+.package-docker:
+  image: jdrouet/docker-with-buildx:stable
+  stage: package
+  tags:
+    - linux
+    - docker
+  services:
+    - docker:dind
+  dependencies:
+    - "Build"
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    CI_REGISTRY: registry.gitlab.com
+    CI_IMAGE_TAG: $CI_REGISTRY/kingkingyyk/rpidrive:$CI_COMMIT_REF_SLUG
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - docker buildx create --use
+    - docker buildx build --platform $ARCH -t $CI_IMAGE_TAG -f dockerfile --push .
+
+"Package x86 Docker":
+  extends: .package-docker
+  variables:
+    ARCH: linux/amd64
+
+"Package All Docker":
+  extends: .package-docker
+  variables:
+    ARCH: linux/arm/v7,linux/amd64
+  when: manual

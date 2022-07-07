@@ -1,0 +1,21 @@
+web:
+    debug: false
+    secret-key: '0#-f!3ku(zwq^(nd!5!mu-%zou^+hy-9b5g1#f$9idqwx^6@6!'
+    time-zone: 'Asia/Kuala_Lumpur'
+indexer:
+    period: 180
+database:
+    engine: 'django.db.backends.sqlite3'
+    name: './db.sqlite3'
+redis:
+    host: 'localhost'
+    port: 6379
+    db: 0
+security:
+    spam-protect:
+        max-retries: 5
+        block-duration: 600
+reverse-proxy:
+    ip-header: null
+hostname:
+    - localhost

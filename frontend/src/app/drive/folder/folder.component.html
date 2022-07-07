@@ -1,0 +1,95 @@
+<periodic-check-login></periodic-check-login>
+
+<mat-toolbar color="primary">
+    <mat-toolbar-row class="mat-elevation-z2">
+        <button mat-icon-button (click)="snav.toggle()" *ngIf="mobileQuery.matches"><mat-icon>menu</mat-icon></button>
+
+        <span>File Explorer</span>
+        <span class="spacer"></span>
+
+        <mat-form-field *ngIf="!mobileQuery.matches">
+            <input type="text" matInput [(ngModel)]="searchText" (keyup.enter)="search()" placeholder="Search">
+            <mat-icon style="font-size: small" (click)="search()" style="cursor: pointer">search</mat-icon>
+        </mat-form-field>
+
+        <span class="spacer"></span>
+        <button mat-icon-button matTooltip="Back" [routerLink]="['../']"><mat-icon>keyboard_arrow_up</mat-icon></button>
+    </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-sidenav-container class="drawer-container">
+    <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'" [opened]="!mobileQuery.matches" style="width: 250px">
+        <button mat-raised-button color="primary" style="margin: 10px; height: 50px; border-radius: 30px; padding-left: 20px; padding-right: 30px" [matMenuTriggerFor]="folderId ? menuFolderNewOp: menuSPNewOp">
+            <mat-icon style="font-size: x-large;">add</mat-icon>
+            <span style="font-weight: bolder; padding-left: 10px; font-size: large;">New</span>
+        </button>
+
+        <mat-menu #menuFolderNewOp="matMenu">
+            <button mat-menu-item (click)="createFolder()">
+                <mat-icon>create_new_folder</mat-icon>
+                <span>Folder</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="fileUpload()">
+                <mat-icon>upload_file</mat-icon>
+                <span>File upload</span>
+            </button>
+            <button mat-menu-item (click)="folderUpload()">
+                <mat-icon>drive_folder_upload</mat-icon>
+                <span>Folder upload</span>
+            </button>
+        </mat-menu>
+
+        <mat-menu #menuSPNewOp="matMenu">
+            <button mat-menu-item (click)="createStorageProvider()">
+                <mat-icon>storage</mat-icon>
+                <span>Storage Provider</span>
+            </button>
+        </mat-menu>
+
+        <mat-divider></mat-divider>
+        <div style="padding: 10px">
+            <h2 class="storage-provider-info" matRipple (click)="loadStorageProvidersPage()">Storage</h2>
+            <div>
+                <div *ngFor="let sp of storageProviders" matRipple (click)="loadStorageProviderFolder(sp)" class="storage-provider-info">
+                    <div style="font-weight: bold;">{{ sp.name }}</div>
+                    <div style="font-size: small">{{ sp.path }}</div>
+                    <mat-progress-bar mode="determinate" value="{{ ( sp.usedSpace / sp.totalSpace ) * 100 }}"></mat-progress-bar>
+                    <div style="font-size: small">{{ sp.usedSpace | filesize }} ({{(sp.usedSpace / sp.totalSpace * 100).toFixed(0)}}%) used of {{ sp.totalSpace | filesize }}</div>
+                </div>
+            </div>
+        </div>
+    </mat-sidenav>
+    <mat-sidenav-content style="padding: 20px">
+        <!-- For mobile search -->
+        <div *ngIf="mobileQuery.matches" style="padding: 0px 10px 10px 10px">
+            <mat-form-field style="width: 100%">
+                <input type="text" matInput [(ngModel)]="searchText" (keyup.enter)="search()" placeholder="Search">
+                <mat-icon matSuffix style="font-size: small" (click)="search()" style="cursor: pointer">search</mat-icon>
+            </mat-form-field>
+        </div>
+
+        <ng-container *ngIf="loadingCount === 0">
+            <ng-container *ngIf="!folderId">
+                <h2>Storage Providers</h2>
+                <mat-divider></mat-divider>
+                <div style="overflow: auto">
+                    <app-storage-provider-table [storageProviders]="storageProviders" [isMobile]="mobileQuery.matches"></app-storage-provider-table>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="folderId === 'search'">
+                <div style="overflow: auto">
+                    <app-search-table [keyword]="searchText" [isMobile]="mobileQuery.matches"></app-search-table>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="folderId && folderId !== 'search'">
+                <div style="overflow: auto">
+                    <app-folder-table [folderId]="folderId" [isMobile]="mobileQuery.matches"></app-folder-table>
+                </div>
+            </ng-container>
+        </ng-container>
+        <ng-container *ngIf="loadingCount > 0">
+            <mat-spinner style="margin: 0 auto"></mat-spinner>
+        </ng-container>
+    </mat-sidenav-content>
+</mat-sidenav-container>

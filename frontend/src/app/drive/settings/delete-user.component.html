@@ -1,0 +1,15 @@
+<h2 mat-dialog-title style="color: red">
+    <mat-icon style="vertical-align: middle; margin-right: 5px">delete_forever</mat-icon>
+    Delete user
+</h2>
+<mat-dialog-content class="mat-typography">
+    <div *ngIf="!loading">
+        Confirm to delete {{user.username}}?
+    </div>
+    <mat-spinner *ngIf="loading"></mat-spinner>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <span style="color: red">{{errorText}}</span>
+    <button mat-button color="warn" (click)="delete()" [disabled]="loading">Delete</button>
+    <button mat-button [disabled]="loading" mat-dialog-close cdkFocusInitial>Cancel</button>
+</mat-dialog-actions>

@@ -1,0 +1,18 @@
+<h2 mat-dialog-title><mat-icon style="vertical-align: middle; margin-right: 5px">playlist_add</mat-icon>
+    <ng-container *ngIf="!playlist">Create Playlist</ng-container>
+    <ng-container *ngIf="playlist">Rename Playlist</ng-container>
+</h2>
+<mat-dialog-content class="mat-typography">
+    <mat-form-field style="width: 100%">
+        <mat-label>Playlist Name</mat-label>
+        <input type="text" matInput [formControl]="formControl">
+    </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <span style="color: red">{{errorText}}</span>
+    <button mat-button (click)="createOrUpdatePlaylist()" [disabled]="loading || !formControl.valid">
+        <ng-container *ngIf="!playlist">Create</ng-container>
+        <ng-container *ngIf="playlist">Save</ng-container>
+    </button>
+    <button mat-button [disabled]="loading" mat-dialog-close>Cancel</button>
+</mat-dialog-actions>

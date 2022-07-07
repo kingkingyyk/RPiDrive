@@ -1,0 +1,43 @@
+<h2 mat-dialog-title><mat-icon style="vertical-align: middle; margin-right: 5px">airport_shuttle</mat-icon>Move Files</h2>
+<mat-dialog-content class="mat-typography">
+    <div *ngIf="loadingLevel === 0">
+        <mat-form-field appearance="fill" style="width: 100%">
+            <mat-label>Conflict Resolve Strategy</mat-label>
+            <mat-select [(ngModel)]="strategy" name="strategy">
+                <mat-option value="rename">Rename</mat-option>
+                <mat-option value="overwrite">Overwrite</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-list dense *ngIf="!currFolder" class="white-border">
+            <mat-list-item *ngFor="let sp of storageProviders" (click)="selectStorageProvider(sp)" class="list-item">
+                <mat-icon>storage</mat-icon>
+                {{sp.name}}
+            </mat-list-item>
+        </mat-list>
+        <ng-container *ngIf="currFolder">
+            <div class="white-border">
+                <div style="margin-right: 10px;">
+                    <button mat-icon-button (click)="goToParent()"><mat-icon>keyboard_arrow_left</mat-icon></button>
+                    <span>{{currStorageProvider.name}}/{{currFolder.relPath}}</span>
+                </div>
+                <div style="height: 40vh; overflow-y: auto;">
+                    <mat-list dense>
+                        <mat-list-item *ngFor="let folder of filterBlockFolder(currFolder.children)" (click)="loadFolder(folder.id)" class="list-item">
+                            <mat-icon>folder</mat-icon>
+                            {{folder.name}}
+                        </mat-list-item>
+                    </mat-list>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+    <ng-container *ngIf="loadingLevel > 0">
+        <mat-spinner></mat-spinner>
+    </ng-container>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <span style="color: red">{{errorText}}</span>
+    <button mat-button (click)="moveFile()" [disabled]="loadingLevel>0 || !currFolder" cdkFocusInitial>Move</button>
+    <button mat-button [disabled]="loadingLevel>0" mat-dialog-close>Cancel</button>
+</mat-dialog-actions>
