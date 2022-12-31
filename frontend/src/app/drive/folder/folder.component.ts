@@ -20,7 +20,7 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Url } from '../urls';
-import { catchError, last, map, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, last, map, tap } from 'rxjs/operators';
 import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
@@ -448,7 +448,7 @@ export class DialogDeleteStorageProviderComponent {
   templateUrl: './search/table.component.html',
   styleUrls: ['./search/table.component.scss']
 })
-export class SearchTableComponent {
+export class SearchTableComponent implements OnDestroy {
   @Input() keyword: string;
   @Input() isMobile: boolean;
 
@@ -458,23 +458,36 @@ export class SearchTableComponent {
   @ViewChild(MatSort, { static: false }) set sort(_sort: MatSort) {
     this.dataSource.sort = _sort;
   }
+  changeDebounced: EventEmitter<string>
 
   constructor(private service: CommonService,
     private router: Router,
     private route: ActivatedRoute,
     private dialog: MatDialog) {
       this.dataSource = new MatTableDataSource();
+      this.changeDebounced = new EventEmitter<string>();
+      this.changeDebounced.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap((text) => {
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {
+              'keyword': text
+            }
+          });
+          if (text) this.search();
+          else this.dataSource.data = [];
+        })
+      ).subscribe();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        'keyword': this.keyword
-      }
-    });
-    if (this.keyword) this.search();
-    else this.dataSource.data = [];
+    this.changeDebounced.emit(this.keyword);
+  }
+
+  ngOnDestroy() {
+    this.changeDebounced.unsubscribe();
   }
 
   search() {
