@@ -52,9 +52,25 @@ class StorageProviderRequest:
         StorageProviderRequest._inspect_type(
             data[StorageProviderRequest.TYPE_KEY])
 
-        if not os.path.exists(data[StorageProviderRequest.PATH_KEY]):
+        requested_path = data[StorageProviderRequest.PATH_KEY]
+        if not os.path.exists(requested_path):
             raise Exception('Path {} doesn\'t exist!'.format(
                 data[StorageProviderRequest.PATH_KEY]))
+
+        existing_paths = StorageProvider.objects.values_list('path', flat=True)
+        for path in existing_paths:
+            if requested_path == path:
+                raise Exception('Path is already added.')
+            if requested_path.startswith(path):
+                raise Exception(
+                    f'Parent path {path} is already added, '
+                    'so the files in this path already exist.'
+                )
+            if path.startswith(requested_path):
+                raise Exception(
+                    f'Child path {path} is already added, '
+                    'perhaps update existing provider instead?'
+                )
 
 def serialize_storage_provider(
     request, s_p, disk_space=False, permission=False,
