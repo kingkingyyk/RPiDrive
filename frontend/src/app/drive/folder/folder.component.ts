@@ -745,6 +745,7 @@ export class DialogFileUploadComponent {
   private uploadFile(file: FileUploadModel) {
     const fd = new FormData();
     fd.append('files', file.data);
+    fd.append('paths', file.data.webkitRelativePath);
 
     this.uploadCount++;
     file.inProgress = true;
@@ -799,6 +800,11 @@ export class DialogFileUploadComponent {
   templateUrl: './folder/folder-upload.component.html',
 })
 export class DialogFolderUploadComponent {
+  @Output() complete = new EventEmitter<string>();
+  files: Array<FileUploadModel> = [];
+  uploadCount: number = 0;
+  uploadSuccess: number = 0;
+  successList: string[] = [];
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<DialogFolderUploadComponent>,
@@ -806,6 +812,76 @@ export class DialogFolderUploadComponent {
   }
 
 
+  onSelectFolder() {
+    const folderUpload = document.getElementById('folderUpload') as HTMLInputElement;
+    folderUpload.onchange = () => {
+      for (let i = 0; i < folderUpload.files.length; i++) this.files.push({ data: folderUpload.files[i], state: 'in', inProgress: false, progress: 0, canRetry: false, canCancel: true });
+      this.uploadFiles();
+    };
+    folderUpload.click();
+  }
+
+  private removeFileFromArray(file: FileUploadModel) {
+    const index = this.files.indexOf(file);
+    if (index > -1) this.files.splice(index, 1);
+  }
+
+  private uploadFile(file: FileUploadModel) {
+    const fd = new FormData();
+    fd.append('files', file.data);
+    fd.append('paths', file.data.webkitRelativePath);
+
+    this.uploadCount++;
+    file.inProgress = true;
+    file.sub = this.service.uploadFiles(this.folderId, fd).pipe(
+      map(event => {
+        switch (event.type) {
+          case HttpEventType.UploadProgress:
+            file.progress = Math.round(event.loaded * 100 / event.total);
+            break;
+          case HttpEventType.Response:
+            return event;
+        }
+      }),
+      tap(message => { }),
+      last(),
+      catchError((error: HttpErrorResponse) => {
+        file.inProgress = false;
+        file.canRetry = true;
+        this.uploadCount--;
+        return of(`${file.data.webkitRelativePath} upload failed.`);
+      })
+    ).subscribe(
+      (event: any) => {
+        this.removeFileFromArray(file);
+        this.uploadCount--;
+        this.uploadSuccess++;
+        this.successList.push(file.data.webkitRelativePath);
+        if (event) this.complete.emit(event.body);
+      }
+    );
+  }
+
+  private uploadFiles() {
+    const folderUpload = document.getElementById('folderUpload') as HTMLInputElement;
+    folderUpload.value = '';
+    this.files.forEach(file => this.uploadFile(file));
+  }
+
+  cancelFile(file: FileUploadModel) {
+    file.sub.unsubscribe();
+    this.removeFileFromArray(file);
+    this.uploadCount--;
+  }
+
+  retryFile(file: FileUploadModel) {
+    this.uploadFile(file);
+    file.canRetry = false;
+  }
+
+  onCloseClick(): void {
+    this.dialogRef.close(this.uploadSuccess);
+  }
 }
 
 @Component({

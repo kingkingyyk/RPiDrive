@@ -5,6 +5,7 @@ from datetime import (
     timezone as dt_tz,
     datetime
 )
+from typing import List
 from django.core.files.uploadedfile import (
     InMemoryUploadedFile,
     TemporaryUploadedFile,
@@ -120,11 +121,13 @@ def manage_file(request, file_id):
         trace_storage_provider = request.GET.get('traceStorageProvider', 'false') == 'true'
         trace_metadata = request.GET.get('metadata', 'false') == 'true'
         if action == 'entity':
-            data = serialize_file_object(file,
-                                         trace_parents=trace_parents,
-                                         trace_children=trace_children,
-                                         trace_storage_provider=trace_storage_provider,
-                                         metadata=trace_metadata)
+            data = serialize_file_object(
+                file,
+                trace_parents=trace_parents,
+                trace_children=trace_children,
+                trace_storage_provider=trace_storage_provider,
+                metadata=trace_metadata
+            )
             return JsonResponse(data)
         if action == 'metadata':
             return read_file_metadata(file)
@@ -220,8 +223,6 @@ def rename_file(file, new_name):
         if file.obj_type == FileObjectType.FOLDER:
             old_path += os.path.sep
             new_path = file.rel_path + os.path.sep
-            print(old_path)
-            print(new_path)
             LocalFileObject.objects.select_for_update(of=('self,')).filter(
                 storage_provider__pk=file.storage_provider.pk,
                 rel_path__startswith=old_path).update(
@@ -279,12 +280,36 @@ def create_new_folder(file, folder_name):
             storage_provider=file.storage_provider,
             rel_path=os.path.join(file.rel_path, folder_name),
             last_modified=datetime.fromtimestamp(
-                        os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+                os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
             size=os.path.getsize(f_p),
         )
         f_o.save()
     return JsonResponse(serialize_file_object(f_o), status=201)
 
+def create_new_folder_safe(root_folder, rel_path: List[str]) -> LocalFileObject:
+    """Check and create folder on sanitized input"""
+    curr_fp = root_folder.full_path
+    for part in rel_path:
+        curr_fp = os.path.join(curr_fp, part)
+        if not os.path.exists(curr_fp):
+            os.mkdir(curr_fp)
+            root_folder = LocalFileObject(
+                name=part,
+                obj_type=FileObjectType.FOLDER,
+                parent=root_folder,
+                storage_provider=root_folder.storage_provider,
+                rel_path=os.path.join(root_folder.rel_path, part),
+                last_modified=datetime.fromtimestamp(
+                    os.path.getmtime(curr_fp), tz=timezone.get_current_timezone()),
+                size=os.path.getsize(curr_fp),
+            )
+            root_folder.save()
+        else:
+            root_folder = LocalFileObject.objects.get(
+                name=part,
+                parent=root_folder,
+            )
+    return root_folder
 
 def serve_file(request, file: LocalFileObject):
     """Serve file"""
@@ -295,49 +320,57 @@ def read_file_metadata(file):
     update_file_metadata(file)
     return JsonResponse(file.metadata)
 
-def create_files(file, request):
+def create_files(file, request): # pylint: disable=too-many-locals
     """Handles incoming file"""
     if file.obj_type != FileObjectType.FOLDER:
         return generate_error_response('Destination must be a folder!', 400)
 
-    form = 'files'
-    if not request.FILES[form]:
+    file_form = 'files'
+    if not request.FILES[file_form]:
         return generate_error_response('No file was uploaded.', 400)
+    path_form = 'paths'
 
     with transaction.atomic():
-        file = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
-        for temp_file in request.FILES.getlist(form):
-            f_n = temp_file.name
-            if os.path.exists(os.path.join(file.full_path, f_n)):
+        root_folder = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
+        file_list = request.FILES.getlist(file_form)
+        path_list = request.POST.getlist(path_form)
+        for idx, ul_file in enumerate(file_list):
+            # Get file object & relative path
+            ul_file = file_list[idx]
+            rel_path_parts = path_list[idx].split('/')[:-1]
+
+            ul_file_parent = create_new_folder_safe(root_folder, rel_path_parts)
+            f_n = ul_file.name
+            if os.path.exists(os.path.join(ul_file_parent.full_path, f_n)):
                 counter = 1
                 while True:
                     temp = f_n.split('.')
                     temp[-1 if len(temp) == 1 else -2] += ' ({})'.format(str(counter))
                     temp_fn = '.'.join(temp)
-                    if not os.path.exists(os.path.join(file.full_path, temp_fn)):
+                    if not os.path.exists(os.path.join(ul_file_parent.full_path, temp_fn)):
                         f_n = temp_fn
                         break
                     counter += 1
-            f_p = os.path.join(file.full_path, f_n)
+            f_p = os.path.join(ul_file_parent.full_path, f_n)
 
-            if isinstance(temp_file, InMemoryUploadedFile):
+            if isinstance(ul_file, InMemoryUploadedFile):
                 with open(f_p, 'wb+') as f_h:
-                    for chunk in temp_file.chunks():
+                    for chunk in ul_file.chunks():
                         f_h.write(chunk)
-            elif isinstance(temp_file, TemporaryUploadedFile):
-                shutil.move(temp_file.temporary_file_path(), f_p)
+            elif isinstance(ul_file, TemporaryUploadedFile):
+                shutil.move(ul_file.temporary_file_path(), f_p)
                 os.chmod(f_p, 0o644)
             else:
-                raise Exception(f'{temp_file} unknown upload handler.')
+                raise Exception(f'{ul_file} unknown upload handler.')
 
             f_o = LocalFileObject(
                 name=f_n,
                 obj_type=FileObjectType.FILE,
-                parent=file,
-                storage_provider=file.storage_provider,
-                rel_path=os.path.join(file.rel_path, f_n),
+                parent=ul_file_parent,
+                storage_provider=ul_file_parent.storage_provider,
+                rel_path=os.path.join(ul_file_parent.rel_path, f_n),
                 last_modified=datetime.fromtimestamp(
-                            os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+                    os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
                 size=os.path.getsize(f_p),
             )
             f_o.save()
