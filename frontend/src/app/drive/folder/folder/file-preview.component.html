@@ -1,63 +1,61 @@
-<h2 mat-dialog-title>
-    <ng-container [ngSwitch]="getFilePreviewType()">
-        <!-- Music -->
-        <ng-container *ngSwitchCase="'music'">
-            <table>
-                <tr>
-                    <td>
-                        <img [src]="getAlbumArtUrl()" onerror="this.style.display='none'" class="album-art">
-                    </td>
-                    <td>
-                        <ng-container *ngIf="!metadata">
-                            <h2 mat-dialog-title>
-                                <mat-icon>{{ getFileIcon() }}</mat-icon>
-                                {{ file.name }}
-                            </h2>
-                        </ng-container>
+<ng-container [ngSwitch]="getFilePreviewType()">
+    <!-- Music -->
+    <ng-container *ngSwitchCase="'music'">
+        <table>
+            <tr>
+                <td>
+                    <img [src]="getAlbumArtUrl()" onerror="this.style.display='none'" class="album-art">
+                </td>
+                <td>
+                    <ng-container *ngIf="!metadata">
+                        <h2 mat-dialog-title>
+                            <mat-icon>{{ getFileIcon() }}</mat-icon>
+                            {{ file.name }}
+                        </h2>
+                    </ng-container>
 
-                        <ng-container *ngIf="metadata">
-                            <h2 mat-dialog-title style="margin-left: 10px;">
-                                <mat-icon>{{ getFileIcon() }}</mat-icon>
-                                {{ metadata.title ? metadata.title : file.name}}
-                                <p class="metadata">
-                                    <span *ngIf="metadata.artist">{{metadata.artist}}</span>
-                                    -
-                                    <span *ngIf="metadata.album">
-                                        {{metadata.album}}
-                                    </span>
-                                </p>
-                            </h2>
-                        </ng-container>
-                    </td>
-                </tr>
-            </table>
-        </ng-container>
-
-        <!-- Movie -->
-        <ng-container *ngSwitchCase="'movie'">
-            <h2 mat-dialog-title>
-                <mat-icon>{{ getFileIcon() }}</mat-icon>
-                {{file.name}}
-            </h2>
-        </ng-container>
-
-        <!-- Picture -->
-        <ng-container *ngSwitchCase="'picture'">
-            <h2 mat-dialog-title>
-                <mat-icon>{{ getFileIcon() }}</mat-icon>
-                {{file.name}}
-            </h2>
-        </ng-container>
-
-        <!-- Code -->
-        <ng-container *ngIf="codeContent">
-            <h2 mat-dialog-title>
-                <mat-icon>{{ getFileIcon() }}</mat-icon>
-                {{file.name}}
-            </h2>
-        </ng-container>
+                    <ng-container *ngIf="metadata">
+                        <h2 mat-dialog-title>
+                            <mat-icon>{{ getFileIcon() }}</mat-icon>
+                            {{ metadata.title ? metadata.title : file.name}}
+                            <p class="metadata">
+                                <span *ngIf="metadata.artist">{{metadata.artist}}</span>
+                                -
+                                <span *ngIf="metadata.album">
+                                    {{metadata.album}}
+                                </span>
+                            </p>
+                        </h2>
+                    </ng-container>
+                </td>
+            </tr>
+        </table>
     </ng-container>
-</h2>
+
+    <!-- Movie -->
+    <ng-container *ngSwitchCase="'movie'">
+        <h2 mat-dialog-title>
+            <mat-icon>{{ getFileIcon() }}</mat-icon>
+            {{file.name}}
+        </h2>
+    </ng-container>
+
+    <!-- Picture -->
+    <ng-container *ngSwitchCase="'picture'">
+        <h2 mat-dialog-title>
+            <mat-icon>{{ getFileIcon() }}</mat-icon>
+            {{file.name}}
+        </h2>
+    </ng-container>
+
+    <!-- Code -->
+    <ng-container *ngIf="codeContent">
+        <h2 mat-dialog-title>
+            <mat-icon>{{ getFileIcon() }}</mat-icon>
+            {{file.name}}
+        </h2>
+    </ng-container>
+</ng-container>
 
 <mat-dialog-content class="mat-typography">
     <ng-container [ngSwitch]="getFilePreviewType()">
@@ -82,15 +80,11 @@
 
         <!-- Code -->
         <ng-container *ngIf="codeContent">
-            <h2 mat-dialog-title>
-                <mat-icon>{{ getFileIcon() }}</mat-icon>
-                {{file.name}}
-            </h2>
-            <textarea highlight-js *ngSwitchCase="'code'" [code]="codeContent" style="width: 60vw;">
-            </textarea>
+            <textarea highlight-js *ngSwitchCase="'code'" [code]="codeContent" style="width: 60vw;"></textarea>
         </ng-container>
     </ng-container>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
     <button mat-button (click)="downloadFile()" cdkFocusInitial>Download</button>
     <button mat-button mat-dialog-close>Cancel</button>

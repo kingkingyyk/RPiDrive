@@ -7,7 +7,7 @@ include:
 - template: Security/SAST.gitlab-ci.yml
 
 "Test Backend":
-  image: python:3.10-slim-bullseye
+  image: python:3.11-slim-bullseye
   stage: test
   tags:
     - linux
@@ -44,7 +44,7 @@ sast:
     - docker
 
 "Build":
-  image: node:16.13.2-alpine3.15
+  image: node:18.12-alpine3.16
   stage: build
   tags:
     - linux

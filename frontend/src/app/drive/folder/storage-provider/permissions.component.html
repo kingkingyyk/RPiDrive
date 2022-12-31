@@ -9,7 +9,7 @@
             <table style="width: 100%;">
                 <tr>
                     <td>
-                        <mat-form-field appearance="fill" style="width: 100%">
+                        <mat-form-field appearance="fill" style="width: 100%; margin-bottom: -1.25em">
                             <mat-label>User</mat-label>
                             <mat-select [(ngModel)]="selectedUser">
                                 <mat-option *ngFor="let user of users" [value]="user" [disabled]="userExistsInPermissions(user)">
@@ -37,14 +37,16 @@
                 <ng-container matColumnDef="permission">
                     <th mat-header-cell *matHeaderCellDef> Permission </th>
                     <td mat-cell *matCellDef="let element">
-                        <mat-form-field appearance="fill" style="padding-bottom: -1.25em;">
+                        <mat-form-field appearance="fill" style="margin-bottom: -1.25em;">
                             <mat-select [(ngModel)]="element.permission">
                                 <mat-option *ngFor="let spp of spPermissions" [value]="spp.value">
                                     {{ spp.name }}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <button mat-icon-button matTooltip="Remove User" (click)="removePermission(element)"><mat-icon>delete_forever</mat-icon></button>
+                        <button mat-icon-button matTooltip="Remove User" (click)="removePermission(element)" style="top: 8px">
+                            <mat-icon>delete_forever</mat-icon>
+                        </button>
                     </td>
                 </ng-container>
 

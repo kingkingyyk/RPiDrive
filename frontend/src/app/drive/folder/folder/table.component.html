@@ -115,9 +115,9 @@
     
     <mat-list>
         <mat-list-item *ngFor="let row of dataSource.data" class="table-row" (click)="loadFileObject(row)" #fileOpMenu (contextmenu)="onContextMenu($event, row)">
-            <mat-icon mat-list-icon>{{ getFileIcon(row) }}</mat-icon>
-            <div mat-line>{{ row.name }}</div>
-            <div mat-line>
+            <mat-icon matListItemIcon>{{ getFileIcon(row) }}</mat-icon>
+            <div matListItemTitle>{{ row.name }}</div>
+            <div matListItemLine>
                 <ng-container *ngIf="isFile(row)">
                     {{ row.size | filesize }}, 
                 </ng-container>

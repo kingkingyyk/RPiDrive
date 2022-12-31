@@ -6,25 +6,25 @@
 <mat-list *ngIf="currData">
     <div mat-subheader>Speed</div>
     <mat-list-item>
-        <mat-icon mat-list-icon>download</mat-icon>
-        <div mat-line>Download</div>
-        <div mat-line>{{ currData.downloadSpeed | filesize }}/s</div>
+        <mat-icon matListItemIcon>download</mat-icon>
+        <div matListItemTitle>Download</div>
+        <div matListItemLine>{{ currData.downloadSpeed | filesize }}/s</div>
     </mat-list-item>
     <mat-list-item>
-        <mat-icon mat-list-icon>upload</mat-icon>
-        <div mat-line>Upload</div>
-        <div mat-line>{{ currData.uploadSpeed | filesize }}/s</div>
+        <mat-icon matListItemIcon>upload</mat-icon>
+        <div matListItemTitle>Upload</div>
+        <div matListItemLine>{{ currData.uploadSpeed | filesize }}/s</div>
     </mat-list-item>
     <mat-divider></mat-divider>
     <div mat-subheader>Total</div>
     <mat-list-item>
-        <mat-icon mat-list-icon>download</mat-icon>
-        <div mat-line>Downloads</div>
-        <div mat-line>{{ currData.downloadTotal | filesize }}</div>
+        <mat-icon matListItemIcon>download</mat-icon>
+        <div matListItemTitle>Downloads</div>
+        <div matListItemLine>{{ currData.downloadTotal | filesize }}</div>
     </mat-list-item>
     <mat-list-item>
-        <mat-icon mat-list-icon>upload</mat-icon>
-        <div mat-line>Uploads</div>
-        <div mat-line>{{ currData.uploadTotal | filesize }}</div>
+        <mat-icon matListItemIcon>upload</mat-icon>
+        <div matListItemTitle>Uploads</div>
+        <div matListItemLine>{{ currData.uploadTotal | filesize }}</div>
     </mat-list-item>
 </mat-list>

@@ -62,9 +62,9 @@
     <ng-container *ngIf="isMobile">
         <mat-list>
             <mat-list-item *ngFor="let row of dataSource.data" class="table-row" (contextmenu)="onContextMenu($event, row)">
-              <mat-icon mat-list-icon>account_circle</mat-icon>
-              <div mat-line>{{ row.username }}</div>
-              <div mat-line>{{ row.firstName }} {{ row.lastName }}</div>
+              <mat-icon matListItemIcon>account_circle</mat-icon>
+              <div matListItemTitle>{{ row.username }}</div>
+              <div matListItemLine>{{ row.firstName }} {{ row.lastName }}</div>
             </mat-list-item>
         </mat-list>
     </ng-container>
