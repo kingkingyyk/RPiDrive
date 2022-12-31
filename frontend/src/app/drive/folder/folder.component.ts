@@ -1,4 +1,7 @@
-import { AfterViewInit, Component, Inject, Input, OnInit, Output, SimpleChanges, ViewChild, EventEmitter, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, Inject, Input, OnInit,
+         Output, SimpleChanges, ViewChild, EventEmitter,
+         ChangeDetectorRef, OnDestroy
+       } from '@angular/core';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Title } from '@angular/platform-browser';
@@ -7,7 +10,10 @@ import { CommonService } from 'src/app/services/common.service';
 import { FileObject, GetStorageProvidersResponse, StorageProvider, 
          FileObjectType, FileExt, GetStorageProviderTypesResponse, 
          StorageProviderType, FileUploadModel, 
-         FilePreviewType, Metadata, SearchResultResponse, User, GetUsersResponse, GetStorageProviderPermissionsResponse, StorageProviderPermission, StorageProviderUser } from '../models';
+         FilePreviewType, Metadata, SearchResultResponse, User,
+         GetUsersResponse, GetStorageProviderPermissionsResponse,
+         StorageProviderPermission, StorageProviderUser
+       } from '../models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -20,8 +26,6 @@ import { of } from 'rxjs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MediaMatcher } from '@angular/cdk/layout';
 import { MatSidenav } from '@angular/material/sidenav';
-import { MatTab } from '@angular/material/tabs';
-
 
 abstract class Utils {
   static isFile(file: FileObject): boolean {

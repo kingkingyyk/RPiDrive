@@ -34,14 +34,11 @@
 
     <mat-list cdkDropList class="media-file-list" (cdkDropListDropped)="reorderMedia($event)">
         <div mat-subheader>Media ({{ playlist.files.length }} files)</div>
-        <mat-list-item *ngFor="let file of playlist.files" cdkDragLockAxis="y" cdkDrag  class="{{ currentPlaying && file.id === currentPlaying.id ? 'selectedFile' : '' }}">
-            <button mat-icon-button [matMenuTriggerFor]="plFileMenu" [matMenuTriggerData]="{item: file}">
-                <mat-icon>expand_more</mat-icon>
-            </button>
-            <mat-icon mat-list-icon class="drag-button" cdkDragHandle matTooltip="Drag to reorder">
+        <mat-list-item *ngFor="let file of playlist.files" cdkDragLockAxis="y" cdkDrag class="{{ currentPlaying && file.id === currentPlaying.id ? 'selectedFile' : '' }}">
+            <mat-icon matListItemIcon class="drag-button" cdkDragHandle matTooltip="Drag to reorder">
                 reorder
             </mat-icon>
-            <mat-icon mat-list-icon>
+            <mat-icon matListItemIcon>
                 <ng-container *ngIf="currentPlaying && file.id === currentPlaying.id">
                     play_arrow
                 </ng-container>
@@ -49,12 +46,15 @@
                     {{ file.type === 'music' ? 'music_note' : 'movie' }}
                 </ng-container>
             </mat-icon>
-            <div mat-line (click)="playFile(file)" style="cursor: pointer;" matTooltip="{{ file.fullPath }}">
+            <div matListItemTitle (click)="playFile(file)" style="cursor: pointer;" matTooltip="{{ file.fullPath }}">
                 {{ file.metadata.title ? file.metadata.title : file.name }}
             </div>
-            <div mat-line *ngIf="file.metadata.artist || file.metadata.album" (click)="playFile(file)" style="cursor: pointer;">
+            <div matListItemLine *ngIf="file.metadata.artist || file.metadata.album" (click)="playFile(file)" style="cursor: pointer;">
                 {{file.metadata.artist}} - {{file.metadata.album}}
             </div>
+            <button mat-icon-button [matMenuTriggerFor]="plFileMenu" [matMenuTriggerData]="{item: file}" matListItemMeta>
+                <mat-icon>expand_more</mat-icon>
+            </button>
             <mat-divider></mat-divider>
         </mat-list-item>
     </mat-list>

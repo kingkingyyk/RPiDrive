@@ -1,12 +1,12 @@
-django==4.1.3
+django==4.1.4
 humanize==4.4.0
 tinytag==1.8.1
-exif==1.3.5
-pypdf2==2.11.1
+exif==1.4.2
+pypdf2==3.0.0
 epub_meta==0.0.7
 mobi-python==0.0.1
-pytz==2022.6
-redis==4.3.4
+pytz==2022.7
+redis==4.4.0
 PyYAML==6.0
 psycopg2-binary==2.9.5
 psycogreen==1.0.2

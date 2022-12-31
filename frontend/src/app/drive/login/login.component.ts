@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonService } from 'src/app/services/common.service';
@@ -13,14 +13,14 @@ import { Url } from '../urls';
 })
 export class LoginComponent implements OnInit {
   loadingLevel: number = 0;
-  loginForm: UntypedFormGroup;
+  loginForm: FormGroup;
   loginError: string = '';
   nextUrl: string = null;
 
   constructor(private service: CommonService,
               private route: ActivatedRoute,
               private router: Router,
-              private formBuilder: UntypedFormBuilder,
+              private formBuilder: FormBuilder,
               private titleService: Title) {
                 this.titleService.setTitle('Login - RPi Drive');
               }
