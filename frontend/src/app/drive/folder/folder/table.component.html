@@ -19,8 +19,8 @@
                 <mat-icon style="vertical-align: middle;">keyboard_arrow_right</mat-icon>
                 
                 <!-- Middle -->
-                <button mat-icon-button [matMenuTriggerFor]="menuParentTrace">
-                    <mat-icon>more_horiz</mat-icon>
+                <button mat-button [matMenuTriggerFor]="menuParentTrace" style="font-size: large">
+                    ...
                 </button>
                 <mat-menu #menuParentTrace="matMenu">
                     <ng-container *ngFor="let parent of folder.trace; index as idx">
