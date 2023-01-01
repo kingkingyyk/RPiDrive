@@ -135,10 +135,10 @@ export class FolderComponent implements OnInit, OnDestroy {
       disableClose: true,
       data: this.folderId
     });
-    dialogRef.afterClosed().subscribe((data: any) => {
+    dialogRef.afterClosed().subscribe((data: FileObject) => {
       if (data) {
         this.router.navigateByUrl('/', { skipLocationChange: true }).then(() =>
-          this.router.navigate([Url.getSpecificFolderAbsURL(this.folderId)])
+          this.router.navigate([Url.getSpecificFolderAbsURL(data.id)])
         );
       }
     });
@@ -690,8 +690,10 @@ export class DialogCreateFolderComponent {
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<DialogCreateFolderComponent>,
+    private router: Router,
+    private route: ActivatedRoute,
     @Inject(MAT_DIALOG_DATA) public folderId: string,
-    private snackBar: MatSnackBar) {
+  ) {
     this.formControl = new UntypedFormControl('', Validators.required);
   }
 
@@ -699,9 +701,8 @@ export class DialogCreateFolderComponent {
     let folderName = this.formControl.value;
     this.loading = true;
     this.errorText = '';
-    this.service.createFolder(this.folderId, folderName).subscribe((file: FileObject) => {
-      this.snackBar.open('Folder ' + folderName + ' is created.', 'Close', { duration: 3000 });
-      this.dialogRef.close(1);
+    this.service.createFolder(this.folderId, folderName).subscribe((createdFolder: FileObject) => {
+      this.dialogRef.close(createdFolder);
     }, error => {
       this.errorText = error.error['error'];
     }).add(() => {
@@ -734,10 +735,6 @@ export class DialogFileUploadComponent {
     private dialogRef: MatDialogRef<DialogFileUploadComponent>,
     @Inject(MAT_DIALOG_DATA) public folderId: string) {
   }
-
-  ngOnInit() {
-  }
-
 
   onClick() {
     const fileUpload = document.getElementById('fileUpload') as HTMLInputElement;
@@ -827,7 +824,6 @@ export class DialogFolderUploadComponent {
     private dialogRef: MatDialogRef<DialogFolderUploadComponent>,
     @Inject(MAT_DIALOG_DATA) public folderId: string) {
   }
-
 
   onSelectFolder() {
     const folderUpload = document.getElementById('folderUpload') as HTMLInputElement;
