@@ -3,6 +3,7 @@ from drive.views.web import (
     create_storage_provider,
     create_playlist,
     create_user,
+    generate_quick_access_link,
     get_current_user,
     get_network_info,
     get_playlists,
@@ -39,6 +40,7 @@ urlpatterns = [
     path(r'files/search', search_file),
     path(r'files/move', move_files),
     path(r'files/zip', zip_files),
+    path(r'files/<str:file_id>/quick-access', generate_quick_access_link),
     path(r'files/<str:file_id>', manage_file),
 
     path(r'jobs', get_jobs),

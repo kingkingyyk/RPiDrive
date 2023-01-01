@@ -1,11 +1,15 @@
 import json
 import os
 import shutil
+
 from datetime import (
     timezone as dt_tz,
-    datetime
+    datetime,
+    timedelta,
 )
 from typing import List
+from uuid import UUID
+
 from django.core.files.uploadedfile import (
     InMemoryUploadedFile,
     TemporaryUploadedFile,
@@ -21,7 +25,9 @@ from django.views.decorators.http import (
     require_POST,
     require_http_methods,
 )
+
 from drive.models import (
+    FileObjectAlias,
     FileObjectType,
     Job,
     LocalFileObject,
@@ -261,9 +267,57 @@ def request_download_file(request, file_id):
         return generate_error_response('No permission to access this resource.',
                                        403)
     if file.obj_type == FileObjectType.FOLDER:
-        return HttpResponse(None, status=404)
+        return HttpResponse(status=404)
 
     return serve_file(request, file)
+
+@login_required()
+@require_POST
+@catch_error
+def generate_quick_access_link(request, file_id):
+    """Generate quick access link"""
+    file = LocalFileObject.objects.filter(id=file_id).first()
+
+    if not file:
+        return generate_error_response('Object not found', 404)
+
+    if not has_permission(request, file):
+        return generate_error_response(
+            'No permission to create quick access link', 403
+        )
+    if file.obj_type == FileObjectType.FOLDER:
+        return HttpResponse(status=400)
+
+    alias = FileObjectAlias(
+        local_ref=file,
+        creator=request.user,
+        expire_time=timezone.now() + timedelta(minutes=10),
+    )
+    alias.save()
+    return JsonResponse(data=dict(key=alias.id))
+
+@require_GET
+@catch_error
+def request_quick_access_file(request):
+    """Serve quick access file"""
+    if 'key' not in request.GET:
+        return HttpResponse(404)
+
+    key = request.GET['key']
+    try:
+        UUID(key, version=4)
+    except ValueError:
+        return HttpResponse(404)
+
+    alias = FileObjectAlias.objects.filter(id=key).first()
+
+    if not alias:
+        return HttpResponse(404)
+    if timezone.now() >= alias.expire_time:
+        alias.delete()
+        return HttpResponse(404)
+
+    return serve_file(request, alias.local_ref)
 
 @login_required()
 @require_GET

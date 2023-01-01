@@ -235,3 +235,25 @@ class Job(models.Model):
         default='In queue',
     )
     progress_value = models.IntegerField(default=0)
+
+class FileObjectAliasManager(models.Manager):
+    """LocalFileObject default query set"""
+    def get_queryset(self):
+        """Returns query set"""
+        return super().get_queryset().select_related(
+            'local_ref', 'creator')
+
+class FileObjectAlias(models.Model):
+    """File object alias"""
+    objects = FileObjectAliasManager()
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    local_ref = models.ForeignKey(
+        LocalFileObject,
+        on_delete=models.CASCADE,
+    )
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    expire_time = models.DateTimeField()

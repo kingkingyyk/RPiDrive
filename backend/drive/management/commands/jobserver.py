@@ -15,6 +15,7 @@ from drive.cache import ModelCache
 from drive.core.local_file_object import zip_files
 from drive.models import (
     FileObjectType,
+    FileObjectAlias,
     Job,
     LocalFileObject,
 )
@@ -99,6 +100,11 @@ class Command(BaseCommand):
             logging.error('Failed zip file creation - %s', str(traceback.format_exc()))
 
     @staticmethod
+    def cleanup_alias():
+        FileObjectAlias.objects.filter(
+            expire_time__lte=timezone.now()).all().delete()
+
+    @staticmethod
     def process_jobs():
         jobs = Job.objects.all()
         for job in jobs:
@@ -119,5 +125,6 @@ class Command(BaseCommand):
         logging.info('Started periodic indexing every %s minutes.', settings.INDEXER_PERIOD)
         while True:
             Command.process_jobs()
+            Command.cleanup_alias()
             Command.sync_all(settings.INDEXER_PERIOD)
             time.sleep(5.0)

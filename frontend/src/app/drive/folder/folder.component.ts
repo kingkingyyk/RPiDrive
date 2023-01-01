@@ -13,7 +13,7 @@ import { FileObject, GetStorageProvidersResponse, StorageProvider,
          FilePreviewType, Metadata, SearchResultResponse, User,
          GetUsersResponse, GetStorageProviderPermissionsResponse,
          StorageProviderPermission, StorageProviderUser,
-         Job, GetJobsResponse,
+         Job, GetJobsResponse, GenerateQuickAccessKeyResponse,
        } from '../models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -1157,9 +1157,14 @@ export class DialogRenameFileComponent {
 export class DialogShareFileComponent {
   loading: boolean = false;
   errorText: string;
+  shareUrl: string;
+  canQuickAccess: boolean;
+  quickAccessUrl: string;
 
   constructor(private service: CommonService,
     @Inject(MAT_DIALOG_DATA) public file: FileObject) {
+      this.canQuickAccess = this.file.objType === FileObjectType.FILE;
+      this.shareUrl = this.getFileUrl();
   }
 
   getFileUrl() {
@@ -1169,5 +1174,12 @@ export class DialogShareFileComponent {
     }
     return window.location.origin +
       Url.getSpecificFolderAbsURL(this.file.id);
+  }
+
+  generateQuickAccessKey() {
+    this.service.generateQuickAccessKey(this.file.id).subscribe((data: GenerateQuickAccessKeyResponse) => {
+      this.quickAccessUrl = window.location.origin +
+        this.service.getFileQuickAccessUrl(data.key);
+    });
   }
 }
