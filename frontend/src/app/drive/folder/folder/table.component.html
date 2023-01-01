@@ -45,6 +45,7 @@
     
         <div class="action-button-row" *ngIf="selection.selected.length > 0">
             <button mat-raised-button color="accent" *ngIf="selection.selected.length == 1" (click)="shareSelectedFile(null)"><mat-icon>share</mat-icon>Share</button>
+            <button mat-raised-button color="accent" (click)="zipSelectedFiles(null)"><mat-icon>compress</mat-icon>Compress</button>
             <button mat-raised-button color="accent" *ngIf="selection.selected.length == 1" (click)="renameSelectedFile(null)"><mat-icon>create</mat-icon>Rename</button>
             <button mat-raised-button color="accent" (click)="moveSelectedFiles(null)"><mat-icon>airport_shuttle</mat-icon>Move</button>
             <button mat-raised-button color="warn" (click)="deleteSelectedFiles(null)"><mat-icon>delete_forever</mat-icon>Delete</button>
@@ -148,6 +149,7 @@
         <button mat-menu-item [disabled]="true">{{item.name}}</button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="shareSelectedFile(item)"><mat-icon>share</mat-icon>Share</button>
+        <button mat-menu-item (click)="zipSelectedFiles(item)"><mat-icon>compress</mat-icon>Zip</button>
         <button mat-menu-item (click)="renameSelectedFile(item)"><mat-icon>create</mat-icon>Rename</button>
         <button mat-menu-item (click)="moveSelectedFiles(item)"><mat-icon>airport_shuttle</mat-icon>Move</button>
         <button mat-menu-item (click)="deleteSelectedFiles(item)"><mat-icon style="color: red" >delete_forever</mat-icon>Delete</button>

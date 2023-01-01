@@ -7,6 +7,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from drive.cache import ModelCache
 from drive.core.storage_provider import create_storage_provider_helper
 from drive.models import (
+    Job,
     LocalFileObject,
     StorageProvider,
     StorageProviderType,
@@ -19,7 +20,6 @@ from drive.views.web.shared import (
     has_storage_provider_permission,
     requires_admin,
 )
-
 
 class StorageProviderRequest:
     """StorageProvider request keys"""
@@ -258,4 +258,10 @@ def perform_index(request, provider_id):
 
     s_p.indexing = True
     s_p.save(update_fields=['indexing'])
+
+    Job.objects.create(
+        task_type=Job.TaskTypes.INDEX,
+        description=f'Perform indexing on {s_p.path}',
+        data=provider_id,
+    )
     return JsonResponse({})

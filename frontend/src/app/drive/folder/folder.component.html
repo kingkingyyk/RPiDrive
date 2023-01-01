@@ -58,7 +58,20 @@
                 </div>
             </div>
         </div>
+
+        <mat-divider></mat-divider>
+        <div style="padding: 10px">
+            <h2 class="job-info">Jobs</h2>
+            <div>
+                <div *ngFor="let job of jobs" class="job-info">
+                    <div style="font-size: small">{{ job.description }}</div>
+                    <div style="font-size: x-small">{{ job.progress_info }}</div>
+                    <mat-progress-bar mode="determinate" value="{{ job.progress_value }}" *ngIf="job.progress_value >= 0"></mat-progress-bar>
+                </div>
+            </div>
+        </div>
     </mat-sidenav>
+
     <mat-sidenav-content style="padding: 20px">
         <!-- For mobile search -->
         <div *ngIf="mobileQuery.matches" style="padding: 0px 10px 10px 10px">
