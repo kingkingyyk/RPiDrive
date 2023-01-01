@@ -205,3 +205,7 @@ export interface Job {
 export interface GetJobsResponse {
     values: Job[];
 }
+
+export interface GenerateQuickAccessKeyResponse {
+    key: string;
+}

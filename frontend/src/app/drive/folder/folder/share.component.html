@@ -1,9 +1,28 @@
 <h2 mat-dialog-title><mat-icon style="vertical-align: middle; margin-right: 5px">share</mat-icon>Share File</h2>
 <mat-dialog-content class="mat-typography">
-    <div>
-        <span style="overflow: auto; border: 1px solid white; padding: 5px">{{getFileUrl()}}</span>
-        <button mat-icon-button matTooltip="Copy URL" [cdkCopyToClipboard]="getFileUrl()">
-            <mat-icon>content_copy</mat-icon>
+    <div style="margin-bottom: 10px;">
+        <div>Permalink</div>
+        <mat-form-field>
+            <input matInput type="text" [(ngModel)]="shareUrl" readonly>
+            <button matSuffix mat-icon-button [cdkCopyToClipboard]="shareUrl">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+        </mat-form-field>
+    </div>
+    <mat-divider></mat-divider>
+    <div style="margin-top: 5px;" *ngIf="canQuickAccess">
+        <div>
+            Quick Access 
+            <mat-icon style="vertical-align: bottom;" matTooltip="Provides a public download url for 10 minutes.">help</mat-icon>
+        </div>
+        <mat-form-field *ngIf="quickAccessUrl">
+            <input matInput type="text" [(ngModel)]="quickAccessUrl" readonly>
+            <button matSuffix mat-icon-button [cdkCopyToClipboard]="quickAccessUrl">
+                <mat-icon>content_copy</mat-icon>
+            </button>
+        </mat-form-field>
+        <button *ngIf="!quickAccessUrl" mat-raised-button (click)="generateQuickAccessKey()">
+            Generate URL
         </button>
     </div>
 </mat-dialog-content>

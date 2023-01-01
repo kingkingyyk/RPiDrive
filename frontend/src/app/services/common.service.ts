@@ -18,7 +18,9 @@ export class CommonService {
   private static URL_FILES: string = 'files/<id>';
   private static URL_FILES_MOVE: string = 'files/move';
   private static URL_FILES_ZIP: string = 'files/zip';
-  private static URL_FILE_DOWNLOAD: string = '/drive/download/<id>'
+  private static URL_FILE_DOWNLOAD: string = '/drive/download/<id>';
+  private static URL_FILES_QUICK_ACCESS: string = 'files/<id>/quick-access';
+  private static URL_QUICK_ACCESS: string = '/drive/quick-access';
 
   private static URL_GET_JOBS: string = 'jobs';
 
@@ -59,8 +61,16 @@ export class CommonService {
     return this.constructDriveAPIUrl(CommonService.URL_FILES_ZIP);
   }
 
+  private constructGetQuickAccessUrl(id: string) {
+    return this.constructDriveAPIUrl(CommonService.URL_FILES_QUICK_ACCESS.replace('<id>', id));
+  }
+
   public getFileDownloadUrl(id: string) {
     return CommonService.URL_FILE_DOWNLOAD.replace('<id>', id);
+  }
+
+  public getFileQuickAccessUrl(key: string) {
+    return CommonService.URL_QUICK_ACCESS + '?key=' + key;
   }
 
   private constructUserUrl(id: number) {
@@ -203,6 +213,16 @@ export class CommonService {
       data,
       {
         params: reqParams,
+        withCredentials: true
+      }
+    );
+  }
+
+  generateQuickAccessKey(id: string): Observable<any> {
+    return this.http.post(
+      this.constructGetQuickAccessUrl(id),
+      null, 
+      {
         withCredentials: true
       }
     );
