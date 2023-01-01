@@ -16,15 +16,24 @@ from django.db.models import Value
 from django.db.models.functions import Substr, Concat
 from django.http.response import JsonResponse, HttpResponse
 from django.utils import timezone
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import (
+    require_GET,
+    require_POST,
+    require_http_methods,
+)
 from drive.models import (
     FileObjectType,
+    Job,
     LocalFileObject,
     StorageProviderUser,
 )
 from drive.cache import ModelCache
 from drive.core.local_file_object import move_file
 from drive.core.local_file_object import serve, update_file_metadata
+from drive.request_models import (
+    MoveFileRequest,
+    ZipFileRequest,
+)
 from drive.views.web.shared import (
     generate_error_response,
     catch_error,
@@ -111,8 +120,10 @@ def manage_file(request, file_id):
 
     file = LocalFileObject.objects.get(id=file_id)
     if not has_permission(request, file):
-        return generate_error_response('No permission to perform the operation!',
-                                        403)
+        return generate_error_response(
+            'No permission to perform the operation!',
+            403
+        )
 
     if request.method == 'GET':
         action = request.GET.get('action', 'download')
@@ -146,8 +157,6 @@ def manage_file(request, file_id):
         data = json.loads(request.body)
         if action == 'rename':
             return rename_file(file, data['name'])
-        if action == 'move':
-            return verify_and_move_file(file_id, data['destination'], data['strategy'])
         if action == 'new-folder':
             return create_new_folder(file, data['name'])
 
@@ -155,6 +164,89 @@ def manage_file(request, file_id):
     if request.method == 'DELETE':
         return delete_file(file)
     return generate_error_response('Method not allowed', 405)
+
+@login_required()
+@require_POST
+@catch_error
+def move_files(request):
+    """Handle file move action"""
+    req_obj = MoveFileRequest.parse_obj(json.loads(request.body))
+
+    # Verify destination exists
+    dest_file_obj = LocalFileObject.objects.filter(id=req_obj.destination).first()
+    if not dest_file_obj:
+        return generate_error_response('Destination folder doesn\'t exist!')
+
+    # Verify destination is folder
+    if dest_file_obj.obj_type != FileObjectType.FOLDER:
+        return generate_error_response('Destination must be a folder!')
+
+    if not has_permission(request, dest_file_obj):
+        return generate_error_response(
+            'No permission to perform the operation!',
+            403
+        )
+
+    # Good to go
+    files_to_move = (
+        LocalFileObject.objects
+        .filter(id__in=req_obj.files)
+        .all()
+    )
+
+    failures = []
+    for file in files_to_move:
+        try:
+            move_file(file, dest_file_obj, req_obj.strategy)
+        except: # pylint: disable=bare-except
+            failures.append(file.full_path)
+    if failures:
+        failures = '\n - '.join(failures)
+        return generate_error_response(f'Failed to move:\n{failures}', 500)
+
+    return JsonResponse({})
+
+@login_required()
+@require_POST
+@catch_error
+def zip_files(request):
+    """Handle zip file action"""
+    req_obj = ZipFileRequest.parse_obj(json.loads(request.body))
+
+    # Verify destination exists
+    dest_file_obj = LocalFileObject.objects.filter(id=req_obj.destination).first()
+    if not dest_file_obj:
+        return generate_error_response('Destination folder doesn\'t exist!')
+
+    # Verify destination is folder
+    if dest_file_obj.obj_type != FileObjectType.FOLDER:
+        return generate_error_response('Destination must be a folder!')
+
+    if not has_permission(request, dest_file_obj):
+        return generate_error_response(
+            'No permission to perform the operation!',
+            403
+        )
+
+    if not req_obj.filename:
+        return generate_error_response('Invalid name')
+
+    # Add .zip if not exists
+    if not req_obj.filename.lower().endswith('.zip'):
+        req_obj.filename = f'{req_obj.filename}.zip'
+
+    # If exists zip file with same name
+    zip_path = os.path.join(dest_file_obj.full_path, req_obj.filename)
+    if os.path.exists(zip_path):
+        return generate_error_response('Name is already used by another file.')
+
+    Job.objects.create(
+        task_type=Job.TaskTypes.ZIP,
+        description=f'Creating zip file {dest_file_obj.full_path}{req_obj.filename}',
+        data=json.dumps(req_obj.dict()),
+    )
+
+    return JsonResponse({})
 
 @login_required()
 @require_GET
@@ -227,26 +319,6 @@ def rename_file(file, new_name):
                 storage_provider__pk=file.storage_provider.pk,
                 rel_path__startswith=old_path).update(
                     rel_path=Concat(Value(new_path), Substr('rel_path', len(old_path))))
-
-    return JsonResponse({})
-
-
-def verify_and_move_file(src_id, dest_id, strategy):
-    """Move file"""
-    # Verify folder exists
-    dest_file_obj = LocalFileObject.objects.filter(id=dest_id).first()
-    if not dest_file_obj:
-        return generate_error_response('Destination folder doesn\'t exist!', 400)
-
-    # Verify destination is folder
-    if dest_file_obj.obj_type != FileObjectType.FOLDER:
-        return generate_error_response('Destination must be a folder!', 400)
-
-    # Good to go
-    with transaction.atomic():
-        src = LocalFileObject.objects.select_for_update(of=('self',)).get(id=src_id)
-        dest = LocalFileObject.objects.select_for_update(of=('self',)).get(id=dest_id)
-        move_file(src, dest, strategy)
 
     return JsonResponse({})
 

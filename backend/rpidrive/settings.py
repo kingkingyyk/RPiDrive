@@ -1,4 +1,5 @@
 import os
+import tempfile
 from pathlib import Path
 from yaml import safe_load as load_yaml
 
@@ -151,6 +152,8 @@ if _TEMP_DIR:
     FILE_UPLOAD_TEMP_DIR = os.path.join(_TEMP_DIR, 'uploads')
     if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
         os.makedirs(FILE_UPLOAD_TEMP_DIR)
+else:
+    _TEMP_DIR = tempfile.gettempdir()
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

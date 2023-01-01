@@ -1,13 +1,20 @@
 import mimetypes
 import os
 import shutil
+import uuid
+import zipfile
+
+from typing import Iterable
 from urllib.parse import quote
 from wsgiref.util import FileWrapper
+
+from django.conf import settings
 from django.http import StreamingHttpResponse
+
+from ..request_models import MoveFileStrategy
 from ..models import LocalFileObject, FileObjectType
 from ..utils.indexer import Metadata
 from ..utils.range_file_wrapper import range_re, RangeFileWrapper
-
 
 def generate_new_file_name(name, used_names):
     """Search for a filename that is not being used yet"""
@@ -24,9 +31,6 @@ def move_file(src: LocalFileObject,
               dest: LocalFileObject,
               strategy: str):
     """Move file and update database"""
-    if strategy not in ('overwrite', 'rename'):
-        raise Exception('Invalid strategy')
-
     old_src_storage_provider = src.storage_provider
     target = LocalFileObject.objects.filter(
         storage_provider=dest.storage_provider,
@@ -47,7 +51,7 @@ def move_file(src: LocalFileObject,
     else:
         # Rename if src != target type or when (both are files + strategy is rename)
         rename = src.obj_type != target.obj_type or (
-            src.obj_type == FileObjectType.FILE and strategy == 'rename')
+            src.obj_type == FileObjectType.FILE and strategy == MoveFileStrategy.RENAME)
         if rename:
             dest_sibling_names = LocalFileObject.objects.filter(
                 storage_provider=dest.storage_provider,
@@ -61,7 +65,7 @@ def move_file(src: LocalFileObject,
             src.save(update_fields=['parent', 'rel_path', 'storage_provider', 'name'])
             simple_update = True
         # Both src and target are files, overwrite.
-        elif src.obj_type == FileObjectType.FILE and strategy == 'overwrite':
+        elif src.obj_type == FileObjectType.FILE and strategy == MoveFileStrategy.OVERWRITE:
             shutil.move(src.full_path, target.full_path)
             src.parent = dest
             src.storage_provider = target.storage_provider
@@ -132,3 +136,36 @@ def update_file_metadata(file: LocalFileObject):
     if file.metadata is None:
         file.metadata = Metadata.extract(file)
         LocalFileObject.objects.filter(pk=file.pk).update(metadata=file.metadata)
+
+def zip_files(files: Iterable[LocalFileObject]) -> str:
+    """Create a temp zip file and return the path"""
+    total_files = 0
+    paths = [x.full_path for x in files]
+    while paths:
+        path = paths.pop()
+        total_files += 1
+        if not os.path.isdir(path):
+            continue
+        for child in os.listdir(path):
+            paths.append(os.path.join(path, child))
+
+    zip_path = os.path.join(settings._TEMP_DIR, f'{uuid.uuid4()}.zip') # pylint: disable=protected-access
+    with zipfile.ZipFile(
+        zip_path, mode='w',
+        compression=zipfile.ZIP_DEFLATED,
+        compresslevel=9
+    ) as archive:
+        root_path_len = len(files[0].parent.full_path)
+        paths = [x.full_path for x in files]
+        curr_files = 0
+        while paths:
+            path = paths.pop()
+            yield path, int((curr_files / total_files) * 100)
+            archive.write(path, arcname=path[root_path_len:])
+            curr_files = curr_files + 1
+            yield path, int((curr_files / total_files) * 100)
+            if not os.path.isdir(path):
+                continue
+            for child in os.listdir(path):
+                paths.append(os.path.join(path, child))
+    yield zip_path, 100

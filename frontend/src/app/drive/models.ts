@@ -195,3 +195,13 @@ export interface SystemInfoDisk {
 export interface GetUsersResponse {
     values: User[];
 }
+
+export interface Job {
+    description: string;
+    progress_info: string;
+    progress_value: number;
+}
+
+export interface GetJobsResponse {
+    values: Job[];
+}
