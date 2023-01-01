@@ -166,6 +166,8 @@ def zip_files(files: Iterable[LocalFileObject]) -> str:
             yield path, int((curr_files / total_files) * 100)
             if not os.path.isdir(path):
                 continue
+            if path.endswith(os.path.sep):
+                path = path[:-1]
             for child in os.listdir(path):
                 paths.append(os.path.join(path, child))
     yield zip_path, 100

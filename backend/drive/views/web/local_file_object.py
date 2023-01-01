@@ -248,7 +248,7 @@ def zip_files(request):
 
     Job.objects.create(
         task_type=Job.TaskTypes.ZIP,
-        description=f'Creating zip file {dest_file_obj.full_path}{req_obj.filename}',
+        description=f'Creating zip file {dest_file_obj.full_path}/{req_obj.filename}',
         data=json.dumps(req_obj.dict()),
     )
 
