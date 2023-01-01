@@ -1,4 +1,7 @@
-import { AfterViewInit, Component, Inject, Input, OnInit, Output, SimpleChanges, ViewChild, EventEmitter, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, Inject, Input, OnInit,
+         Output, SimpleChanges, ViewChild, EventEmitter,
+         ChangeDetectorRef, OnDestroy
+       } from '@angular/core';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Title } from '@angular/platform-browser';
@@ -7,21 +10,23 @@ import { CommonService } from 'src/app/services/common.service';
 import { FileObject, GetStorageProvidersResponse, StorageProvider, 
          FileObjectType, FileExt, GetStorageProviderTypesResponse, 
          StorageProviderType, FileUploadModel, 
-         FilePreviewType, Metadata, SearchResultResponse, User, GetUsersResponse, GetStorageProviderPermissionsResponse, StorageProviderPermission, StorageProviderUser } from '../models';
+         FilePreviewType, Metadata, SearchResultResponse, User,
+         GetUsersResponse, GetStorageProviderPermissionsResponse,
+         StorageProviderPermission, StorageProviderUser,
+         Job, GetJobsResponse, GenerateQuickAccessKeyResponse,
+       } from '../models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Url } from '../urls';
-import { catchError, last, map, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, last, map, tap } from 'rxjs/operators';
 import { HttpEventType, HttpErrorResponse } from '@angular/common/http';
-import { of } from 'rxjs';
+import { interval, of } from 'rxjs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MediaMatcher } from '@angular/cdk/layout';
 import { MatSidenav } from '@angular/material/sidenav';
-import { MatTab } from '@angular/material/tabs';
-
 
 abstract class Utils {
   static isFile(file: FileObject): boolean {
@@ -52,9 +57,11 @@ abstract class Utils {
 export class FolderComponent implements OnInit, OnDestroy {
   mobileQuery: MediaQueryList;
   private _mobileQueryListener: any;
+  private updateTimer: any;
   @ViewChild(MatSidenav) snav: MatSidenav;
 
   storageProviders: StorageProvider[] = [];
+  jobs: Job[] = [];
   loadingCount: number = 0;
   folderId: string = '';
   searchText: string = '';
@@ -78,10 +85,15 @@ export class FolderComponent implements OnInit, OnDestroy {
     this.loadStorageProviders();
     this.checkAndLoadFolder();
     this.router.events.subscribe((value) => this.checkAndLoadFolder());
+    this.loadJobs();
+    this.updateTimer = interval(10 * 1000).subscribe(t => {
+      this.loadJobs();
+    }) // 10 seconds.
   }
 
   ngOnDestroy(): void {
     this.mobileQuery.removeEventListener('change', this._mobileQueryListener);
+    this.updateTimer.unsubscribe();
   }
 
   closeSideNavIfNeeded(): void {
@@ -89,11 +101,11 @@ export class FolderComponent implements OnInit, OnDestroy {
   }
 
   loadStorageProviders(): void {
-    this.loadingCount += 1;
+    this.loadingCount++;
     this.service.getStorageProviders().subscribe((data: GetStorageProvidersResponse) => {
       this.storageProviders = data.values;
     }).add(() => {
-      this.loadingCount -= 1;
+      this.loadingCount--;
     });
   }
 
@@ -105,6 +117,12 @@ export class FolderComponent implements OnInit, OnDestroy {
   loadStorageProviderFolder(storageProvider: StorageProvider) {
     this.closeSideNavIfNeeded();
     this.router.navigate([storageProvider.rootFolder], { relativeTo: this.route });
+  }
+
+  loadJobs(): void {
+    this.service.getJobs().subscribe((data: GetJobsResponse) => {
+      this.jobs = data.values;
+    });
   }
 
   createStorageProvider(): void {
@@ -131,10 +149,10 @@ export class FolderComponent implements OnInit, OnDestroy {
       disableClose: true,
       data: this.folderId
     });
-    dialogRef.afterClosed().subscribe((data: any) => {
+    dialogRef.afterClosed().subscribe((data: FileObject) => {
       if (data) {
         this.router.navigateByUrl('/', { skipLocationChange: true }).then(() =>
-          this.router.navigate([Url.getSpecificFolderAbsURL(this.folderId)])
+          this.router.navigate([Url.getSpecificFolderAbsURL(data.id)])
         );
       }
     });
@@ -444,7 +462,7 @@ export class DialogDeleteStorageProviderComponent {
   templateUrl: './search/table.component.html',
   styleUrls: ['./search/table.component.scss']
 })
-export class SearchTableComponent {
+export class SearchTableComponent implements OnDestroy {
   @Input() keyword: string;
   @Input() isMobile: boolean;
 
@@ -454,23 +472,36 @@ export class SearchTableComponent {
   @ViewChild(MatSort, { static: false }) set sort(_sort: MatSort) {
     this.dataSource.sort = _sort;
   }
+  changeDebounced: EventEmitter<string>
 
   constructor(private service: CommonService,
     private router: Router,
     private route: ActivatedRoute,
     private dialog: MatDialog) {
       this.dataSource = new MatTableDataSource();
+      this.changeDebounced = new EventEmitter<string>();
+      this.changeDebounced.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap((text) => {
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {
+              'keyword': text
+            }
+          });
+          if (text) this.search();
+          else this.dataSource.data = [];
+        })
+      ).subscribe();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        'keyword': this.keyword
-      }
-    });
-    if (this.keyword) this.search();
-    else this.dataSource.data = [];
+    this.changeDebounced.emit(this.keyword);
+  }
+
+  ngOnDestroy() {
+    this.changeDebounced.unsubscribe();
   }
 
   search() {
@@ -631,6 +662,15 @@ export class FolderTableComponent {
     });
   }
 
+  zipSelectedFiles(file: FileObject | null) {
+    const dialogRef = this.dialog.open(DialogZipFileComponent, {
+      data: {
+        files: file ? [file] : this.selection.selected,
+        destination: this.folder,
+      }
+    });
+  }
+
   renameSelectedFile(file: FileObject | null) {
     const dialogRef = this.dialog.open(DialogRenameFileComponent, {
       disableClose: true,
@@ -673,8 +713,10 @@ export class DialogCreateFolderComponent {
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<DialogCreateFolderComponent>,
+    private router: Router,
+    private route: ActivatedRoute,
     @Inject(MAT_DIALOG_DATA) public folderId: string,
-    private snackBar: MatSnackBar) {
+  ) {
     this.formControl = new UntypedFormControl('', Validators.required);
   }
 
@@ -682,9 +724,8 @@ export class DialogCreateFolderComponent {
     let folderName = this.formControl.value;
     this.loading = true;
     this.errorText = '';
-    this.service.createFolder(this.folderId, folderName).subscribe((file: FileObject) => {
-      this.snackBar.open('Folder ' + folderName + ' is created.', 'Close', { duration: 3000 });
-      this.dialogRef.close(1);
+    this.service.createFolder(this.folderId, folderName).subscribe((createdFolder: FileObject) => {
+      this.dialogRef.close(createdFolder);
     }, error => {
       this.errorText = error.error['error'];
     }).add(() => {
@@ -718,10 +759,6 @@ export class DialogFileUploadComponent {
     @Inject(MAT_DIALOG_DATA) public folderId: string) {
   }
 
-  ngOnInit() {
-  }
-
-
   onClick() {
     const fileUpload = document.getElementById('fileUpload') as HTMLInputElement;
     fileUpload.onchange = () => {
@@ -745,6 +782,7 @@ export class DialogFileUploadComponent {
   private uploadFile(file: FileUploadModel) {
     const fd = new FormData();
     fd.append('files', file.data);
+    fd.append('paths', file.data.webkitRelativePath);
 
     this.uploadCount++;
     file.inProgress = true;
@@ -799,13 +837,87 @@ export class DialogFileUploadComponent {
   templateUrl: './folder/folder-upload.component.html',
 })
 export class DialogFolderUploadComponent {
+  @Output() complete = new EventEmitter<string>();
+  files: Array<FileUploadModel> = [];
+  uploadCount: number = 0;
+  uploadSuccess: number = 0;
+  successList: string[] = [];
 
   constructor(private service: CommonService,
     private dialogRef: MatDialogRef<DialogFolderUploadComponent>,
     @Inject(MAT_DIALOG_DATA) public folderId: string) {
   }
 
+  onSelectFolder() {
+    const folderUpload = document.getElementById('folderUpload') as HTMLInputElement;
+    folderUpload.onchange = () => {
+      for (let i = 0; i < folderUpload.files.length; i++) this.files.push({ data: folderUpload.files[i], state: 'in', inProgress: false, progress: 0, canRetry: false, canCancel: true });
+      this.uploadFiles();
+    };
+    folderUpload.click();
+  }
 
+  private removeFileFromArray(file: FileUploadModel) {
+    const index = this.files.indexOf(file);
+    if (index > -1) this.files.splice(index, 1);
+  }
+
+  private uploadFile(file: FileUploadModel) {
+    const fd = new FormData();
+    fd.append('files', file.data);
+    fd.append('paths', file.data.webkitRelativePath);
+
+    this.uploadCount++;
+    file.inProgress = true;
+    file.sub = this.service.uploadFiles(this.folderId, fd).pipe(
+      map(event => {
+        switch (event.type) {
+          case HttpEventType.UploadProgress:
+            file.progress = Math.round(event.loaded * 100 / event.total);
+            break;
+          case HttpEventType.Response:
+            return event;
+        }
+      }),
+      tap(message => { }),
+      last(),
+      catchError((error: HttpErrorResponse) => {
+        file.inProgress = false;
+        file.canRetry = true;
+        this.uploadCount--;
+        return of(`${file.data.webkitRelativePath} upload failed.`);
+      })
+    ).subscribe(
+      (event: any) => {
+        this.removeFileFromArray(file);
+        this.uploadCount--;
+        this.uploadSuccess++;
+        this.successList.push(file.data.webkitRelativePath);
+        if (event) this.complete.emit(event.body);
+      }
+    );
+  }
+
+  private uploadFiles() {
+    const folderUpload = document.getElementById('folderUpload') as HTMLInputElement;
+    folderUpload.value = '';
+    this.files.forEach(file => this.uploadFile(file));
+  }
+
+  cancelFile(file: FileUploadModel) {
+    file.sub.unsubscribe();
+    this.removeFileFromArray(file);
+    this.uploadCount--;
+  }
+
+  retryFile(file: FileUploadModel) {
+    this.uploadFile(file);
+    file.canRetry = false;
+  }
+
+  onCloseClick(): void {
+    this.dialogRef.close(this.uploadSuccess);
+  }
 }
 
 @Component({
@@ -940,27 +1052,69 @@ export class DialogMoveFileComponent {
 
   moveFile() {
     this.errorText = '';
-    for (let file of this.files) {
-      this.loadingLevel++;
-      this.service.moveFile(file.id, this.currFolder.id, this.strategy).subscribe(() => {
-        this.files = this.files.filter(x => x !== file);
-        this.successCount++;
-      }, error => {
-        this.errorText += 'Error moving ' + file.name + '!\n' + error.error['error'];
-      }).add(() => {
-        this.loadingLevel--
-        if (this.loadingLevel == 0 && !this.errorText) {
-          this.snackBar.open('File(s) are moved.', 'Close', { duration: 3000 });
-          this.dialogRef.close(this.successCount);
-        }
-      });
-    }
+    const filesToMoveId = this.files.map(x => x.id)
+    this.loadingLevel++;
+    this.service.moveFile(filesToMoveId, this.currFolder.id, this.strategy).subscribe(() => {
+      this.successCount++;
+    }, error => {
+      this.errorText = error.error['error'];
+    }).add(() => {
+      this.loadingLevel--
+      if (this.loadingLevel == 0 && !this.errorText) {
+        this.snackBar.open('File(s) are moved.', 'Close', { duration: 3000 });
+        this.dialogRef.close(this.successCount);
+      }
+    });
   }
 
   filterBlockFolder(children: FileObject[]) {
     let ids = this.files.map(x => x.id);
     return children.filter(x => !ids.includes(x.id) && x.objType === FileObjectType.FOLDER);
   }
+}
+
+@Component({
+  selector: 'dialog-zip-file',
+  templateUrl: './folder/zip-file.component.html',
+})
+export class DialogZipFileComponent {
+  static InputSchema = class{
+    files: FileObject[];
+    destination: FileObject;
+  }
+
+  loading: boolean = false;
+  errorText: string;
+  formControl: UntypedFormControl;
+
+  constructor(private service: CommonService,
+    private dialogRef: MatDialogRef<DialogZipFileComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: typeof DialogZipFileComponent.InputSchema.prototype,
+    private snackBar: MatSnackBar
+  ) {
+    if (this.data.files.length == 1) {
+      this.formControl = new UntypedFormControl(this.data.files[0].name, Validators.required);
+    } else {
+      this.formControl = new UntypedFormControl(this.data.destination.name, Validators.required);
+    }
+  }
+
+  zipFile() {
+    let name = this.formControl.value;
+    this.loading = true;
+    this.errorText = '';
+
+    const files = this.data.files.map(x => x.id)
+    this.service.zipFiles(files, this.data.destination.id, name).subscribe(() => {
+      this.snackBar.open('Zip file job created.', 'Close', { duration: 3000 });
+      this.dialogRef.close();
+    }, error => {
+      this.errorText = error.error['error'];
+    }).add(() => {
+      this.loading = false;
+    });
+  }
+
 }
 
 @Component({
@@ -973,7 +1127,7 @@ export class DialogRenameFileComponent {
   formControl: UntypedFormControl;
 
   constructor(private service: CommonService,
-    private dialogRef: MatDialogRef<DialogCreateFolderComponent>,
+    private dialogRef: MatDialogRef<DialogRenameFileComponent>,
     @Inject(MAT_DIALOG_DATA) public file: FileObject,
     private snackBar: MatSnackBar) {
     this.formControl = new UntypedFormControl(file.name, Validators.required);
@@ -1003,9 +1157,14 @@ export class DialogRenameFileComponent {
 export class DialogShareFileComponent {
   loading: boolean = false;
   errorText: string;
+  shareUrl: string;
+  canQuickAccess: boolean;
+  quickAccessUrl: string;
 
   constructor(private service: CommonService,
     @Inject(MAT_DIALOG_DATA) public file: FileObject) {
+      this.canQuickAccess = this.file.objType === FileObjectType.FILE;
+      this.shareUrl = this.getFileUrl();
   }
 
   getFileUrl() {
@@ -1015,5 +1174,12 @@ export class DialogShareFileComponent {
     }
     return window.location.origin +
       Url.getSpecificFolderAbsURL(this.file.id);
+  }
+
+  generateQuickAccessKey() {
+    this.service.generateQuickAccessKey(this.file.id).subscribe((data: GenerateQuickAccessKeyResponse) => {
+      this.quickAccessUrl = window.location.origin +
+        this.service.getFileQuickAccessUrl(data.key);
+    });
   }
 }

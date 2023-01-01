@@ -1,10 +1,15 @@
 import json
 import os
 import shutil
+
 from datetime import (
     timezone as dt_tz,
-    datetime
+    datetime,
+    timedelta,
 )
+from typing import List
+from uuid import UUID
+
 from django.core.files.uploadedfile import (
     InMemoryUploadedFile,
     TemporaryUploadedFile,
@@ -15,15 +20,26 @@ from django.db.models import Value
 from django.db.models.functions import Substr, Concat
 from django.http.response import JsonResponse, HttpResponse
 from django.utils import timezone
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import (
+    require_GET,
+    require_POST,
+    require_http_methods,
+)
+
 from drive.models import (
+    FileObjectAlias,
     FileObjectType,
+    Job,
     LocalFileObject,
     StorageProviderUser,
 )
 from drive.cache import ModelCache
 from drive.core.local_file_object import move_file
 from drive.core.local_file_object import serve, update_file_metadata
+from drive.request_models import (
+    MoveFileRequest,
+    ZipFileRequest,
+)
 from drive.views.web.shared import (
     generate_error_response,
     catch_error,
@@ -110,8 +126,10 @@ def manage_file(request, file_id):
 
     file = LocalFileObject.objects.get(id=file_id)
     if not has_permission(request, file):
-        return generate_error_response('No permission to perform the operation!',
-                                        403)
+        return generate_error_response(
+            'No permission to perform the operation!',
+            403
+        )
 
     if request.method == 'GET':
         action = request.GET.get('action', 'download')
@@ -120,11 +138,13 @@ def manage_file(request, file_id):
         trace_storage_provider = request.GET.get('traceStorageProvider', 'false') == 'true'
         trace_metadata = request.GET.get('metadata', 'false') == 'true'
         if action == 'entity':
-            data = serialize_file_object(file,
-                                         trace_parents=trace_parents,
-                                         trace_children=trace_children,
-                                         trace_storage_provider=trace_storage_provider,
-                                         metadata=trace_metadata)
+            data = serialize_file_object(
+                file,
+                trace_parents=trace_parents,
+                trace_children=trace_children,
+                trace_storage_provider=trace_storage_provider,
+                metadata=trace_metadata
+            )
             return JsonResponse(data)
         if action == 'metadata':
             return read_file_metadata(file)
@@ -143,8 +163,6 @@ def manage_file(request, file_id):
         data = json.loads(request.body)
         if action == 'rename':
             return rename_file(file, data['name'])
-        if action == 'move':
-            return verify_and_move_file(file_id, data['destination'], data['strategy'])
         if action == 'new-folder':
             return create_new_folder(file, data['name'])
 
@@ -152,6 +170,89 @@ def manage_file(request, file_id):
     if request.method == 'DELETE':
         return delete_file(file)
     return generate_error_response('Method not allowed', 405)
+
+@login_required()
+@require_POST
+@catch_error
+def move_files(request):
+    """Handle file move action"""
+    req_obj = MoveFileRequest.parse_obj(json.loads(request.body))
+
+    # Verify destination exists
+    dest_file_obj = LocalFileObject.objects.filter(id=req_obj.destination).first()
+    if not dest_file_obj:
+        return generate_error_response('Destination folder doesn\'t exist!')
+
+    # Verify destination is folder
+    if dest_file_obj.obj_type != FileObjectType.FOLDER:
+        return generate_error_response('Destination must be a folder!')
+
+    if not has_permission(request, dest_file_obj):
+        return generate_error_response(
+            'No permission to perform the operation!',
+            403
+        )
+
+    # Good to go
+    files_to_move = (
+        LocalFileObject.objects
+        .filter(id__in=req_obj.files)
+        .all()
+    )
+
+    failures = []
+    for file in files_to_move:
+        try:
+            move_file(file, dest_file_obj, req_obj.strategy)
+        except: # pylint: disable=bare-except
+            failures.append(file.full_path)
+    if failures:
+        failures = '\n - '.join(failures)
+        return generate_error_response(f'Failed to move:\n{failures}', 500)
+
+    return JsonResponse({})
+
+@login_required()
+@require_POST
+@catch_error
+def zip_files(request):
+    """Handle zip file action"""
+    req_obj = ZipFileRequest.parse_obj(json.loads(request.body))
+
+    # Verify destination exists
+    dest_file_obj = LocalFileObject.objects.filter(id=req_obj.destination).first()
+    if not dest_file_obj:
+        return generate_error_response('Destination folder doesn\'t exist!')
+
+    # Verify destination is folder
+    if dest_file_obj.obj_type != FileObjectType.FOLDER:
+        return generate_error_response('Destination must be a folder!')
+
+    if not has_permission(request, dest_file_obj):
+        return generate_error_response(
+            'No permission to perform the operation!',
+            403
+        )
+
+    if not req_obj.filename:
+        return generate_error_response('Invalid name')
+
+    # Add .zip if not exists
+    if not req_obj.filename.lower().endswith('.zip'):
+        req_obj.filename = f'{req_obj.filename}.zip'
+
+    # If exists zip file with same name
+    zip_path = os.path.join(dest_file_obj.full_path, req_obj.filename)
+    if os.path.exists(zip_path):
+        return generate_error_response('Name is already used by another file.')
+
+    Job.objects.create(
+        task_type=Job.TaskTypes.ZIP,
+        description=f'Creating zip file {dest_file_obj.full_path}/{req_obj.filename}',
+        data=json.dumps(req_obj.dict()),
+    )
+
+    return JsonResponse({})
 
 @login_required()
 @require_GET
@@ -166,9 +267,57 @@ def request_download_file(request, file_id):
         return generate_error_response('No permission to access this resource.',
                                        403)
     if file.obj_type == FileObjectType.FOLDER:
-        return HttpResponse(None, status=404)
+        return HttpResponse(status=404)
 
     return serve_file(request, file)
+
+@login_required()
+@require_POST
+@catch_error
+def generate_quick_access_link(request, file_id):
+    """Generate quick access link"""
+    file = LocalFileObject.objects.filter(id=file_id).first()
+
+    if not file:
+        return generate_error_response('Object not found', 404)
+
+    if not has_permission(request, file):
+        return generate_error_response(
+            'No permission to create quick access link', 403
+        )
+    if file.obj_type == FileObjectType.FOLDER:
+        return HttpResponse(status=400)
+
+    alias = FileObjectAlias(
+        local_ref=file,
+        creator=request.user,
+        expire_time=timezone.now() + timedelta(minutes=10),
+    )
+    alias.save()
+    return JsonResponse(data=dict(key=alias.id))
+
+@require_GET
+@catch_error
+def request_quick_access_file(request):
+    """Serve quick access file"""
+    if 'key' not in request.GET:
+        return HttpResponse(404)
+
+    key = request.GET['key']
+    try:
+        UUID(key, version=4)
+    except ValueError:
+        return HttpResponse(404)
+
+    alias = FileObjectAlias.objects.filter(id=key).first()
+
+    if not alias:
+        return HttpResponse(404)
+    if timezone.now() >= alias.expire_time:
+        alias.delete()
+        return HttpResponse(404)
+
+    return serve_file(request, alias.local_ref)
 
 @login_required()
 @require_GET
@@ -220,32 +369,10 @@ def rename_file(file, new_name):
         if file.obj_type == FileObjectType.FOLDER:
             old_path += os.path.sep
             new_path = file.rel_path + os.path.sep
-            print(old_path)
-            print(new_path)
             LocalFileObject.objects.select_for_update(of=('self,')).filter(
                 storage_provider__pk=file.storage_provider.pk,
                 rel_path__startswith=old_path).update(
                     rel_path=Concat(Value(new_path), Substr('rel_path', len(old_path))))
-
-    return JsonResponse({})
-
-
-def verify_and_move_file(src_id, dest_id, strategy):
-    """Move file"""
-    # Verify folder exists
-    dest_file_obj = LocalFileObject.objects.filter(id=dest_id).first()
-    if not dest_file_obj:
-        return generate_error_response('Destination folder doesn\'t exist!', 400)
-
-    # Verify destination is folder
-    if dest_file_obj.obj_type != FileObjectType.FOLDER:
-        return generate_error_response('Destination must be a folder!', 400)
-
-    # Good to go
-    with transaction.atomic():
-        src = LocalFileObject.objects.select_for_update(of=('self',)).get(id=src_id)
-        dest = LocalFileObject.objects.select_for_update(of=('self',)).get(id=dest_id)
-        move_file(src, dest, strategy)
 
     return JsonResponse({})
 
@@ -279,12 +406,36 @@ def create_new_folder(file, folder_name):
             storage_provider=file.storage_provider,
             rel_path=os.path.join(file.rel_path, folder_name),
             last_modified=datetime.fromtimestamp(
-                        os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+                os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
             size=os.path.getsize(f_p),
         )
         f_o.save()
     return JsonResponse(serialize_file_object(f_o), status=201)
 
+def create_new_folder_safe(root_folder, rel_path: List[str]) -> LocalFileObject:
+    """Check and create folder on sanitized input"""
+    curr_fp = root_folder.full_path
+    for part in rel_path:
+        curr_fp = os.path.join(curr_fp, part)
+        if not os.path.exists(curr_fp):
+            os.mkdir(curr_fp)
+            root_folder = LocalFileObject(
+                name=part,
+                obj_type=FileObjectType.FOLDER,
+                parent=root_folder,
+                storage_provider=root_folder.storage_provider,
+                rel_path=os.path.join(root_folder.rel_path, part),
+                last_modified=datetime.fromtimestamp(
+                    os.path.getmtime(curr_fp), tz=timezone.get_current_timezone()),
+                size=os.path.getsize(curr_fp),
+            )
+            root_folder.save()
+        else:
+            root_folder = LocalFileObject.objects.get(
+                name=part,
+                parent=root_folder,
+            )
+    return root_folder
 
 def serve_file(request, file: LocalFileObject):
     """Serve file"""
@@ -295,49 +446,57 @@ def read_file_metadata(file):
     update_file_metadata(file)
     return JsonResponse(file.metadata)
 
-def create_files(file, request):
+def create_files(file, request): # pylint: disable=too-many-locals
     """Handles incoming file"""
     if file.obj_type != FileObjectType.FOLDER:
         return generate_error_response('Destination must be a folder!', 400)
 
-    form = 'files'
-    if not request.FILES[form]:
+    file_form = 'files'
+    if not request.FILES[file_form]:
         return generate_error_response('No file was uploaded.', 400)
+    path_form = 'paths'
 
     with transaction.atomic():
-        file = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
-        for temp_file in request.FILES.getlist(form):
-            f_n = temp_file.name
-            if os.path.exists(os.path.join(file.full_path, f_n)):
+        root_folder = LocalFileObject.objects.select_for_update(of=('self',)).get(id=file.id)
+        file_list = request.FILES.getlist(file_form)
+        path_list = request.POST.getlist(path_form)
+        for idx, ul_file in enumerate(file_list):
+            # Get file object & relative path
+            ul_file = file_list[idx]
+            rel_path_parts = path_list[idx].split('/')[:-1]
+
+            ul_file_parent = create_new_folder_safe(root_folder, rel_path_parts)
+            f_n = ul_file.name
+            if os.path.exists(os.path.join(ul_file_parent.full_path, f_n)):
                 counter = 1
                 while True:
                     temp = f_n.split('.')
                     temp[-1 if len(temp) == 1 else -2] += ' ({})'.format(str(counter))
                     temp_fn = '.'.join(temp)
-                    if not os.path.exists(os.path.join(file.full_path, temp_fn)):
+                    if not os.path.exists(os.path.join(ul_file_parent.full_path, temp_fn)):
                         f_n = temp_fn
                         break
                     counter += 1
-            f_p = os.path.join(file.full_path, f_n)
+            f_p = os.path.join(ul_file_parent.full_path, f_n)
 
-            if isinstance(temp_file, InMemoryUploadedFile):
+            if isinstance(ul_file, InMemoryUploadedFile):
                 with open(f_p, 'wb+') as f_h:
-                    for chunk in temp_file.chunks():
+                    for chunk in ul_file.chunks():
                         f_h.write(chunk)
-            elif isinstance(temp_file, TemporaryUploadedFile):
-                shutil.move(temp_file.temporary_file_path(), f_p)
+            elif isinstance(ul_file, TemporaryUploadedFile):
+                shutil.move(ul_file.temporary_file_path(), f_p)
                 os.chmod(f_p, 0o644)
             else:
-                raise Exception(f'{temp_file} unknown upload handler.')
+                raise Exception(f'{ul_file} unknown upload handler.')
 
             f_o = LocalFileObject(
                 name=f_n,
                 obj_type=FileObjectType.FILE,
-                parent=file,
-                storage_provider=file.storage_provider,
-                rel_path=os.path.join(file.rel_path, f_n),
+                parent=ul_file_parent,
+                storage_provider=ul_file_parent.storage_provider,
+                rel_path=os.path.join(ul_file_parent.rel_path, f_n),
                 last_modified=datetime.fromtimestamp(
-                            os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
+                    os.path.getmtime(f_p), tz=timezone.get_current_timezone()),
                 size=os.path.getsize(f_p),
             )
             f_o.save()

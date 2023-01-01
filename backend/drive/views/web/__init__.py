@@ -1,4 +1,5 @@
 from .auth import *
+from .job import *
 from .local_file_object import *
 from .playlist import *
 from .storage_provider import *

@@ -19,8 +19,8 @@
                 <mat-icon style="vertical-align: middle;">keyboard_arrow_right</mat-icon>
                 
                 <!-- Middle -->
-                <button mat-icon-button [matMenuTriggerFor]="menuParentTrace">
-                    <mat-icon>more_horiz</mat-icon>
+                <button mat-button [matMenuTriggerFor]="menuParentTrace" style="font-size: large">
+                    ...
                 </button>
                 <mat-menu #menuParentTrace="matMenu">
                     <ng-container *ngFor="let parent of folder.trace; index as idx">
@@ -45,6 +45,7 @@
     
         <div class="action-button-row" *ngIf="selection.selected.length > 0">
             <button mat-raised-button color="accent" *ngIf="selection.selected.length == 1" (click)="shareSelectedFile(null)"><mat-icon>share</mat-icon>Share</button>
+            <button mat-raised-button color="accent" (click)="zipSelectedFiles(null)"><mat-icon>compress</mat-icon>Compress</button>
             <button mat-raised-button color="accent" *ngIf="selection.selected.length == 1" (click)="renameSelectedFile(null)"><mat-icon>create</mat-icon>Rename</button>
             <button mat-raised-button color="accent" (click)="moveSelectedFiles(null)"><mat-icon>airport_shuttle</mat-icon>Move</button>
             <button mat-raised-button color="warn" (click)="deleteSelectedFiles(null)"><mat-icon>delete_forever</mat-icon>Delete</button>
@@ -115,9 +116,9 @@
     
     <mat-list>
         <mat-list-item *ngFor="let row of dataSource.data" class="table-row" (click)="loadFileObject(row)" #fileOpMenu (contextmenu)="onContextMenu($event, row)">
-            <mat-icon mat-list-icon>{{ getFileIcon(row) }}</mat-icon>
-            <div mat-line>{{ row.name }}</div>
-            <div mat-line>
+            <mat-icon matListItemIcon>{{ getFileIcon(row) }}</mat-icon>
+            <div matListItemTitle>{{ row.name }}</div>
+            <div matListItemLine>
                 <ng-container *ngIf="isFile(row)">
                     {{ row.size | filesize }}, 
                 </ng-container>
@@ -148,6 +149,7 @@
         <button mat-menu-item [disabled]="true">{{item.name}}</button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="shareSelectedFile(item)"><mat-icon>share</mat-icon>Share</button>
+        <button mat-menu-item (click)="zipSelectedFiles(item)"><mat-icon>compress</mat-icon>Zip</button>
         <button mat-menu-item (click)="renameSelectedFile(item)"><mat-icon>create</mat-icon>Rename</button>
         <button mat-menu-item (click)="moveSelectedFiles(item)"><mat-icon>airport_shuttle</mat-icon>Move</button>
         <button mat-menu-item (click)="deleteSelectedFiles(item)"><mat-icon style="color: red" >delete_forever</mat-icon>Delete</button>

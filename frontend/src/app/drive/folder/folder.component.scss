@@ -11,11 +11,15 @@
 
 .storage-provider-info {
     cursor: pointer;
-    padding: 5px 10px 5px 10px;
+    padding: 5px 5px 0px 5px;
 }
 
 .storage-provider-info:hover {
     transition-duration: 0.3s;
     background-color: darkgray;
     transition-timing-function: ease-in-out;
+}
+
+.job-info {
+    padding: 5px 5px 0px 5px;
 }

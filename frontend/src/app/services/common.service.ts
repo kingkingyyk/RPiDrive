@@ -16,7 +16,13 @@ export class CommonService {
   private static URL_MANAGE_STORAGE_PROVDER: string = 'storage-providers/<id>';
 
   private static URL_FILES: string = 'files/<id>';
-  private static URL_FILE_DOWNLOAD: string = '/drive/download/<id>'
+  private static URL_FILES_MOVE: string = 'files/move';
+  private static URL_FILES_ZIP: string = 'files/zip';
+  private static URL_FILE_DOWNLOAD: string = '/drive/download/<id>';
+  private static URL_FILES_QUICK_ACCESS: string = 'files/<id>/quick-access';
+  private static URL_QUICK_ACCESS: string = '/drive/quick-access';
+
+  private static URL_GET_JOBS: string = 'jobs';
 
   private static URL_GET_PLAYLISTS: string = 'playlists';
   private static URL_CREATE_PLAYLIST: string = 'playlists/create';
@@ -47,8 +53,24 @@ export class CommonService {
     return this.constructDriveAPIUrl(CommonService.URL_FILES.replace('<id>', id));
   }
 
+  private constructFileMoveUrl() {
+    return this.constructDriveAPIUrl(CommonService.URL_FILES_MOVE);
+  }
+
+  private constructFileZipUrl() {
+    return this.constructDriveAPIUrl(CommonService.URL_FILES_ZIP);
+  }
+
+  private constructGetQuickAccessUrl(id: string) {
+    return this.constructDriveAPIUrl(CommonService.URL_FILES_QUICK_ACCESS.replace('<id>', id));
+  }
+
   public getFileDownloadUrl(id: string) {
     return CommonService.URL_FILE_DOWNLOAD.replace('<id>', id);
+  }
+
+  public getFileQuickAccessUrl(key: string) {
+    return CommonService.URL_QUICK_ACCESS + '?key=' + key;
   }
 
   private constructUserUrl(id: number) {
@@ -154,6 +176,21 @@ export class CommonService {
     window.open(this.getFileDownloadUrl(id), '_blank');
   }
 
+  zipFiles(files: string[], destId: string, filename: string): Observable<any> {
+    const data = {
+      'files': files,
+      'destination': destId,
+      'filename': filename,
+    };
+    return this.http.post(
+      this.constructFileZipUrl(),
+      data,
+      {
+        withCredentials: true
+      }
+    );
+  }
+
   renameFile(id: string, name: string): Observable<any> {
     const reqParams = new HttpParams()
       .set('action', 'rename');
@@ -163,14 +200,32 @@ export class CommonService {
     return this.http.post(this.constructFileUrl(id), data, { params: reqParams, withCredentials: true });
   }
 
-  moveFile(id: string, destId: string, strategy: string): Observable<any> {
+  moveFile(files: string[], destId: string, strategy: string): Observable<any> {
     const reqParams = new HttpParams()
       .set('action', 'move');
     const data = {
+      'files': files,
       'destination': destId,
       'strategy': strategy
     };
-    return this.http.post(this.constructFileUrl(id), data, { params: reqParams, withCredentials: true });
+    return this.http.post(
+      this.constructFileMoveUrl(),
+      data,
+      {
+        params: reqParams,
+        withCredentials: true
+      }
+    );
+  }
+
+  generateQuickAccessKey(id: string): Observable<any> {
+    return this.http.post(
+      this.constructGetQuickAccessUrl(id),
+      null, 
+      {
+        withCredentials: true
+      }
+    );
   }
 
   createFolder(parentId: string, name: string): Observable<any> {
@@ -212,6 +267,11 @@ export class CommonService {
     const reqParams = new HttpParams()
       .set('keyword', kw);
     return this.http.get(this.constructFileUrl('search'), { params: reqParams, withCredentials: true });
+  }
+
+  // ================ JOB ===============
+  getJobs(): Observable<any> {
+    return this.http.get(this.constructDriveAPIUrl(CommonService.URL_GET_JOBS), { withCredentials: true });
   }
 
   // ================ PLAYLIST ===============

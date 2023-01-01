@@ -1,6 +1,9 @@
 import os
 import shutil
 import uuid
+
+from enum import Enum
+
 from django.db import models
 from django.db.models import Prefetch
 from django.contrib.auth.models import User
@@ -207,3 +210,50 @@ class StorageProviderUser(models.Model):
         (PERMISSION.READ, 'Read'),
         (PERMISSION.READ_WRITE, 'Read & Write'),
     ]
+
+class Job(models.Model):
+    """Job object"""
+
+    class TaskTypes(str, Enum):
+        """Task type enum"""
+        INDEX = 'index'
+        ZIP = 'zip'
+
+        @classmethod
+        def choices(cls):
+            """Return enum choices"""
+            return [(item.value, item.name) for item in cls]
+
+    task_type = models.CharField(
+        max_length=20,
+        choices=TaskTypes.choices(),
+    )
+    description = models.TextField()
+    data = models.TextField(null=True)
+    progress_info = models.TextField(
+        null=True,
+        default='In queue',
+    )
+    progress_value = models.IntegerField(default=0)
+
+class FileObjectAliasManager(models.Manager):
+    """LocalFileObject default query set"""
+    def get_queryset(self):
+        """Returns query set"""
+        return super().get_queryset().select_related(
+            'local_ref', 'creator')
+
+class FileObjectAlias(models.Model):
+    """File object alias"""
+    objects = FileObjectAliasManager()
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    local_ref = models.ForeignKey(
+        LocalFileObject,
+        on_delete=models.CASCADE,
+    )
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    expire_time = models.DateTimeField()
