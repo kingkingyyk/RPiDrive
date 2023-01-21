@@ -99,5 +99,5 @@ sast:
 "Package All Docker":
   extends: .package-docker
   variables:
-    ARCH: linux/arm/v7,linux/amd64
+    ARCH: linux/arm/v7,linux/arm64/v8,linux/amd64
   when: manual
