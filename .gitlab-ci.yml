@@ -3,6 +3,10 @@ stages:
   - build
   - package
 
+services:
+  - redis:7.0.7-alpine3.17
+  - postgres:15.1-bullseye
+
 include:
 - template: Security/SAST.gitlab-ci.yml
 
@@ -12,6 +16,14 @@ include:
   tags:
     - linux
     - docker
+  variables:
+    REDIS_PORT: 6379
+    REDIS_HOST: redis
+    REDIS_DB: 0
+    POSTGRES_DB: rpidrive
+    POSTGRES_USER: heh
+    POSTGRES_PASSWORD: anya;peanutz!1
+    POSTGRES_HOST_AUTH_METHOD: trust
   before_script:
     - apt update
     - apt install gcc libpq-dev g++ libffi-dev make -y
@@ -22,6 +34,8 @@ include:
   script:
     - cd backend
     - pylint drive
+    - python manage.py makemigrations drive
+    - python manage.py migrate
     - coverage run -m pytest --ds=rpidrive.settings --junitxml=test-reports/unit-test.xml
     - coverage report --show-missing --precision=2
     - coverage xml -o ./test-reports/unit-test-coverage.xml
