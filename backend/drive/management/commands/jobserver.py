@@ -14,7 +14,7 @@ from django.utils import timezone
 from drive.cache import ModelCache
 from drive.core.local_file_object import zip_files
 from drive.models import (
-    FileObjectType,
+    FileObjectTypeEnum,
     FileObjectAlias,
     Job,
     LocalFileObject,
@@ -28,14 +28,14 @@ class Command(BaseCommand):
 
     @staticmethod
     def sync_once(root_folder: LocalFileObject, period: int):
-        s_p = root_folder.storage_provider
-        flag = not s_p.last_indexed
+        strg_provider = root_folder.storage_provider
+        flag = not strg_provider.last_indexed
         if period:
             flag = flag or\
-                s_p.last_indexed + timedelta(minutes=period) <= timezone.now()
+                strg_provider.last_indexed + timedelta(minutes=period) <= timezone.now()
         if not flag:
             return
-        logging.info(f'Started indexing {s_p.name}...')
+        logging.info(f'Started indexing {strg_provider.name}...')
         try:
             LocalStorageProviderIndexer.sync(root_folder)
             ModelCache.clear(root_folder.storage_provider)
@@ -84,7 +84,7 @@ class Command(BaseCommand):
             # Create file object
             LocalFileObject(
                 name=request.filename,
-                obj_type=FileObjectType.FILE,
+                obj_type=FileObjectTypeEnum.FILE,
                 parent=destination_file,
                 storage_provider=destination_file.storage_provider,
                 rel_path=os.path.join(destination_file.rel_path, request.filename),

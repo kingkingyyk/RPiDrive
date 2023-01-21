@@ -4,8 +4,8 @@ from django.test import TestCase
 from drive.utils.indexer import LocalStorageProviderIndexer
 from drive.models import (
     StorageProvider,
-    StorageProviderType,
-    FileObjectType,
+    StorageProviderTypeEnum,
+    FileObjectTypeEnum,
     LocalFileObject,
 )
 
@@ -22,10 +22,17 @@ class TestLocalFileObject(TestCase):
 
         # Create DB objects
         s_p = StorageProvider(
-            name='test', type=StorageProviderType.LOCAL_PATH, path=TestLocalFileObject._TEST_PATH)
+            name='test',
+            type=StorageProviderTypeEnum.LOCAL_PATH,
+            path=TestLocalFileObject._TEST_PATH
+        )
         s_p.save()
         root = LocalFileObject.objects.create(
-            name='ROOT', obj_type=FileObjectType.FOLDER, rel_path='', storage_provider=s_p)
+            name='ROOT',
+            obj_type=FileObjectTypeEnum.FOLDER,
+            rel_path='',
+            storage_provider=s_p
+        )
         LocalStorageProviderIndexer.sync(root)
 
     def tearDown(self):

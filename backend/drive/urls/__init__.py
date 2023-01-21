@@ -10,8 +10,16 @@ def index(request, **kwargs):
 
 urlpatterns = [
     path(r'web-api/', include('drive.urls.web')),
-    path(r'download/<str:file_id>', request_download_file),
-    path(r'quick-access', request_quick_access_file),
+    path(
+        r'download/<str:file_id>',
+        request_download_file,
+        name='file.download'
+    ),
+    path(
+        r'quick-access',
+        request_quick_access_file,
+        name='file.req-quick-access'
+    ),
 
     re_path(r'^(?P<path>.*)/$', index),
     re_path(r'$', index),

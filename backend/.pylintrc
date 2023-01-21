@@ -10,6 +10,4 @@ disable=missing-module-docstring,
         imported-auth-user,
         too-few-public-methods,
         duplicate-code,
-        consider-using-f-string,
-        consider-using-with,
         unspecified-encoding

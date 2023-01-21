@@ -1,15 +1,17 @@
 import os
 import shutil
 from django.test import TestCase
-from drive.utils.indexer import LocalStorageProviderIndexer, InvalidStorageProviderTypeException
+from drive.utils.indexer import (
+    InvalidStorageProviderTypeException,
+    LocalStorageProviderIndexer,
+)
 from drive.models import (
     StorageProvider,
-    StorageProviderType,
-    FileObjectType,
+    StorageProviderTypeEnum,
+    FileObjectTypeEnum,
     LocalFileObject,
     FileExt
 )
-
 
 class TestLocalStorageProviderIndexer(TestCase):
     """Test indexer"""
@@ -38,12 +40,18 @@ class TestLocalStorageProviderIndexer(TestCase):
                 f_h.write(file)
 
         # Create DB objects
-        s_p = StorageProvider(name='test', type=StorageProviderType.LOCAL_PATH,
-                              path=TestLocalStorageProviderIndexer._TEST_PATH)
+        s_p = StorageProvider(
+            name='test',
+            type=StorageProviderTypeEnum.LOCAL_PATH,
+            path=TestLocalStorageProviderIndexer._TEST_PATH
+        )
         s_p.save()
 
         LocalFileObject.objects.create(
-            name='ROOT', obj_type=FileObjectType.FOLDER, rel_path='', storage_provider=s_p)
+            name='ROOT',
+            obj_type=FileObjectTypeEnum.FOLDER,
+            rel_path='', storage_provider=s_p
+        )
 
     def tearDown(self):
         shutil.rmtree(TestLocalStorageProviderIndexer._TEST_PATH)
@@ -158,14 +166,14 @@ class TestLocalStorageProviderIndexer(TestCase):
             if os.path.isdir(lfo.full_path):
                 self.assertIsNone(lfo.extension, 'Wrong folder.extension')
                 self.assertEqual(
-                    lfo.obj_type, FileObjectType.FOLDER, 'Wrong folder.obj_type')
+                    lfo.obj_type, FileObjectTypeEnum.FOLDER, 'Wrong folder.obj_type')
                 self.assertIsNone(lfo.type, 'Wrong folder.type')
             elif os.path.isfile(lfo.full_path):
                 self.assertIsNotNone(lfo.extension, 'Wrong file.extension #1')
                 self.assertTrue(lfo.name.endswith(
                     '.'+lfo.extension), 'Wrong file.extension #2')
                 self.assertEqual(
-                    lfo.obj_type, FileObjectType.FILE, 'Wrong file.obj_type')
+                    lfo.obj_type, FileObjectTypeEnum.FILE, 'Wrong file.obj_type')
                 self.assertEqual(lfo.type, FileExt.resolve_extension(
                     lfo.extension), 'Wrong file.type')
 

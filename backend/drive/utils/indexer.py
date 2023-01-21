@@ -15,10 +15,10 @@ from mobi import Mobi
 from PyPDF2 import PdfFileReader
 from drive.models import (
     FileExt,
-    FileObjectType,
+    FileObjectTypeEnum,
     LocalFileObject,
     StorageProvider,
-    StorageProviderType,
+    StorageProviderTypeEnum,
 )
 
 class InvalidStorageProviderTypeException(Exception):
@@ -44,16 +44,18 @@ class LocalStorageProviderIndexer:
         }
 
     @staticmethod
-    def _sync_attrs(f_o: LocalFileObject):
-        attr_values = LocalStorageProviderIndexer._get_attr_values(
-            f_o.full_path)
+    def _sync_attrs(file_obj: LocalFileObject):
+        attr_values = (
+            LocalStorageProviderIndexer
+            ._get_attr_values(file_obj.full_path)
+        )
         attr_update = []
         for attr in LocalStorageProviderIndexer._ATTRS_UPDATE:
-            if attr_values[attr] != getattr(f_o, attr):
-                setattr(f_o, attr, attr_values[attr])
+            if attr_values[attr] != getattr(file_obj, attr):
+                setattr(file_obj, attr, attr_values[attr])
                 attr_update.append(attr)
         if attr_update:
-            f_o.save(update_fields=attr_update)
+            file_obj.save(update_fields=attr_update)
 
     @staticmethod
     def sync(root: LocalFileObject):
@@ -65,7 +67,7 @@ class LocalStorageProviderIndexer:
             storage_provider.indexing = True
             storage_provider.save(update_fields=['indexing'])
 
-        if storage_provider.type != StorageProviderType.LOCAL_PATH:
+        if storage_provider.type != StorageProviderTypeEnum.LOCAL_PATH:
             raise InvalidStorageProviderTypeException()
         try:
             fs_tree = LocalStorageProviderIndexer._construct_fs_tree(
@@ -84,15 +86,16 @@ class LocalStorageProviderIndexer:
     def _construct_fs_tree(storage_provider: StorageProvider):
         root = LocalStorageProviderIndexer.FSFileObj(
             'ROOT', storage_provider.path)
-        stk = [root]
-        while stk:
-            curr_parent = stk.pop()
-            for f_n in os.listdir(curr_parent.path):
-                f_p = os.path.join(curr_parent.path, f_n)
-                fobj = LocalStorageProviderIndexer.FSFileObj(f_n, f_p)
+        stack = [root]
+        while stack:
+            curr_parent = stack.pop()
+            for filename in os.listdir(curr_parent.path):
+                file_path = os.path.join(curr_parent.path, filename)
+                fobj = LocalStorageProviderIndexer.FSFileObj(
+                    filename, file_path)
                 curr_parent.children.append(fobj)
-                if os.path.isdir(f_p):
-                    stk.append(fobj)
+                if os.path.isdir(file_path):
+                    stack.append(fobj)
         return root
 
     @staticmethod
@@ -100,14 +103,14 @@ class LocalStorageProviderIndexer:
         return root
 
     @staticmethod
-    def _sync_trees(fs_root, db_root): # pylint: disable=too-many-locals
+    def _sync_trees(fs_root: str, db_root: LocalFileObject): # pylint: disable=too-many-locals
         fs_stk = [fs_root]
         db_stk = [db_root]
 
-        for f_o in LocalFileObject.objects.filter(
+        for file_obj in LocalFileObject.objects.filter(
             storage_provider=db_root.storage_provider).all():
-            if not os.path.exists(f_o.full_path):
-                f_o.delete()
+            if not os.path.exists(file_obj.full_path):
+                file_obj.delete()
 
         while fs_stk:
             f_s = fs_stk.pop()
@@ -127,8 +130,8 @@ class LocalStorageProviderIndexer:
                     logging.debug('Indexing path %s', f_p)
                     db_obj = LocalFileObject.objects.create(
                         name=file,
-                        obj_type=FileObjectType.FOLDER if os.path.isdir(
-                            f_p) else FileObjectType.FILE,
+                        obj_type=FileObjectTypeEnum.FOLDER if os.path.isdir(
+                            f_p) else FileObjectTypeEnum.FILE,
                         parent=d_b,
                         storage_provider=d_b.storage_provider,
                         rel_path=f_p[len(fs_root.path)+1:],
@@ -141,7 +144,7 @@ class LocalStorageProviderIndexer:
                     if not db_obj:
                         db_obj = LocalFileObject.objects.get(
                             name=file,
-                            obj_type=FileObjectType.FOLDER,
+                            obj_type=FileObjectTypeEnum.FOLDER,
                             parent=d_b
                         )
                     fs_stk.append(next(x for x in f_s.children if x.name == file))

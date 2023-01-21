@@ -3,26 +3,37 @@ import shutil
 import uuid
 
 from enum import Enum
+from typing import List, Tuple
 
 from django.db import models
 from django.db.models import Prefetch
 from django.contrib.auth.models import User
 
-
-class StorageProviderType:
-    """StorageProviderType definitions"""
-    LOCAL_PATH_NAME = 'Local Storage'
+class StorageProviderTypeEnum(str, Enum):
+    """StorageProvider.Type enum"""
     LOCAL_PATH = 'LOCAL_PATH'
 
-    VALUES = [LOCAL_PATH]
-    TYPES = [(LOCAL_PATH_NAME, LOCAL_PATH)]
+    @classmethod
+    def choices(cls) -> List[Tuple[str, str]]:
+        """Return enum choices"""
+        return [(item.value, item.name) for item in cls]
 
+    @classmethod
+    def pairs(cls) -> List[Tuple[str, str]]:
+        """Return name-value pairs"""
+        return [
+            ('Local Storage', cls.LOCAL_PATH),
+        ]
 
-class FileObjectType:
+class FileObjectTypeEnum(str, Enum):
     """FileObjectType definitions"""
     FOLDER = 'FOLDER'
     FILE = 'FILE'
 
+    @classmethod
+    def choices(cls) -> List[Tuple[str, str]]:
+        """Return enum choices"""
+        return [(item.value, item.name) for item in cls]
 
 class FileExt:
     """FileExt definitions"""
@@ -119,11 +130,14 @@ class LocalFileObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.TextField(db_index=True)
     obj_type = models.CharField(max_length=10)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE,
-                               null=True, blank=True,
-                               related_name='children')
-    storage_provider = models.ForeignKey(StorageProvider,
-                                         on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+        'self', on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='children'
+    )
+    storage_provider = models.ForeignKey(
+        StorageProvider, on_delete=models.CASCADE
+    )
     rel_path = models.TextField(null=True, blank=True)
     extension = models.TextField(null=True, blank=True)
     type = models.TextField(null=True, blank=True)
@@ -133,15 +147,15 @@ class LocalFileObject(models.Model):
     metadata = models.JSONField(null=True, default=None)
 
     def _update_extension(self):
-        if self.obj_type == FileObjectType.FOLDER:
+        if self.obj_type == FileObjectTypeEnum.FOLDER:
             self.extension = None
-        elif self.obj_type == FileObjectType.FILE:
+        elif self.obj_type == FileObjectTypeEnum.FILE:
             self.extension = self.name.lower().split('.')[-1]
 
     def _update_type(self):
-        if self.obj_type == FileObjectType.FOLDER:
+        if self.obj_type == FileObjectTypeEnum.FOLDER:
             self.type = None
-        elif self.obj_type == FileObjectType.FILE:
+        elif self.obj_type == FileObjectTypeEnum.FILE:
             self.type = FileExt.resolve_extension(self.extension)
 
     def update_name(self, new_name: str):
@@ -202,9 +216,11 @@ class StorageProviderUser(models.Model):
         READ_WRITE = 20
         ADMIN = 30
 
-    PERMISSIONS  = (PERMISSION.NONE,
-                    PERMISSION.READ,
-                    PERMISSION.READ_WRITE, )
+    PERMISSIONS  = (
+        PERMISSION.NONE,
+        PERMISSION.READ,
+        PERMISSION.READ_WRITE,
+    )
     PERMISSION_CHOICES = [
         (PERMISSION.NONE, 'None'),
         (PERMISSION.READ, 'Read'),

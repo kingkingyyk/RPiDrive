@@ -3,6 +3,17 @@ from django.db.models import Model
 
 class ModelCache:
     """Class for handling Model object cache"""
+    _ALWAYS_INVALIDATE = False
+
+    @classmethod
+    def enable(cls):
+        """Enable cache"""
+        cls._ALWAYS_INVALIDATE = False
+
+    @classmethod
+    def disable(cls):
+        """Disable cache"""
+        cls._ALWAYS_INVALIDATE = True
 
     @classmethod
     def _construct_key(cls, obj: Model) -> str:
@@ -17,6 +28,8 @@ class ModelCache:
     @classmethod
     def exists(cls, obj: Model) -> bool:
         """Exists object"""
+        if cls._ALWAYS_INVALIDATE:
+            return False
         return cache.has_key(cls._construct_key(obj))
 
     @classmethod
@@ -28,3 +41,8 @@ class ModelCache:
     def get(cls, obj: Model):
         """Get data by object"""
         return cache.get(cls._construct_key(obj))
+
+    @classmethod
+    def flush(cls):
+        """Flush entire db"""
+        cache.clear()
