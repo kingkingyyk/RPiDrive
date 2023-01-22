@@ -51,7 +51,7 @@ def initialize_system(request):
         print(f'Initialization Key : {system.init_key}')
 
     if request.method == 'GET':
-        if system.initialized:
+        if not system.initialized:
             return JsonResponse({}, status=http.HTTPStatus.OK)
         return generate_error_response(
             '', status=http.HTTPStatus.UNAUTHORIZED

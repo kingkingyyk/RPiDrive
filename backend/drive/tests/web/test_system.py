@@ -90,8 +90,8 @@ class TestSystem(TestCase):
 
         # First init
         response = self.client.get(self.initialize_system_url)
-        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, response.status_code)
-        self.assertEqual(dict(error=''), response.json())
+        self.assertEqual(http.HTTPStatus.OK, response.status_code)
+        self.assertEqual({}, response.json())
         self.assertEqual(1, System.objects.count())
         system = System.objects.first()
 
@@ -194,8 +194,8 @@ class TestSystem(TestCase):
 
         # Get init status
         response = self.client.get(self.initialize_system_url)
-        self.assertEqual(http.HTTPStatus.OK, response.status_code)
-        self.assertEqual({}, response.json())
+        self.assertEqual(http.HTTPStatus.UNAUTHORIZED, response.status_code)
+        self.assertEqual(dict(error=''), response.json())
 
     def test_get_network_info_url(self):
         """Test network info url"""
