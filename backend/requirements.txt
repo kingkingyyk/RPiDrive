@@ -1,7 +1,7 @@
 django==4.1.4
 humanize==4.4.0
 tinytag==1.8.1
-exif==1.5.0
+exifread==3.0.0
 pypdf2==3.0.0
 epub_meta==0.0.7
 mobi-python==0.0.1

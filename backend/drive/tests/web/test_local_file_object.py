@@ -2134,7 +2134,7 @@ class TestLocalFileObject(TestCase): # pylint: disable=too-many-public-methods
             dict(action='metadata')
         )
         self.assertEqual(http.HTTPStatus.OK, response.status_code)
-        self.assertEqual({}, response.json())
+        self.assertEqual(49, len(response.json()))
 
         # Test get music metadata
         response = self.client.get(

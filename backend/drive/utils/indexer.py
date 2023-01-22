@@ -7,10 +7,10 @@ from datetime import datetime
 from typing import Dict
 
 import epub_meta
+import exifread
 
 from django.utils import timezone
 from tinytag import TinyTag
-from exif import Image
 from mobi import Mobi
 from PyPDF2 import PdfFileReader
 from drive.models import (
@@ -168,9 +168,8 @@ class Metadata:
         elif file.type == FileExt.TYPE_PICTURE:
             try:
                 with open(file.full_path, 'rb') as f_h:
-                    img = Image(f_h)
-                if img.has_exif:
-                    data = {key: img[key] for key in dir(img)}
+                    img = exifread.process_file(f_h, details=False)
+                data = {key: str(tag_obj.values) for key, tag_obj in img.items()}
             except:
                 print(traceback.format_exc())
         elif file.type == FileExt.TYPE_BOOK:
