@@ -6,7 +6,7 @@ pypdf2==3.0.0
 epub_meta==0.0.7
 mobi-python==0.0.1
 pytz==2022.7
-redis==4.4.0
+redis==4.5.3
 PyYAML==6.0
 psycopg2-binary==2.9.5
 psycogreen==1.0.2
