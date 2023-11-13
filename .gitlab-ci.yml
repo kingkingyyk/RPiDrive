@@ -3,19 +3,50 @@ stages:
   - build
   - package
 
-services:
-  - redis:7.0.7-alpine3.17
-  - postgres:15.1-bullseye
-
 include:
-- template: Security/SAST.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
 
-"Test Backend":
-  image: python:3.11-slim-bullseye
-  stage: test
+default:
   tags:
     - linux
     - docker
+
+.base-py:
+  image: python:3.12-slim-bullseye
+  before_script:
+    - apt update
+    - apt install gcc libpq-dev g++ libffi-dev make -y
+    - pip install -r backend/requirements-dev.txt
+    - pip install -r backend/requirements-ci.txt
+
+.base-node:
+  image: node:20.9-alpine3.18
+
+lint-backend:
+  extends: .base-py
+  stage: test
+  script:
+    - cd backend
+    - cp ../.ci/config-test.yaml config.yaml
+    - black . --check
+    - python -m pylint
+      --rcfile .pylintrc
+      backend
+      rpidrive
+
+sast-backend:
+  extends: .base-py
+  stage: test
+  script:
+    - cd backend
+    - bandit -l -r -v .
+
+test-backend:
+  extends: .base-py
+  stage: test
+  services:
+    - redis:7.2.1-alpine
+    - postgres:16.0
   variables:
     REDIS_PORT: 6379
     REDIS_HOST: redis
@@ -24,23 +55,16 @@ include:
     POSTGRES_USER: heh
     POSTGRES_PASSWORD: anya;peanutz!1
     POSTGRES_HOST_AUTH_METHOD: trust
-  before_script:
-    - apt update
-    - apt install gcc libpq-dev g++ libffi-dev make -y
-    - pip install -r backend/requirements.txt
-    - pip install -r backend/requirements-test.txt
-    - pip install -r backend/requirements-ci.txt
-    - cp backend/config-test.yaml backend/config.yaml
   script:
     - cd backend
-    - pylint drive
-    - python manage.py makemigrations drive
+    - cp ../.ci/config-test.yaml config.yaml
+    - python manage.py makemigrations rpidrive
     - python manage.py migrate
-    - coverage run -m pytest --ds=rpidrive.settings --junitxml=test-reports/unit-test.xml
+    - coverage run -m pytest --ds=backend.settings --junitxml=test-reports/unit-test.xml
     - coverage report --show-missing --precision=2
     - coverage xml -o ./test-reports/unit-test-coverage.xml
     - coverage xml
-    - anybadge --value=$(python ../ci-snippets/print-junit-pass-rate.py test-reports/unit-test.xml) --label='unit test' --file='unit-test-badge.svg' coverage
+    - anybadge --value=$(python ../.ci/print-junit-pass-rate.py test-reports/unit-test.xml) --label='unit test' --file='unit-test-badge.svg' coverage
   artifacts:
     reports:
       coverage_report:
@@ -51,24 +75,32 @@ include:
       - backend/unit-test-badge.svg
   coverage: '/^TOTAL.+?(\d+.\d+\%)$/'
 
+test-frontend:
+  extends: .base-node
+  stage: test
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint
+
 sast:
   stage: test
-  tags:
-    - linux
-    - docker
 
-"Build":
-  image: node:18.12-alpine3.16
+build-frontend:
+  extends: .base-node
   stage: build
-  tags:
-    - linux
-    - docker
   script:
-    - cd ci-snippets
-    - sh build.sh
+    - cd frontend
+    - npm install react-scripts
+    - npm run build
+    - cd ..
+    - mv frontend/build/static/* backend/static/
+    - mv frontend/build/index.html backend/rpidrive/templates/
+    - mv frontend/build/favicon.ico backend/static/
   artifacts:
     paths:
-      - build.tar.gz
+      - backend/
+    expire_in: 1 hour
 
 .package-docker:
   image: jdrouet/docker-with-buildx:stable
@@ -79,7 +111,7 @@ sast:
   services:
     - docker:dind
   dependencies:
-    - "Build"
+    - build-frontend
   variables:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
@@ -91,12 +123,12 @@ sast:
     - docker buildx create --use
     - docker buildx build --platform $ARCH -t $CI_IMAGE_TAG -f dockerfile --push .
 
-"Package x86 Docker":
+package-amd64-docker:
   extends: .package-docker
   variables:
     ARCH: linux/amd64
 
-"Package All Docker":
+package-multiarch-docker:
   extends: .package-docker
   variables:
     ARCH: linux/arm/v7,linux/arm64/v8,linux/amd64

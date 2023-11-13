@@ -1,0 +1,7 @@
+-r requirements.txt
+coverage
+pytest-django
+pylint==3.0.2
+pylint-django
+black
+bandit
