@@ -1,10 +1,8 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.12-slim-bullseye
 
-ADD build.tar.gz /
+ADD backend /app
 
 WORKDIR /app
-
-ENV MODE=web
 
 RUN chmod +x start.sh &&\
     apt update &&\
@@ -12,7 +10,11 @@ RUN chmod +x start.sh &&\
     pip install --no-cache-dir -r requirements.txt &&\
     rm -rf /var/lib/apt/lists/*
 
+ENV MODE=web \
+    RPIDRIVE_DATA_DIR=/app/.config \
+    RPIDRIVE_LOG_DIR=/app/logs \
+    DJANGO_SETTINGS_MODULE=backend.settings.prod
+
 EXPOSE 8000
 
-ENTRYPOINT ["/bin/bash"]
-CMD ["/app/start.sh"]
+CMD ["bash", "start.sh"]
