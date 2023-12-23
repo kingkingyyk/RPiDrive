@@ -18,6 +18,7 @@ from rpidrive.controllers.activity import (
 )
 from rpidrive.controllers.exceptions import (
     NoPermissionException,
+    ObjectNotFoundException,
 )
 from rpidrive.models import (
     File,
@@ -29,7 +30,7 @@ from rpidrive.models import (
 )
 
 
-class VolumeNotFoundException(Exception):
+class VolumeNotFoundException(ObjectNotFoundException):
     """Volume not found exception"""
 
 
@@ -76,7 +77,7 @@ def request_volume(user: User, volume_id: str, min_level: int, write: bool) -> V
     if level == VolumePermissionEnum.NONE:
         raise VolumeNotFoundException("Volume not found.")
     if level < min_level:
-        raise NoPermissionException("No permission")
+        raise NoPermissionException("No permission.")
     return volume
 
 
@@ -89,7 +90,8 @@ def create_volume(
     """Create volume"""
     if not user.is_superuser:
         raise NoPermissionException("No permission.")
-    name = name.strip()
+    if name:
+        name = name.strip()
     if not name:
         raise InvalidVolumeNameException("Invalid volume name.")
     path = os.path.abspath(path.strip())
@@ -125,11 +127,12 @@ def get_volumes(user: User) -> QuerySet:
 def update_volume(user: User, p_k: str, name: str, path: str):
     """Update volume"""
     with transaction.atomic():
-        volume = request_volume(user, p_k, VolumePermissionEnum.READ_WRITE, True)
+        volume = request_volume(user, p_k, VolumePermissionEnum.ADMIN, True)
 
-        name = name.strip()
+        if name:
+            name = name.strip()
         if not name:
-            raise InvalidVolumeNameException()
+            raise InvalidVolumeNameException("Invalid volume name.")
         path = os.path.abspath(path.strip())
         validate_volume_path(path, [p_k])
 
@@ -174,7 +177,7 @@ def delete_volume(user: User, p_k: str):
 
 
 def validate_volume_path(check_path: str, filt: List[str]):
-    """Except volume path"""
+    """Check volume path"""
     check_path = os.path.abspath(check_path)
     while check_path.endswith(os.path.sep):
         check_path = check_path[:-1]

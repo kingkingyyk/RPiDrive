@@ -8,3 +8,7 @@ class InvalidFileNameException(Exception):
 
 class InvalidOperationRequestException(Exception):
     """Invalid operation request exception"""
+
+
+class ObjectNotFoundException(Exception):
+    """Object not found exception"""

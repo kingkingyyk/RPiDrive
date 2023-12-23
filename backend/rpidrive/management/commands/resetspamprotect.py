@@ -1,7 +1,6 @@
 import logging
 
 from django.core.management.base import BaseCommand
-from django.core.cache import cache
 from rpidrive.views.decorators.mixins import BruteForceProtectMixin
 
 
@@ -13,5 +12,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """Handle command"""
-        cache.delete_pattern(BruteForceProtectMixin.construct_key("*"))
+        BruteForceProtectMixin.reset()
         self.logger.info("Done.")

@@ -131,7 +131,6 @@ def perform_index(volume: Volume):
         deleted_files,
     )
 
-    File.objects.bulk_create(new_files, batch_size=settings.BULK_BATCH_SIZE)
     File.objects.bulk_update(
         changed_files,
         fields=["last_modified", "size", "media_type", "metadata"],
@@ -154,7 +153,7 @@ def create_entry(volume: Volume, parent: File, file_path: str) -> File:
     filename = os.path.basename(file_path)
     file_stat = os.stat(file_path)
 
-    return File(
+    return File.objects.create(
         name=filename,
         kind=_get_kind(file_path),
         parent=parent,
@@ -250,15 +249,17 @@ def get_file_parents(file: File) -> List[File]:
     paths = file.path_from_vol.split(os.path.sep)
     possible_paths = [os.path.sep.join(paths[:i]) for i in range(1, len(paths) + 1)]
     possible_paths[0] = "/"
-    return (
-        File.objects.filter(volume=file.volume, path_from_vol__in=possible_paths)
+    return list(
+        File.objects.filter(volume_id=file.volume_id, path_from_vol__in=possible_paths)
         .order_by("path_from_vol")
         .all()
-    )
+    )[:-1]
 
 
 def delete_file(file: File):
     """Delete files"""
+    if file.parent_id is None:
+        raise InvalidOperationRequestException("Can't delete root file.")
     full_path = get_full_path(file)
     with transaction.atomic():
         if os.path.isfile(full_path):
@@ -270,6 +271,8 @@ def delete_file(file: File):
 
 def rename_file(file: File, new_name: str):
     """Rename file"""
+    if new_name:
+        new_name = new_name.strip()
     if not new_name:
         raise InvalidFileNameException("File name can't be empty.")
     siblings = set(
@@ -284,20 +287,44 @@ def rename_file(file: File, new_name: str):
     new_path = os.path.abspath(os.path.join(get_full_path(file.parent), new_name))
     if parent_paths != new_path.split(os.path.sep)[:-1]:
         raise InvalidFileNameException("Invalid character in file name.")
+    src_path_vol = file.path_from_vol
 
     shutil.move(get_full_path(file), new_path)
     file.name = new_name
     file.path_from_vol = os.path.join(file.parent.path_from_vol, new_name)
     file.save(update_fields=["name", "path_from_vol"])
 
+    if os.path.isdir(new_path):
+        children = list(
+            File.objects.filter(
+                volume=file.volume,
+                path_from_vol__startswith=f"{src_path_vol}{os.path.sep}",
+            )
+            .select_for_update(of=("self",))
+            .all()
+        )
+        for child in children:
+            child.path_from_vol = (
+                file.path_from_vol + child.path_from_vol[len(src_path_vol) :]
+            )
+        File.objects.bulk_update(
+            children, fields=["path_from_vol"], batch_size=settings.BULK_BATCH_SIZE
+        )
 
-def compress_files(file_pks: List[str], parent: File, zip_name: str):
+
+def compress_files(file_pks: List[str], parent: File, zip_name: str) -> Job:
     """Compress files"""
-    parent_fp = get_full_path(parent)
-    zip_fp = os.path.abspath(os.path.join(parent_fp, zip_name))
-    if not zip_fp.startswith(parent_fp + os.path.sep):
+    if zip_name:
+        zip_name = zip_name.strip()
+    if not zip_name:
         raise InvalidFileNameException("Invalid file name.")
-    create_compress_job(file_pks, parent, zip_name)
+
+    parent_fp = get_full_path(parent)
+    zip_fp = os.path.join(parent_fp, zip_name)
+    if os.path.dirname(zip_fp) != parent_fp:
+        raise InvalidFileNameException("Invalid file name.")
+
+    return create_compress_job(file_pks, parent, zip_name)
 
 
 def _move_file(source: File, dest: File, is_rename: bool):
@@ -381,12 +408,15 @@ def _move_file(source: File, dest: File, is_rename: bool):
 
 def move_files(file_pks: List[str], parent: File, is_rename: bool):
     """Move files"""
+    if parent.kind != FileKindEnum.FOLDER:
+        raise InvalidOperationRequestException("Destination must be a folder.")
+
     files = File.objects.filter(pk__in=file_pks).select_for_update(of=("self",)).all()
     parent_fp = get_full_path(parent)
     for file in files:
         f_p = get_full_path(file)
         if parent_fp.startswith(f_p):
-            raise InvalidOperationRequestException("Invalid parent path")
+            raise InvalidOperationRequestException("Invalid parent path.")
 
     for file in files:
         with transaction.atomic():
@@ -395,16 +425,21 @@ def move_files(file_pks: List[str], parent: File, is_rename: bool):
 
 def create_folder(parent: File, name: str, exists_ok=False) -> File:
     """Create folder"""
+    if name:
+        name = name.strip()
     if not name:
-        raise InvalidFileNameException("File name can't be empty.")
+        raise InvalidFileNameException("Folder name can't be empty.")
     dup_entry = File.objects.filter(Q(parent=parent) & Q(name=name)).first()
     if dup_entry:
         if exists_ok:
             return dup_entry
-        raise InvalidFileNameException("File name is already in use.")
+        raise InvalidFileNameException("Folder name is already in use.")
 
-    folder_path = os.path.join(get_full_path(parent), name)
-    os.mkdir(folder_path)
+    parent_paths = get_full_path(parent).split(os.path.sep)
+    folder_path = os.path.abspath(os.path.join(get_full_path(parent), name))
+    if parent_paths != folder_path.split(os.path.sep)[:-1]:
+        raise InvalidFileNameException("Invalid character in folder name.")
+    os.makedirs(folder_path, exist_ok=True)
     file_stat = os.stat(folder_path)
     folder = File.objects.create(
         name=name,
@@ -512,7 +547,7 @@ def _do_compress_files(files: List[File]) -> Tuple[str, int]:
     yield zip_path, 100
 
 
-def process_compress_job(job: Job) -> Tuple[str, int]:
+def process_compress_job(job: Job) -> File:
     """Process compress job"""
     data = CompressDataModel.model_validate(job.data)
     job.status = JobStatus.RUNNING
@@ -538,7 +573,7 @@ def process_compress_job(job: Job) -> Tuple[str, int]:
                 os.remove(final_path)
 
         shutil.move(temp_zip, final_path)
-        File.objects.create(
+        output_file = File.objects.create(
             name=data.name,
             kind=FileKindEnum.FILE,
             parent=parent_file,
@@ -555,6 +590,7 @@ def process_compress_job(job: Job) -> Tuple[str, int]:
 
     job.status = JobStatus.COMPLETED
     job.save(update_fields=["status"])
+    return output_file
 
 
 def create_files(parent: File, files: List):
@@ -578,5 +614,4 @@ def create_files(parent: File, files: List):
         else:
             raise InvalidOperationRequestException("Unknown upload handler.")
 
-        file_obj = create_entry(parent.volume, curr_parent, dest_fp)
-        file_obj.save()
+        create_entry(parent.volume, curr_parent, dest_fp)

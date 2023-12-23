@@ -12,10 +12,10 @@ default:
     - docker
 
 .base-py:
-  image: python:3.12-slim-bullseye
+  image: python:3.12-slim-bookworm
   before_script:
     - apt update
-    - apt install gcc libpq-dev g++ libffi-dev make -y
+    - apt install gcc libpq-dev g++ libffi-dev make mime-support -y
     - pip install -r backend/requirements-dev.txt
     - pip install -r backend/requirements-ci.txt
 

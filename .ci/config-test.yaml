@@ -15,7 +15,7 @@ redis:
   port: 6379
   db: 0
 security:
-  block-spam: false
+  block-spam: true
   block-trigger: 5
   block-duration: 600
   domain:

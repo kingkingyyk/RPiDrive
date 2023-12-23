@@ -19,8 +19,8 @@ class _RequestModel(BaseModel):
     username: str
     email: EmailStr
     password: str
-    first_name: Optional[str]
-    last_name: Optional[str]
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = ""
     is_superuser: bool
     is_active: bool
 
