@@ -3,9 +3,12 @@ from django.test import TestCase
 
 from rpidrive.controllers.exceptions import NoPermissionException
 from rpidrive.controllers.user import (
+    InvalidUsernameException,
+    InvalidPasswordException,
     UserNotFoundException,
     create_user,
     delete_user,
+    get_user,
     get_users,
     update_user,
 )
@@ -68,6 +71,30 @@ class TestUserController(TestCase):
             False,
         )
 
+    def test_create_user_4(self):
+        """Test create_user (Invalid username)"""
+        self.assertRaises(
+            InvalidUsernameException,
+            create_user,
+            self.admin_user,
+            "",
+            "o@xd.com",
+            "hehe",
+            False,
+        )
+
+    def test_create_user_5(self):
+        """Test create_user (Invalid password)"""
+        self.assertRaises(
+            InvalidPasswordException,
+            create_user,
+            self.admin_user,
+            "lelele",
+            "o@xd.com",
+            "",
+            False,
+        )
+
     def test_get_users_1(self):
         """Test get_users (Admin)"""
         self.assertEqual(get_users(self.admin_user).count(), 3)
@@ -75,6 +102,33 @@ class TestUserController(TestCase):
     def test_get_users_2(self):
         """Test get_users (Normal)"""
         self.assertEqual(get_users(self.normal_user).count(), 3)
+
+    def test_get_user_1(self):
+        """Test get_user (self)"""
+        self.assertEqual(self.admin_user, get_user(self.admin_user, self.admin_user.pk))
+        self.assertEqual(
+            self.normal_user, get_user(self.normal_user, self.normal_user.pk)
+        )
+
+    def test_get_user_2(self):
+        """Test get_user (Admin)"""
+        self.assertEqual(self.admin_user, get_user(self.admin_user, self.admin_user.pk))
+        self.assertEqual(
+            self.normal_user, get_user(self.admin_user, self.normal_user.pk)
+        )
+
+    def test_get_user_3(self):
+        """Test get_user (Normal)"""
+        with self.assertRaises(NoPermissionException):
+            get_user(self.normal_user, self.admin_user.pk)
+
+        with self.assertRaises(NoPermissionException):
+            get_user(self.normal_user, self.admin_user.pk + 1000)
+
+    def test_get_user_4(self):
+        """Test get_user (Invalid id)"""
+        with self.assertRaises(UserNotFoundException):
+            get_user(self.admin_user, self.admin_user.pk + 1000)
 
     def test_update_user_1(self):
         """Test update_user (Admin update admin)"""
@@ -117,15 +171,16 @@ class TestUserController(TestCase):
             self.normal_user.pk,
             "ex123@example.com",
             "XDXD444;",
-            True,
-            is_active=False,
+            False,
+            is_active=True,
             first_name="sien",
             last_name="pika",
         )
         self.normal_user.refresh_from_db()
         self.assertEqual(self.normal_user.email, "ex123@example.com")
         self.assertTrue(self.normal_user.check_password("XDXD444;"))
-        self.assertFalse(self.normal_user.is_active)
+        self.assertFalse(self.normal_user.is_superuser)
+        self.assertTrue(self.normal_user.is_active)
         self.assertEqual(self.normal_user.first_name, "sien")
         self.assertEqual(self.normal_user.last_name, "pika")
 

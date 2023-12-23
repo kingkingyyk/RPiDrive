@@ -4,6 +4,7 @@ from django.views import View
 
 from rpidrive.controllers.exceptions import NoPermissionException
 from rpidrive.controllers.file import (
+    InvalidOperationRequestException,
     FileNotFoundException,
     share_file,
 )
@@ -15,6 +16,7 @@ class FileShareView(LoginRequiredMixin, View):
 
     @handle_exceptions(
         known_exc={
+            InvalidOperationRequestException,
             FileNotFoundException,
             NoPermissionException,
         }

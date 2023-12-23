@@ -4,11 +4,18 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Q, QuerySet
+
+from rpidrive.controllers.exceptions import ObjectNotFoundException
+from rpidrive.controllers.file import get_file
 from rpidrive.models import Playlist, PlaylistFile
 
 
-class PlaylistNotFoundException(Exception):
+class PlaylistNotFoundException(ObjectNotFoundException):
     """Playlist not found exception"""
+
+
+class PlaylistFileNotFoundException(ObjectNotFoundException):
+    """Playlist file not found exception"""
 
 
 class InvalidNameException(Exception):
@@ -48,9 +55,8 @@ def get_playlist(
 
 def create_playlist(user: User, name: str):
     """Create playlist"""
-    if not name:
-        raise InvalidNameException("Invalid name.")
-    name = name.strip()
+    if name:
+        name = name.strip()
     if not name:
         raise InvalidNameException("Invalid name.")
     return Playlist.objects.create(
@@ -61,9 +67,8 @@ def create_playlist(user: User, name: str):
 
 def update_playlist(user: User, pl_id: str, name: str):
     """Update playlist"""
-    if not name:
-        raise InvalidNameException()
-    name = name.strip()
+    if name:
+        name = name.strip()
     if not name:
         raise InvalidNameException()
     with transaction.atomic():
@@ -82,11 +87,11 @@ def add_playlist_file(user: User, pl_id: str, file_id: str):
             .order_by("sequence")
             .values_list("sequence", flat=True)
             .last()
-            or -1
-        ) + 1
+        )
+        last_seq = 0 if last_seq is None else last_seq + 1
         PlaylistFile.objects.create(
             playlist=playlist,
-            file_id=file_id,
+            file=get_file(user, file_id),
             sequence=last_seq,
         )
     return playlist
@@ -96,7 +101,11 @@ def remove_playlist_file(user: User, pl_id: int, file_id: int):
     """Remove playlist file"""
     with transaction.atomic():
         playlist = get_playlist(user, pl_id, None, None, True)
-        PlaylistFile.objects.filter(Q(pk=file_id) & Q(playlist=playlist)).delete()
+        count, _ = PlaylistFile.objects.filter(
+            Q(pk=file_id) & Q(playlist=playlist)
+        ).delete()
+        if not count:
+            raise PlaylistFileNotFoundException("File not found.")
     return playlist
 
 

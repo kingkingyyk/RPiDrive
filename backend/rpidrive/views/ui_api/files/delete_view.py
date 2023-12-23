@@ -7,7 +7,7 @@ from pydantic import BaseModel, ValidationError
 
 from rpidrive.controllers.exceptions import NoPermissionException
 from rpidrive.controllers.file import (
-    InvalidFileNameException,
+    InvalidOperationRequestException,
     FileNotFoundException,
     delete_files,
 )
@@ -25,8 +25,8 @@ class FileDeleteView(LoginRequiredMixin, View):
 
     @handle_exceptions(
         known_exc={
-            InvalidFileNameException,
             FileNotFoundException,
+            InvalidOperationRequestException,
             NoPermissionException,
             ValidationError,
         }

@@ -1,18 +1,19 @@
 from django.contrib.auth.models import User
 from django.db.models import Q, QuerySet
 
+from rpidrive.controllers.exceptions import ObjectNotFoundException
 from rpidrive.controllers.volume import get_volumes
 from rpidrive.models import Job
 
 
-class JobNotFoundException(Exception):
+class JobNotFoundException(ObjectNotFoundException):
     """Job not found exception"""
 
 
 def get_jobs(user: User) -> QuerySet:
     """Get jobs by user"""
     volume_pks = list(get_volumes(user).values_list("pk", flat=True))
-    filters = Q(volume__pk__in=volume_pks)
+    filters = Q(volume_id__in=volume_pks)
     if user.is_superuser:
         filters |= Q(volume=None)
     return Job.objects.filter(filters)

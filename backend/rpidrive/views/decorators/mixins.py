@@ -15,6 +15,11 @@ class BruteForceProtectMixin:
         """Construct cache key"""
         return f"bruteforce.{ip_add}"
 
+    @staticmethod
+    def reset():
+        """Reset data"""
+        cache.delete_pattern(BruteForceProtectMixin.construct_key("*"))
+
     def dispatch(self, request, *args, **kwargs) -> HttpResponse:
         """Handle dispatch"""
         key = None
@@ -32,7 +37,7 @@ class BruteForceProtectMixin:
             key = BruteForceProtectMixin.construct_key(remote_addr)
             if (
                 cache.has_key(key)
-                and cache.get(key) > settings.ROOT_CONFIG.security.block_trigger
+                and cache.get(key) >= settings.ROOT_CONFIG.security.block_trigger
             ):
                 return JsonResponse(
                     {

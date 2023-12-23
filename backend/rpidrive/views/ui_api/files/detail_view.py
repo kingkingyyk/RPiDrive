@@ -5,11 +5,13 @@ from django.http.response import JsonResponse
 from django.views import View
 
 from rpidrive.controllers.file import (
+    InvalidOperationRequestException,
     FileNotFoundException,
     delete_files,
     get_file,
     get_file_parents,
 )
+from rpidrive.controllers.volume import VolumeNotFoundException
 from rpidrive.models import File
 from rpidrive.views.decorators.generics import handle_exceptions
 
@@ -89,6 +91,13 @@ class FileDetailView(LoginRequiredMixin, View):
 
         return JsonResponse(raw_data)
 
+    @handle_exceptions(
+        known_exc={
+            FileNotFoundException,
+            InvalidOperationRequestException,
+            VolumeNotFoundException,
+        }
+    )
     def delete(self, request, file_id: str, *args, **kwargs) -> JsonResponse:
         """Handle DELETE request"""
         delete_files(request.user, [file_id])

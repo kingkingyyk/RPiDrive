@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.http.response import JsonResponse
 from django.views import View
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from rpidrive.controllers.volume import (
     NoPermissionException,
@@ -33,6 +33,7 @@ class VolumeCreateView(LoginRequiredMixin, View):
             IntegrityError,
             InvalidVolumeNameException,
             InvalidVolumePathException,
+            ValidationError,
         }
     )
     def post(self, request, *_args, **_kwargs) -> JsonResponse:

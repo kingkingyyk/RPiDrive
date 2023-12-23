@@ -5,7 +5,10 @@ from django.http.response import JsonResponse
 from django.views import View
 from pydantic import BaseModel, EmailStr, ValidationError
 
-from rpidrive.controllers.exceptions import NoPermissionException
+from rpidrive.controllers.exceptions import (
+    InvalidOperationRequestException,
+    NoPermissionException,
+)
 from rpidrive.controllers.user import (
     UserNotFoundException,
     delete_user,
@@ -20,8 +23,8 @@ class _RequestModel(BaseModel):
 
     email: EmailStr
     password: Optional[str] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = ""
     is_superuser: bool
     is_active: bool
 
@@ -31,6 +34,7 @@ class UserDetailView(LoginRequiredMixin, View):
 
     @handle_exceptions(
         known_exc={
+            InvalidOperationRequestException,
             NoPermissionException,
             UserNotFoundException,
             ValidationError,
@@ -47,6 +51,7 @@ class UserDetailView(LoginRequiredMixin, View):
             data.is_superuser,
             first_name=data.first_name,
             last_name=data.last_name,
+            is_active=data.is_active,
         )
         return JsonResponse({})
 
@@ -73,6 +78,7 @@ class UserDetailView(LoginRequiredMixin, View):
 
     @handle_exceptions(
         known_exc={
+            InvalidOperationRequestException,
             NoPermissionException,
             UserNotFoundException,
         }

@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -16,7 +17,10 @@ from rpidrive.controllers.volume import (
     create_volume,
     delete_volume,
     request_volume,
+    get_root_file_id,
     get_volumes,
+    get_volume_space,
+    perform_index,
     update_volume,
     update_volume_permission,
 )
@@ -45,7 +49,7 @@ class TestVolumeController(TestCase):  # pylint: disable=too-many-public-methods
     def test_create_volume_1(self):
         """Test create volume"""
         volume = create_volume(
-            self.admin_user, "HEHE", VolumeKindEnum.HOST_PATH, "/var"
+            self.admin_user, "HEHE", VolumeKindEnum.HOST_PATH, "/var/"
         )
         self.assertEqual(volume.name, "HEHE")
         self.assertEqual(volume.kind, VolumeKindEnum.HOST_PATH)
@@ -200,7 +204,7 @@ class TestVolumeController(TestCase):  # pylint: disable=too-many-public-methods
             [
                 VolumePermissionModel(
                     user=self.normal_user.pk,
-                    permission=VolumePermissionEnum.READ_WRITE,
+                    permission=VolumePermissionEnum.ADMIN,
                 )
             ],
         )
@@ -266,6 +270,26 @@ class TestVolumeController(TestCase):  # pylint: disable=too-many-public-methods
             "var",
             "/zz",
         )
+
+    def test_update_volume_5(self):
+        """Test update_volume (Empty name)"""
+        volume = create_volume(self.admin_user, "var", VolumeKindEnum.HOST_PATH, "/var")
+        self.assertRaises(
+            InvalidVolumeNameException,
+            update_volume,
+            self.admin_user,
+            volume.pk,
+            "",
+            "/lib",
+        )
+
+    def test_update_volume_6(self):
+        """Test update_volume (Truncate path sep)"""
+        volume = create_volume(self.admin_user, "var", VolumeKindEnum.HOST_PATH, "/var")
+        update_volume(self.admin_user, volume.pk, "sys", "/sys//")
+        volume.refresh_from_db()
+        self.assertEqual(volume.name, "sys")
+        self.assertEqual(volume.path, "/sys")
 
     def test_update_volume_p_1(self):
         """Test get_volume_permission"""
@@ -444,3 +468,98 @@ class TestVolumeController(TestCase):  # pylint: disable=too-many-public-methods
             VolumePermissionEnum.READ,
             True,
         )
+
+    def test_get_volume_3(self):
+        """Test get_volume (Not exists)"""
+        self.assertRaises(
+            VolumeNotFoundException,
+            request_volume,
+            self.normal_user,
+            str(uuid.uuid4()),
+            VolumePermissionEnum.READ,
+            True,
+        )
+
+    def test_get_volume_space_1(self):
+        """Test get_volume_space 1"""
+        volume = create_volume(self.admin_user, "var", VolumeKindEnum.HOST_PATH, "/var")
+        total, used, free = get_volume_space(volume)
+        self.assertTrue(isinstance(total, int))
+        self.assertGreater(total, 0)
+        self.assertTrue(isinstance(used, int))
+        self.assertGreater(used, 0)
+        self.assertTrue(isinstance(free, int))
+        self.assertGreater(free, 0)
+
+    def test_get_volume_space_2(self):
+        """Test get_volume_space 2"""
+        total, used, free = get_volume_space("/var")
+        self.assertTrue(isinstance(total, int))
+        self.assertGreater(total, 0)
+        self.assertTrue(isinstance(used, int))
+        self.assertGreater(used, 0)
+        self.assertTrue(isinstance(free, int))
+        self.assertGreater(free, 0)
+
+    def test_get_volume_space_3(self):
+        """Test get_volume_space 3"""
+        total, used, free = get_volume_space("/gg")
+        self.assertTrue(isinstance(total, int))
+        self.assertEqual(0, total)
+        self.assertTrue(isinstance(used, int))
+        self.assertEqual(0, used)
+        self.assertTrue(isinstance(free, int))
+        self.assertEqual(0, free)
+
+    def test_get_root_file_id(self):
+        """Test get_root_file_id"""
+        volume = create_volume(self.admin_user, "var", VolumeKindEnum.HOST_PATH, "/var")
+        file_id = get_root_file_id(volume)
+        self.assertIsNotNone(file_id)
+
+        file = File.objects.get(pk=file_id)
+        self.assertEqual(volume.id, file.volume_id)
+        self.assertIsNone(file.parent)
+
+    def test_perform_index_1(self):
+        """Test perform_index"""
+        volume = create_volume(self.admin_user, "var", VolumeKindEnum.HOST_PATH, "/var")
+        volume.indexing = False
+        volume.save()
+
+        perform_index(self.admin_user, volume.id)
+        volume.refresh_from_db()
+        self.assertTrue(volume.indexing)
+
+    def test_perform_index_2(self):
+        """Test perform_index (No permission)"""
+        volume = create_volume(self.admin_user, "var", VolumeKindEnum.HOST_PATH, "/var")
+        volume.indexing = False
+        volume.save()
+
+        with self.assertRaises(VolumeNotFoundException):
+            perform_index(self.normal_user, volume.id)
+        volume.refresh_from_db()
+        self.assertFalse(volume.indexing)
+
+    def test_perform_index_3(self):
+        """Test perform_index (Write user)"""
+        volume = create_volume(self.admin_user, "var", VolumeKindEnum.HOST_PATH, "/var")
+        volume.indexing = False
+        volume.save()
+
+        update_volume_permission(
+            self.admin_user,
+            volume.pk,
+            [
+                VolumePermissionModel(
+                    user=self.normal_user.pk,
+                    permission=VolumePermissionEnum.READ_WRITE,
+                )
+            ],
+        )
+
+        with self.assertRaises(NoPermissionException):
+            perform_index(self.normal_user, volume.id)
+        volume.refresh_from_db()
+        self.assertFalse(volume.indexing)

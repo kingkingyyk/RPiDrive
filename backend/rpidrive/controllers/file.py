@@ -12,6 +12,7 @@ from django.utils import timezone
 from rpidrive.controllers.exceptions import (
     InvalidFileNameException,
     InvalidOperationRequestException,
+    ObjectNotFoundException,
 )
 from rpidrive.controllers.local_file import (
     compress_files as local_compress_files,
@@ -28,20 +29,19 @@ from rpidrive.controllers.local_file import (
 from rpidrive.controllers.volume import (
     get_volumes,
     request_volume,
-    NoPermissionException,
     VolumeNotFoundException,
     VolumePermissionEnum,
 )
 from rpidrive.models import (
+    Job,
     File,
     FileKindEnum,
     PublicFileLink,
-    Volume,
     VolumeKindEnum,
 )
 
 
-class FileNotFoundException(Exception):
+class FileNotFoundException(ObjectNotFoundException):
     """File not found exception"""
 
 
@@ -79,10 +79,7 @@ def get_file(
             VolumePermissionEnum.READ if not write else VolumePermissionEnum.READ_WRITE,
             write,
         )
-    except (
-        NoPermissionException,
-        VolumeNotFoundException,
-    ):
+    except VolumeNotFoundException:
         raise FileNotFoundException(  # pylint: disable=raise-missing-from
             "File not found."
         )
@@ -100,16 +97,16 @@ def get_file_parents(file: File) -> List[File]:
 def delete_files(user: User, file_pks: List[str]):
     """Delete file"""
     volume_pks = list(
-        File.objects.filter(pk__in=file_pks)
-        .values_list("volume_id", flat=True)
-        .distinct()
+        File.objects.filter(pk__in=file_pks).values_list("volume_id", flat=True)
     )
+    if not volume_pks or len(volume_pks) != len(file_pks):
+        raise FileNotFoundException("File not found.")
+    volume_pks = list(set(volume_pks))
     if len(volume_pks) != 1:
-        raise InvalidOperationRequestException(
-            "Files & destination must be in the same volume"
-        )
+        raise InvalidOperationRequestException("Files must be in the same volume")
     volume_id = volume_pks[0]
-    if Volume.objects.get(pk=volume_id).kind != VolumeKindEnum.HOST_PATH:
+    volume = request_volume(user, volume_id, VolumePermissionEnum.READ_WRITE, False)
+    if volume.kind != VolumeKindEnum.HOST_PATH:
         raise NotImplementedError()
 
     for file_pk in file_pks:
@@ -120,20 +117,29 @@ def delete_files(user: User, file_pks: List[str]):
 
 def rename_file(user: User, file_pk: str, new_name: str):
     """Rename file"""
+    if new_name:
+        new_name = new_name.strip()
     if not new_name:
         raise InvalidFileNameException("Invalid file name.")
 
     with transaction.atomic():
         file = get_file(user, file_pk, ["parent", "volume"], [], True)
+        if not file.parent:
+            raise InvalidOperationRequestException("Can't rename root file.")
+        if file.name == new_name:
+            return
         if file.volume.kind == VolumeKindEnum.HOST_PATH:
             local_rename_file(file, new_name)
         else:
             raise NotImplementedError()
 
 
-def compress_files(user: User, file_pks: List[str], parent_pk: str, zip_name: str):
+def compress_files(
+    user: User, file_pks: List[str], parent_pk: str, zip_name: str
+) -> Job:
     """Compress files"""
-    zip_name = zip_name.strip()
+    if zip_name:
+        zip_name = zip_name.strip()
     if not zip_name:
         raise InvalidFileNameException("Invalid file name.")
     if not zip_name.lower().endswith(".zip"):
@@ -152,7 +158,7 @@ def compress_files(user: User, file_pks: List[str], parent_pk: str, zip_name: st
     )
     if len(volume_pks) != 1:
         raise InvalidOperationRequestException(
-            "Files & destination must be in the same volume"
+            "Files & destination must be in the same volume."
         )
 
     with transaction.atomic():
@@ -170,13 +176,13 @@ def compress_files(user: User, file_pks: List[str], parent_pk: str, zip_name: st
         )
         if files_parent_count != 1:
             raise InvalidOperationRequestException(
-                "Only can move items in the same level!"
+                "Only can compress items in the same level!"
             )
 
         if volume.kind == VolumeKindEnum.HOST_PATH:
-            local_compress_files(file_pks, parent, zip_name)
-        else:
-            raise NotImplementedError()
+            return local_compress_files(file_pks, parent, zip_name)
+
+        raise NotImplementedError()
 
 
 def move_files(user: User, file_pks: List[str], parent_pk: str, is_rename: bool):
@@ -186,21 +192,20 @@ def move_files(user: User, file_pks: List[str], parent_pk: str, is_rename: bool)
         .values_list("volume_id", flat=True)
         .distinct()
     )
-    if len(volume_pks) != 1:
-        raise InvalidOperationRequestException("Files must be in the same volume")
-    parent = File.objects.get(pk=parent_pk)
+    if not volume_pks:
+        raise InvalidOperationRequestException("No file to move.")
+    if len(volume_pks) > 1:
+        raise InvalidOperationRequestException("Files must be from the same volume.")
 
     with transaction.atomic():
-        volume_p = request_volume(
-            user, parent.volume_id, VolumePermissionEnum.READ_WRITE, True
-        )
-        if volume_p.kind != VolumeKindEnum.HOST_PATH:
-            raise NotImplementedError()
-        volume = request_volume(
-            user, volume_pks[0], VolumePermissionEnum.READ_WRITE, True
-        )
-        if volume.kind != VolumeKindEnum.HOST_PATH:
-            raise NotImplementedError()
+        parent = get_file(user, parent_pk, ["volume"], [], True)
+        volume_ids = {parent.volume_id, volume_pks[0]}
+        for volume_id in volume_ids:
+            volume = request_volume(
+                user, volume_id, VolumePermissionEnum.READ_WRITE, True
+            )
+            if volume.kind != VolumeKindEnum.HOST_PATH:
+                raise NotImplementedError()
 
         local_move_files(file_pks, parent, is_rename)
 
@@ -208,11 +213,13 @@ def move_files(user: User, file_pks: List[str], parent_pk: str, is_rename: bool)
 def share_file(user: User, file_pk: str) -> PublicFileLink:
     """Share file"""
     file = get_file(user, file_pk, [], [], False)
+    if file.kind == FileKindEnum.FOLDER:
+        raise InvalidOperationRequestException("Can't share folder.")
     link = PublicFileLink.objects.create(
         file=file,
         creator=user,
         expire_time=timezone.now()
-        + timedelta(settings.ROOT_CONFIG.web.public_link_expiry),
+        + timedelta(minutes=settings.ROOT_CONFIG.web.public_link_expiry),
     )
     return link
 
@@ -220,12 +227,12 @@ def share_file(user: User, file_pk: str) -> PublicFileLink:
 def create_folder(user: User, parent_pk: str, name: str) -> File:
     """Create folder"""
     with transaction.atomic():
-        folder = get_file(user, parent_pk, ["parent", "volume"], [], True)
-        if folder.kind != FileKindEnum.FOLDER:
+        parent = get_file(user, parent_pk, ["parent", "volume"], [], True)
+        if parent.kind != FileKindEnum.FOLDER:
             raise InvalidOperationRequestException("Can't create folder in file.")
 
-        if folder.volume.kind == VolumeKindEnum.HOST_PATH:
-            return local_create_folder(folder, name)
+        if parent.volume.kind == VolumeKindEnum.HOST_PATH:
+            return local_create_folder(parent, name)
 
         raise NotImplementedError()
 
@@ -278,7 +285,7 @@ def create_files(user: User, parent_pk: str, files: List):
     with transaction.atomic():
         parent = get_file(user, parent_pk, ["volume"], ["children"], True)
         if parent.kind == FileKindEnum.FILE:
-            raise InvalidOperationRequestException("Unable to upload files to file")
+            raise InvalidOperationRequestException("Unable to upload files to file.")
 
         if parent.volume.kind == VolumeKindEnum.HOST_PATH:
             local_create_files(parent, files)
@@ -290,7 +297,7 @@ def create_files(user: User, parent_pk: str, files: List):
 def search_files(user: User, keyword: str) -> QuerySet:
     """Search file"""
     volume_pks = get_volumes(user).values_list("pk", flat=True)
-    return File.objects.filter(Q(volume_id__in=volume_pks) & Q(name__search=keyword))
+    return File.objects.filter(Q(volume_id__in=volume_pks) & Q(name__icontains=keyword))
 
 
 def get_file_full_path(file: File):

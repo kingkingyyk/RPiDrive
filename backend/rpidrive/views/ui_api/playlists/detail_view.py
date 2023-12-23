@@ -1,11 +1,13 @@
 from enum import Enum
 from typing import List
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.response import JsonResponse
 from django.views import View
 from pydantic import BaseModel, ValidationError
 from rpidrive.controllers.playlists import (
     InvalidNameException,
+    PlaylistNotFoundException,
     add_playlist_file,
     delete_playlist,
     get_playlist,
@@ -43,7 +45,7 @@ class _ReorderModel(BaseModel):
     files: List[int]
 
 
-class PlaylistDetailView(View):
+class PlaylistDetailView(LoginRequiredMixin, View):
     """Playlist detail view"""
 
     _ACTION_MODEL_MAP = {
@@ -59,6 +61,11 @@ class PlaylistDetailView(View):
         _ActionEnum.REORDER: reorder_playlist_file,
     }
 
+    @handle_exceptions(
+        known_exc={
+            PlaylistNotFoundException,
+        }
+    )
     def get(self, request, playlist_id: str, *_args, **_kwargs) -> JsonResponse:
         """Handle GET request"""
         playlist = get_playlist(
@@ -99,6 +106,11 @@ class PlaylistDetailView(View):
         )
         return JsonResponse({"id": playlist_id, "name": playlist.name})
 
+    @handle_exceptions(
+        known_exc={
+            PlaylistNotFoundException,
+        }
+    )
     def delete(self, request, playlist_id: str, *_args, **_kwargs) -> JsonResponse:
         """Handle DELETE request"""
         delete_playlist(request.user, playlist_id)

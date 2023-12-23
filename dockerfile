@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bullseye
+FROM python:3.12-slim-bookworm
 
 ADD backend /app
 
@@ -6,7 +6,7 @@ WORKDIR /app
 
 RUN chmod +x start.sh &&\
     apt update &&\
-    apt install gcc libpq-dev g++ libffi-dev make -y &&\
+    apt install gcc libpq-dev g++ libffi-dev make mime-support -y &&\
     pip install --no-cache-dir -r requirements.txt &&\
     rm -rf /var/lib/apt/lists/*
 
