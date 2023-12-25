@@ -121,6 +121,10 @@ const File = () => {
         setFile(response.data);
         setFileList(response.data.children);
 
+        response.data.path.push({
+          id: fileId,
+          name: response.data.name,
+        });
         // Set root folder to volume name
         response.data.path[0].name = response.data.volume.name;
         setPaths(response.data.path);

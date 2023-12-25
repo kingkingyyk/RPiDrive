@@ -53,9 +53,6 @@ class Command(BaseCommand):
             minutes=settings.ROOT_CONFIG.indexer.period
         )
         while True:
-            for volume in Volume.objects.all():
-                print(volume.last_indexed)
-
             volumes = Volume.objects.filter(
                 Q(kind=VolumeKindEnum.HOST_PATH)
                 & (
