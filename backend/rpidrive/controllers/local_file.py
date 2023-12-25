@@ -139,7 +139,8 @@ def perform_index(volume: Volume):
     File.objects.filter(pk__in=deleted_files).all().delete()
 
     volume.indexing = False
-    volume.save(update_fields=["indexing"])
+    volume.last_indexed = timezone.now()
+    volume.save(update_fields=["indexing", "last_indexed"])
 
 
 def _get_kind(file_path: str) -> FileKindEnum:

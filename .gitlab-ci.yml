@@ -16,8 +16,8 @@ default:
   before_script:
     - apt update
     - apt install gcc libpq-dev g++ libffi-dev make mime-support -y
-    - pip install -r backend/requirements-dev.txt
-    - pip install -r backend/requirements-ci.txt
+    - pip install -r backend/.req/dev.txt
+    - pip install -r backend/.req/ci.txt
 
 .base-node:
   image: node:20.9-alpine3.18

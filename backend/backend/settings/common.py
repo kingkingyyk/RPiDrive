@@ -7,6 +7,7 @@ ROOT_CONFIG = ConfigManager.load_config()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_DIR = BASE_DIR.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ROOT_CONFIG.web.secret_key
@@ -119,8 +120,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "drive/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/drive/static/"
+STATIC_ROOT = os.path.join(PROJECT_DIR, "static")
 
 FILE_UPLOAD_TEMP_DIR = os.path.join(ROOT_CONFIG.web.temp_dir, "uploads")
 os.makedirs(FILE_UPLOAD_TEMP_DIR, exist_ok=True)

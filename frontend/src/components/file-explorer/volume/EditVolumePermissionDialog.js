@@ -75,7 +75,7 @@ const EditVolumePermissionDialog = (props) => {
 
   const loadUsers = () => {
     ajax
-      .get("/drive/ui-api/users")
+      .get("/drive/ui-api/users/")
       .then((response) => {
         const rUsers = response.data.values;
         setUsers(rUsers);

@@ -26,17 +26,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState("");
 
-  React.useEffect(() => {
-    document.title = "RPi Drive - Login";
-    ajax
-      .get("/drive/ui-api/users/self")
-      .then(() => {
-        const nextUrl = searchParams.get("next");
-        navigate(nextUrl ? nextUrl : "/drive");
-      })
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  document.title = "RPi Drive - Login";
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);

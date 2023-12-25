@@ -1,24 +1,11 @@
-# Updating to New Version
+# Updating to New Version (v2.x to v2.y)
 
-Bring up the containers then run the following commands (Container name are subjected to your deployment).
-
-## Cleanup database
-
-```
-docker exec -it <database container name> psql -U <database user> <database name>
-delete from django_migrations;
-exit
-```
+Bring up the containers then run the following commands.
 
 ## Update database
 
 ```
-docker exec -it <rpi drive container name> python manage.py migrate rpidrive --run-syncdb
-docker exec -it <rpi drive container name> python manage.py migrate --fake contenttypes
-docker exec -it <rpi drive container name> python manage.py migrate --fake auth
-docker exec -it <rpi drive container name> python manage.py migrate --fake admin
-docker exec -it <rpi drive container name> python manage.py migrate --fake rpidrive
-docker exec -it <rpi drive container name> python manage.py migrate --fake sessions
-docker exec -it <rpi drive container name> python manage.py makemigrations rpidrive
-docker exec -it <rpi drive container name> python manage.py migrate rpidrive
+docker exec -it rpidrive python manage.py makemigrations rpidrive
+docker exec -it rpidrive python manage.py makemigrations
+docker exec -it rpidrive python manage.py migrate rpidrive
 ```

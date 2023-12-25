@@ -78,7 +78,7 @@ const FileExplorerRoot = () => {
     setIsLoading(true);
     setErrorMsg("");
     ajax
-      .get("/drive/ui-api/volumes")
+      .get("/drive/ui-api/volumes/")
       .then((response) => {
         setVolumes(response.data.values);
       })
@@ -88,7 +88,7 @@ const FileExplorerRoot = () => {
 
   const loadJobs = () => {
     ajax
-      .get("/drive/ui-api/jobs")
+      .get("/drive/ui-api/jobs/")
       .then((response) => {
         setJobs(response.data.values);
       })

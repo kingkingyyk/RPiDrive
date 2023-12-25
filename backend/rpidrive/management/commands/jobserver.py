@@ -2,6 +2,7 @@ import logging
 import os
 import time
 import uuid
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -48,9 +49,21 @@ class Command(BaseCommand):
                 self.logger.info(f_h.read())
 
         # Run jobs
+        last_indexed_lim = timezone.now() - timedelta(
+            minutes=settings.ROOT_CONFIG.indexer.period
+        )
         while True:
+            self.logger.info("HELLOOO")
+            for volume in Volume.objects.all():
+                print(volume.last_indexed)
+
             volumes = Volume.objects.filter(
-                Q(kind=VolumeKindEnum.HOST_PATH) & Q(indexing=True)
+                Q(kind=VolumeKindEnum.HOST_PATH)
+                & (
+                    Q(indexing=True)
+                    | Q(last_indexed=None)
+                    | Q(last_indexed__lte=last_indexed_lim)
+                )
             ).all()
             for volume in volumes:
                 self.logger.info("Performing indexing on volume %s", volume.name)
@@ -67,4 +80,4 @@ class Command(BaseCommand):
                 expire_time__lte=timezone.now()
             ).all().delete()
 
-            time.sleep(5.0)
+            time.sleep(15.0)
