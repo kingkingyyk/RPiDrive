@@ -96,7 +96,7 @@ const Playlist = () => {
   const loadVolumes = () => {
     setIsLoadingVol(true);
     ajax
-      .get(`/drive/ui-api/volumes`)
+      .get(`/drive/ui-api/volumes/`)
       .then((response) => {
         const vol = response.data.values;
         setVolumes(vol);
@@ -406,7 +406,7 @@ const Playlist = () => {
 
     const data = {
       action: "reorder",
-      files: playlist.files.map((x) => x.id),
+      files: nPlaylist.files.map((x) => x.id),
     };
     ajax
       .post(`/drive/ui-api/playlists/${playlistId}`, data)

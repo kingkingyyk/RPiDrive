@@ -89,7 +89,9 @@ def get_metadata(file_path: str) -> Dict:  # pylint: disable=too-many-return-sta
 
     try:
         if media_type.startswith("audio/") or media_type.startswith("video/"):
-            return json.loads(str(TinyTag.get(file_path, image=True)))
+            return json.loads(
+                str(TinyTag.get(file_path, image=True)).replace("\\u0000", "")
+            )
         if media_type.startswith("image/"):
             with open(file_path, "rb") as f_h:
                 img = exifread.process_file(f_h, details=False)

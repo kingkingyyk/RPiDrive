@@ -41,7 +41,7 @@ const MoveDialog = (props) => {
 
   const loadVolumes = () => {
     ajax
-      .get(`/drive/ui-api/volumes`)
+      .get(`/drive/ui-api/volumes/`)
       .then((response) => {
         setVolumes(response.data.values);
       })

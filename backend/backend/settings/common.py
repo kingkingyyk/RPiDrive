@@ -198,3 +198,5 @@ BULK_BATCH_SIZE = 500
 FILE_UPLOAD_TEMP_DIR = os.path.join(ROOT_CONFIG.web.temp_dir, "uploads")
 
 os.makedirs(FILE_UPLOAD_TEMP_DIR, exist_ok=True)
+
+CSRF_TRUSTED_ORIGINS = [str(x).rstrip("/") for x in ROOT_CONFIG.security.domain]
