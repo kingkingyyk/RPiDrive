@@ -103,7 +103,7 @@ const Users = () => {
   const loadData = () => {
     setIsLoading(true);
     ajax
-      .get("/drive/ui-api/users")
+      .get("/drive/ui-api/users/")
       .then((response) => {
         setUsers(response.data.values);
       })

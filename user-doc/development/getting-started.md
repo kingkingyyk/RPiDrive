@@ -13,7 +13,7 @@
 ```bash
 git clone https://gitlab.com/kingkingyyk/RPiDrive.git
 cd RPiDrive/backend
-python3 -m pip install -r requirements-dev.txt
+python3 -m pip install -r .req/dev.txt
 cd ../RPiDrive/frontend
 npm i react-scripts
 npm i

@@ -53,7 +53,7 @@ const MediaPlayer = () => {
     setIsLoading(true);
     setErrorLoading("");
     ajax
-      .get("/drive/ui-api/playlists")
+      .get("/drive/ui-api/playlists/")
       .then((response) => setPlaylists(response.data.values))
       .catch((reason) => setErrorLoading(reason.response.data.error))
       .finally(() => setIsLoading(false));

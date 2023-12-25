@@ -124,7 +124,9 @@ class ConfigManager:
             paths.append(path)
         else:
             if os.environ.get(ConfigManager._ENV_KEY, None):
-                paths.append(os.environ[ConfigManager._ENV_KEY])
+                paths.append(
+                    os.path.join(os.environ[ConfigManager._ENV_KEY], "config.yaml")
+                )
             paths.append(os.path.join(os.getcwd(), "config.yaml"))
         paths = [x for x in paths if x and os.path.exists(x)]
         if not paths:
