@@ -53,7 +53,6 @@ class Command(BaseCommand):
             minutes=settings.ROOT_CONFIG.indexer.period
         )
         while True:
-            self.logger.info("HELLOOO")
             for volume in Volume.objects.all():
                 print(volume.last_indexed)
 
