@@ -58,7 +58,7 @@ const FileExplorerRoot = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const wideView = useMediaQuery("(min-width:600px)");
-  const [openDrawer, setOpenDrawer] = React.useState(false);
+  const [openDrawer, setOpenDrawer] = React.useState(wideView);
   const [volumes, setVolumes] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState("");

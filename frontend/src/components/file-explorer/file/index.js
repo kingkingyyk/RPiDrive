@@ -366,7 +366,7 @@ const File = () => {
   );
 
   return (
-    <Box>
+    <Box sx={{ ml: 2, mr: 2 }}>
       {renderPath}
       <MaterialReactTable
         columns={columns}

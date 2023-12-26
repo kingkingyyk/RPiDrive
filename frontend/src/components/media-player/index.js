@@ -43,7 +43,7 @@ const MediaPlayer = () => {
   const { playlistId } = useParams();
   const navigate = useNavigate();
   const wideView = useMediaQuery("(min-width:600px)");
-  const [openDrawer, setOpenDrawer] = React.useState(true);
+  const [openDrawer, setOpenDrawer] = React.useState(wideView);
   const [playlists, setPlaylists] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [errorLoading, setErrorLoading] = React.useState("");

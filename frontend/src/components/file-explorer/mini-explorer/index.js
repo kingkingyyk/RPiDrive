@@ -32,6 +32,7 @@ const MiniExplorer = (props) => {
 
         let pList = response.data.path.map((x) => x.name);
         pList[0] = volName;
+        pList.push(response.data.name);
         setPath(pList.join("/"));
 
         onSelect(fileId);
