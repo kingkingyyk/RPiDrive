@@ -129,7 +129,7 @@ const Home = () => {
         justifyContent="center"
         sx={{ pl: 3, pr: 3 }}
       >
-        {!self ? (
+        {!self || !self.id ? (
           <Skeleton width="60vw" height="100px" />
         ) : (
           apps

@@ -158,6 +158,7 @@ const Playlist = () => {
             (x.media_type && x.media_type.startsWith("audio/"))
         );
         for (let path of response.data.path) path.kind = "folder";
+        response.data.path.push({ name: response.data.name, kind: "folder" });
         setCurrFolder(response.data);
       })
       .catch(() => setOpenExplorer(false));
