@@ -617,4 +617,5 @@ def create_files(parent: File, files: List):
         else:
             raise InvalidOperationRequestException("Unknown upload handler.")
 
+        os.chmod(dest_fp, 0o755)
         create_entry(parent.volume, curr_parent, dest_fp)
