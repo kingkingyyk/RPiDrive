@@ -159,9 +159,9 @@ def update_volume_permission(
             VolumeUser(
                 volume=volume,
                 user_id=entry.user,
-                permission=entry.permission
-                if entry.user != user.pk
-                else role,  # Can't downgrade self.
+                permission=(
+                    entry.permission if entry.user != user.pk else role
+                ),  # Can't downgrade self.
             )
             for entry in permissions
         ]

@@ -37,7 +37,7 @@ const DeleteDialog = (props) => {
   };
 
   return (
-    <Dialog open={true} fullScreen={!wideView}>
+    <Dialog open={true} fullScreen={!wideView} maxWidth="xl">
       <DialogTitle
         color="error"
         sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}

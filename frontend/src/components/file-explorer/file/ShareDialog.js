@@ -57,7 +57,7 @@ const ShareDialog = (props) => {
   };
 
   return (
-    <Dialog open={true} fullWidth>
+    <Dialog open={true} fullWidth maxWidth="xl">
       <DialogTitle
         color="primary"
         sx={{

@@ -67,7 +67,7 @@ const MoveDialog = (props) => {
   };
 
   return (
-    <Dialog open fullWidth fullScreen={!wideView}>
+    <Dialog open fullWidth fullScreen={!wideView} maxWidth="xl">
       <DialogTitle
         color="primary"
         sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}

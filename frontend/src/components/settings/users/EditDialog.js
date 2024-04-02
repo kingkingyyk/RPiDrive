@@ -105,7 +105,7 @@ const EditDialog = (props) => {
   };
 
   return (
-    <Dialog open={true}>
+    <Dialog open={true} fullWidth maxWidth="xl">
       <DialogTitle>{userId === -1 ? "Create" : "Edit"} user</DialogTitle>
       <DialogContent>
         <Stack spacing={1} sx={{ mt: 1 }}>

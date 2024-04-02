@@ -112,7 +112,7 @@ const EditVolumeDialog = (props) => {
   };
 
   return (
-    <Dialog open={props.open} fullScreen={!wideView} fullWidth>
+    <Dialog open={props.open} fullScreen={!wideView} fullWidth maxWidth="xl">
       <DialogTitle>{props.id ? "Edit" : "Create"} volume</DialogTitle>
       <DialogContent>
         {isLoading ? (

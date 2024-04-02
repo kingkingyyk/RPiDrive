@@ -139,7 +139,7 @@ const UploadDialog = (props) => {
   };
 
   return (
-    <Dialog open={open} fullScreen={!wideView} fullWidth>
+    <Dialog open={open} fullScreen={!wideView} fullWidth maxWidth="xl">
       <DialogTitle
         color="primary"
         sx={{
