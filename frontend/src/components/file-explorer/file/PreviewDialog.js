@@ -151,7 +151,13 @@ const PreviewDialog = (props) => {
   };
 
   return (
-    <Dialog open onClose={onClose} fullWidth fullScreen={!wideView}>
+    <Dialog
+      open
+      onClose={onClose}
+      maxWidth="xl"
+      fullWidth
+      fullScreen={!wideView}
+    >
       <DialogTitle
         color="primary"
         sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}

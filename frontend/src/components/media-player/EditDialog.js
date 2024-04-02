@@ -55,7 +55,7 @@ const EditDialog = (props) => {
   };
 
   return (
-    <Dialog open={true}>
+    <Dialog open={true} maxWidth="xl" fullWidth>
       <form onSubmit={handleSave}>
         <DialogTitle>
           {playlistId === -1 ? "Create" : "Rename"} playlist

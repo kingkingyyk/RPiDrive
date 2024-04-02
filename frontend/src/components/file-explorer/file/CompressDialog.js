@@ -41,7 +41,7 @@ const CompressDialog = (props) => {
   };
 
   return (
-    <Dialog open fullScreen={!wideView} fullWidth>
+    <Dialog open fullScreen={!wideView} fullWidth maxWidth="xl">
       <DialogTitle
         color="primary"
         sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}

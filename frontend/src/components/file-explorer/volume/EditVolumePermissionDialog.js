@@ -174,7 +174,7 @@ const EditVolumePermissionDialog = (props) => {
   };
 
   return (
-    <Dialog open={props.open} fullScreen={!wideView} fullWidth>
+    <Dialog open={props.open} fullScreen={!wideView} fullWidth maxWidth="xl">
       <DialogTitle>Set permissions for {volName}</DialogTitle>
       <DialogContent>
         <Box sx={{ m: 1, display: "flex" }}>

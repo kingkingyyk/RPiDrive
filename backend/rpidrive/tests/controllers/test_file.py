@@ -695,14 +695,16 @@ class TestFile(TestCase):  # pylint: disable=too-many-public-methods
             update_volume_permission(
                 self.context.admin,
                 self.context.volume.id,
-                [
-                    VolumePermissionModel(
-                        user=normal_user.id,
-                        permission=role,
-                    )
-                ]
-                if roles
-                else [],
+                (
+                    [
+                        VolumePermissionModel(
+                            user=normal_user.id,
+                            permission=role,
+                        )
+                    ]
+                    if roles
+                    else []
+                ),
             )
             with self.assertRaises(excs[idx]):
                 compress_files(
@@ -850,14 +852,16 @@ class TestFile(TestCase):  # pylint: disable=too-many-public-methods
             update_volume_permission(
                 self.context.admin,
                 self.context.volume.id,
-                [
-                    VolumePermissionModel(
-                        user=normal_user.id,
-                        permission=role,
-                    )
-                ]
-                if roles
-                else [],
+                (
+                    [
+                        VolumePermissionModel(
+                            user=normal_user.id,
+                            permission=role,
+                        )
+                    ]
+                    if roles
+                    else []
+                ),
             )
             with self.assertRaises(exc[idx]):
                 move_files(normal_user, [str(txt_file.id)], str(folder_obj.id), False)

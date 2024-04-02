@@ -38,7 +38,7 @@ const NewFolderDialog = (props) => {
   React.useEffect(() => setName("New folder"), [open]);
 
   return (
-    <Dialog open={open} fullWidth>
+    <Dialog open={open} fullWidth maxWidth="xl">
       <DialogTitle
         color="primary"
         sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}
