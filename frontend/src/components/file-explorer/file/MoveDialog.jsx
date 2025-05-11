@@ -83,7 +83,11 @@ const MoveDialog = (props) => {
             label="Volume"
             onChange={(event) => setSelectedVolumeId(event.target.value)}
             MenuProps={{
-              MenuListProps: { dense: true },
+              slotProps: {
+                list: {
+                  dense: true
+                }
+              }
             }}
           >
             {volumes.map((v) => (
@@ -101,7 +105,11 @@ const MoveDialog = (props) => {
             label="Strategy"
             onChange={(event) => setStrategy(event.target.value)}
             MenuProps={{
-              MenuListProps: { dense: true },
+              slotProps: {
+                list: {
+                  dense: true
+                }
+              }
             }}
           >
             {strategies.map((s) => (

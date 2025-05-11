@@ -153,7 +153,11 @@ const FileExplorerRoot = () => {
         anchorEl={anchorEl}
         open={openNewMenu}
         onClose={handleCloseNewMenu}
-        MenuListProps={{ dense: true }}
+        slotProps={{
+          list: {
+            dense: true
+          }
+        }}
       >
         {window.location.pathname === volumeUrl
           ? [
@@ -270,15 +274,17 @@ const FileExplorerRoot = () => {
             size="small"
             margin="dense"
             variant="filled"
-            InputLabelProps={{
-              style: { color: "inherit" },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+            slotProps={{
+              inputLabel: {
+                style: { color: "inherit" },
+              },
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }
             }}
             sx={{ mr: 1, width: wideView ? "300px" : "150px" }}
             value={searchText}

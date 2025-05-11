@@ -56,7 +56,11 @@ const EditVolumePermissionDialog = (props) => {
                 }}
                 label="Permission"
                 MenuProps={{
-                  MenuListProps: { dense: true },
+                  slotProps: {
+                    list: {
+                      dense: true
+                    }
+                  }
                 }}
               >
                 {permissions.map((permission) => (
@@ -185,7 +189,11 @@ const EditVolumePermissionDialog = (props) => {
               label="User"
               onChange={handleSelectUser}
               MenuProps={{
-                MenuListProps: { dense: true },
+                slotProps: {
+                  list: {
+                    dense: true
+                  }
+                }
               }}
             >
               {userChoices.map((user) => (

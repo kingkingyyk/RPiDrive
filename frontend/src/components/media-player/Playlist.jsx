@@ -231,7 +231,11 @@ const Playlist = () => {
               label="Volume"
               onChange={(event) => setSelectedVolume(event.target.value)}
               MenuProps={{
-                MenuListProps: { dense: true },
+                slotProps: {
+                  list: {
+                    dense: true
+                  }
+                }
               }}
               disabled={isLoadingVol}
             >
@@ -343,11 +347,12 @@ const Playlist = () => {
         navigator.mediaSession.metadata = new MediaMetadata({});
       }
     } else {
-      document.title = `${
-        playingFile.metadata.title || playingFile.name
-      } - RPi Drive`;
+      let mMetadata = playingFile.metadata || {};
+      if (!mMetadata.title) {
+        mMetadata.title = playingFile.name;
+      }
+      document.title = `${mMetadata.title} - RPi Drive`;
       if ("mediaSession" in navigator) {
-        let mMetadata = playingFile.metadata ? playingFile.metadata : {};
         mMetadata["artwork"] = [
           { src: `/drive/ui-api/files/${playingFile.source_id}/thumbnail` },
         ];
@@ -482,19 +487,21 @@ const Playlist = () => {
                           secondary={`${file.metadata.artist || ""} - ${
                             file.metadata.album || ""
                           }`}
-                          primaryTypographyProps={{
-                            sx: {
-                              whiteSpace: "nowrap",
-                              textOverflow: "ellipsis",
-                              overflow: "hidden",
+                          slotProps={{
+                            primary: {
+                              sx: {
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              },
                             },
-                          }}
-                          secondaryTypographyProps={{
-                            sx: {
-                              whiteSpace: "nowrap",
-                              textOverflow: "ellipsis",
-                              overflow: "hidden",
-                            },
+                            secondary: {
+                              sx: {
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                              },
+                            }
                           }}
                         />
                       </ListItemButton>
@@ -531,7 +538,11 @@ const Playlist = () => {
               anchorEl={anchorEl}
               open={anchorEl !== null}
               onClose={handleCloseMore}
-              MenuListProps={{ dense: true }}
+              slotProps={{
+                list: {
+                  dense: true
+                }
+              }}
             >
               <MenuItem
                 onClick={(event) => {
@@ -590,8 +601,10 @@ const Playlist = () => {
             open={true}
             variant="persistent"
             anchor="bottom"
-            PaperProps={{
-              elevation: 3,
+            slotProps={{
+              paper: {
+                elevation: 3,
+              }
             }}
           >
             {playingFile ? (
