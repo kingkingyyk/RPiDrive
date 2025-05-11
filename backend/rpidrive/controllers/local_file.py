@@ -1,4 +1,3 @@
-import json
 import logging
 import mimetypes
 import os
@@ -27,7 +26,7 @@ from django.http import HttpResponse, StreamingHttpResponse
 from django.utils import timezone
 from tinytag import TinyTag
 from mobi import Mobi
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 
 from rpidrive.controllers.compress import (
     CompressDataModel,
@@ -89,13 +88,17 @@ def get_metadata(file_path: str) -> Dict:  # pylint: disable=too-many-return-sta
 
     try:
         if media_type.startswith("audio/") or media_type.startswith("video/"):
-            return json.loads(
-                str(TinyTag.get(file_path, image=True)).replace("\\u0000", "")
-            )
+            tag = TinyTag.get(file_path, image=True)
+            return {
+                "title": tag.title,
+                "artist": tag.artist,
+                "album": tag.album,
+                "year": tag.year,
+            }
         if media_type.startswith("image/"):
             with open(file_path, "rb") as f_h:
                 img = exifread.process_file(f_h, details=False)
-            return {key: str(tag_obj.values) for key, tag_obj in img.items()}
+            return {key: str(value) for key, value in img.items()}
         if media_type == "application/pdf":
             with open(file_path, "rb") as f_h:
                 return {
@@ -205,7 +208,7 @@ def _apply_update(file: File, file_path: str) -> bool:
     return has_change
 
 
-def _recurse_check(  # pylint: disable=too-many-arguments
+def _recurse_check(  # pylint: disable=too-many-arguments, too-many-positional-arguments
     volume: Volume,
     root: File,
     curr_path: str,
@@ -507,10 +510,12 @@ def serve_file(file: File, request: WSGIRequest) -> StreamingHttpResponse:
 def serve_file_thumbnail(file: File) -> HttpResponse:
     """Serve file thumbail"""
     if file.media_type.startswith("audio/"):
-        return HttpResponse(
-            TinyTag.get(get_full_path(file), image=True).get_image(),
-            content_type="image/jpg",
-        )
+        image = TinyTag.get(get_full_path(file), image=True).images.front_cover
+        if image:
+            return HttpResponse(
+                image.data,
+                content_type="image/jpg",
+            )
     return HttpResponse()
 
 

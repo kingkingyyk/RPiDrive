@@ -61,7 +61,6 @@ const UploadEntry = (props) => {
         setStatus(error);
         onFailed();
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   const handleCancel = () => {
@@ -180,10 +179,10 @@ const UploadDialog = (props) => {
               type="file"
               multiple
               webkitdirectory=""
-              mozdirectory=""
-              msdirectory=""
-              odirectory=""
-              directory=""
+              mozdirectory="" /* eslint-disable-line react/no-unknown-property */
+              msdirectory="" /* eslint-disable-line react/no-unknown-property */
+              odirectory="" /* eslint-disable-line react/no-unknown-property */
+              directory="" /* eslint-disable-line react/no-unknown-property */
             />
           )}
         </Button>

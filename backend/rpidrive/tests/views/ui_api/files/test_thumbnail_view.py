@@ -40,7 +40,7 @@ class TestFileThumbnailView(TestCase):
         self.client.force_login(self.context.admin)
         response = self.client.get(file_url)
         self.assertEqual(http.HTTPStatus.OK, response.status_code)
-        self.assertEqual(b"None", response.content)
+        self.assertEqual(b"", response.content)
 
     def test_get_2(self):
         """Test GET method"""
@@ -73,7 +73,7 @@ class TestFileThumbnailView(TestCase):
         )
         response = self.client.get(file_url)
         self.assertEqual(http.HTTPStatus.OK, response.status_code)
-        self.assertEqual(b"None", response.content)
+        self.assertEqual(b"", response.content)
 
     def test_get_4(self):
         """Test GET method (No login)"""

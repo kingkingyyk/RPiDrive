@@ -34,7 +34,6 @@ const PreviewDialog = (props) => {
           onClose();
         });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   const loadFileInfo = () => {
@@ -54,7 +53,6 @@ const PreviewDialog = (props) => {
     if (fileId) {
       loadFileInfo();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileId]);
 
   const handleDownload = () => {
@@ -88,7 +86,8 @@ const PreviewDialog = (props) => {
               </Typography>
             </Grid>
           </Grid>
-          <audio controls autoplay="" loop style={{ width: "100%" }}>
+          {/* eslint-disable-next-line react/no-unknown-property */}
+          <audio controls autoplay loop style={{ width: "100%" }}>
             <source src={downloadLink} type={file.media_type} />
           </audio>
         </Box>
@@ -96,7 +95,8 @@ const PreviewDialog = (props) => {
     }
     if (file.media_type.startsWith("video")) {
       return (
-        <video controls autoplay="" loop style={{ width: "100%" }}>
+        // eslint-disable-next-line react/no-unknown-property
+        <video controls autoplay loop style={{ width: "100%" }}>
           <source src={downloadLink} type={file.media_type} />
         </video>
       );

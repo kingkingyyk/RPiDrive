@@ -124,7 +124,6 @@ const EditVolumePermissionDialog = (props) => {
     loadUsers();
     loadPermissions();
     loadVolume();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.id]);
 
   React.useEffect(() => {
@@ -236,6 +235,7 @@ const EditVolumePermissionDialog = (props) => {
             muiTablePaperProps={{
               elevation: 0,
             }}
+            layoutMode="grid"
           />
         </Box>
       </DialogContent>

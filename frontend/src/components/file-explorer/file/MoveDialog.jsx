@@ -48,7 +48,6 @@ const MoveDialog = (props) => {
       .catch(() => onClose(false));
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => loadVolumes(), [files]);
 
   const handleMove = () => {

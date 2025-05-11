@@ -120,7 +120,7 @@ const Volume = () => {
   };
 
   const handlePerformIndex = (row) => {
-    ajax.post(`/drive/ui-api/volumes/${row.id}/index`).then((response) => {
+    ajax.post(`/drive/ui-api/volumes/${row.id}/index`).then(() => {
       setTriggerLoad(!triggerLoad);
       setOpenSnackbar(true);
     });
@@ -160,7 +160,7 @@ const Volume = () => {
     setIsDeleting(true);
     ajax
       .delete(`/drive/ui-api/volumes/${volumeToDelete.id}`)
-      .then((response) => {
+      .then(() => {
         handleDeleteVolDialogClose(true);
         setVolumeToDelete(null);
         setTriggerLoad(!triggerLoad);
@@ -284,7 +284,7 @@ const Volume = () => {
         }}
         getRowId={(row) => row.id}
         muiTableBodyCellProps={({ cell }) => ({
-          onClick: (event) => handleClickRow(cell.row.original),
+          onClick: () => handleClickRow(cell.row.original),
           onContextMenu: (event) =>
             handleContextMenuOpen(event, cell.row.original),
           style: { cursor: "pointer" },
@@ -304,6 +304,7 @@ const Volume = () => {
               }
             : undefined
         }
+        layoutMode="grid"
       />
       {renderContextMenu()}
       {openEditVolDialog && (

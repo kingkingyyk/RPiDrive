@@ -1,4 +1,6 @@
-FROM python:3.12-slim-bookworm
+ARG IMAGE_PROXY
+
+FROM $IMAGE_PROXY/python:3.13-slim-bookworm
 
 ADD backend /app
 

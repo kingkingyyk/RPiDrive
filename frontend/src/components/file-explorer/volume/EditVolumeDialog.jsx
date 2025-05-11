@@ -65,7 +65,6 @@ const EditVolumeDialog = (props) => {
   React.useEffect(() => {
     loadKind();
     loadVolume();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.id]);
 
   const handleApply = () => {

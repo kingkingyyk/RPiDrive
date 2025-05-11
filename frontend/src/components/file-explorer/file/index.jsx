@@ -138,7 +138,6 @@ const File = () => {
   React.useEffect(() => {
     setRowSelection({});
     loadFile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileId, triggerLoad]);
 
   const handleExpandPath = (event) => {
@@ -214,7 +213,6 @@ const File = () => {
         ))}
       </Breadcrumbs>
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paths, expandPathAnchor, wideView]);
 
   const handlePreviewDialogClose = () => {
@@ -398,7 +396,7 @@ const File = () => {
               }
         }
         muiTableBodyCellProps={({ cell }) => ({
-          onClick: (event) => {
+          onClick: () => {
             const rowData = cell.row.original;
             if (rowData.kind === "folder") {
               openFolder(cell.row.original.id);
@@ -423,8 +421,9 @@ const File = () => {
           "mrt-row-select": { size: 24, maxSize: 24 },
           "mrt-row-actions": { size: 48, maxSize: 48 },
         }}
+        layoutMode="grid"
         onRowSelectionChange={setRowSelection}
-        renderTopToolbarCustomActions={({ table }) => {
+        renderTopToolbarCustomActions={() => {
           let selectionCount = Object.values(rowSelection).filter(
             (x) => x
           ).length;
