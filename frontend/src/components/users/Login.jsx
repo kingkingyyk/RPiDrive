@@ -53,7 +53,7 @@ const Login = () => {
     setErrorMsg("");
     ajax
       .post("/drive/ui-api/users/login", loginData)
-      .then((response) => {
+      .then(() => {
         const nextUrl = searchParams.get("next");
         navigate(nextUrl ? nextUrl : "/drive");
       })

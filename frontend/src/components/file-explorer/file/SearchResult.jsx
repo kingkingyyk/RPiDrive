@@ -88,7 +88,6 @@ const FileSearchResult = () => {
       .then(() => setIsLoading(false));
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const loadResultDebounced = React.useCallback(
     debounce((value) => loadResult(value), 500),
     []
@@ -107,7 +106,6 @@ const FileSearchResult = () => {
     } else {
       loadResult(keyword);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   const openFolder = (fileId) => {
@@ -146,6 +144,7 @@ const FileSearchResult = () => {
           isLoading: isLoading,
           showAlertBanner: true,
         }}
+        layoutMode="grid"
         positionToolbarAlertBanner="bottom"
         muiToolbarAlertBannerProps={
           errorLoading
@@ -159,7 +158,7 @@ const FileSearchResult = () => {
               }
         }
         muiTableBodyCellProps={({ cell }) => ({
-          onClick: (event) => {
+          onClick: () => {
             const rowData = cell.row.original;
             if (rowData.kind === "folder") {
               openFolder(cell.row.original.id);

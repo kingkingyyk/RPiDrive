@@ -1,11 +1,0 @@
---2023-10-22 11:42:22--  https://gitlab.com/kingkingyyk/RPiDrive/-/raw/develop/frontend/src/favicon.ico?ref_type=heads
-Resolving gitlab.com (gitlab.com)... 172.65.251.78, 2606:4700:90:0:f22e:fbec:5bed:a9b9
-Connecting to gitlab.com (gitlab.com)|172.65.251.78|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 15406 (15K) [image/x-icon]
-Saving to: ‘favicon.ico?ref_type=heads’
-
-          favicon.i   0%[                    ]       0  --.-KB/s               favicon.ico?ref_typ 100%[===================>]  15.04K  --.-KB/s    in 0.002s  
-
-2023-10-22 11:42:23 (8.61 MB/s) - ‘favicon.ico?ref_type=heads’ saved [15406/15406]
-

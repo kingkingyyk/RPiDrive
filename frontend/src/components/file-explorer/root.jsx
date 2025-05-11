@@ -177,7 +177,7 @@ const FileExplorerRoot = () => {
                 </ListItemIcon>
                 <Typography variant="inherit">New folder</Typography>
               </MenuItem>,
-              <Divider />,
+              <Divider key="div-key" />,
               <MenuItem
                 key="file-upload"
                 onClick={() => {
@@ -213,7 +213,6 @@ const FileExplorerRoot = () => {
     navigate(`/drive/folder/search?keyword=${value}`);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceSetSearchUrl = React.useCallback(
     debounce((value) => setSearchUrl(value), 500),
     []

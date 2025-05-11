@@ -11,8 +11,11 @@ default:
     - linux
     - docker
 
+variables:
+  CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX: registry.gitlab.com/kingkingyyk/containers
+
 .base-py:
-  image: python:3.12-slim-bookworm
+  image: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/python:3.13-slim-bookworm
   before_script:
     - apt update
     - apt install gcc libpq-dev g++ libffi-dev make mime-support -y
@@ -20,7 +23,7 @@ default:
     - pip install -r backend/.req/ci.txt
 
 .base-node:
-  image: node:20.9-alpine3.18
+  image: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/node:24.0-alpine3.20
 
 lint-backend:
   extends: .base-py
@@ -45,8 +48,10 @@ test-backend:
   extends: .base-py
   stage: test
   services:
-    - redis:7.2.1-alpine
-    - postgres:16.0
+    - name: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/redis:8.0.0-alpine
+      alias: redis
+    - name: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/postgres:17.5-alpine
+      alias: postgres
   variables:
     REDIS_PORT: 6379
     REDIS_HOST: redis
@@ -91,7 +96,7 @@ build-frontend:
   stage: build
   script:
     - cd frontend
-    - npm install react-scripts
+    - npm ci
     - npm run build
     - cd ..
     - mv frontend/build/static/* backend/static/
@@ -103,13 +108,14 @@ build-frontend:
     expire_in: 1 hour
 
 .package-docker:
-  image: jdrouet/docker-with-buildx:stable
+  image: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/jdrouet/docker-with-buildx:stable
   stage: package
   tags:
     - linux
     - docker
   services:
-    - docker:dind
+    - name: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/docker:dind
+      alias: docker
   dependencies:
     - build-frontend
   variables:
@@ -121,7 +127,7 @@ build-frontend:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - docker buildx create --use
-    - docker buildx build --platform $ARCH -t $CI_IMAGE_TAG -f dockerfile --push .
+    - docker buildx build --platform $ARCH -t $CI_IMAGE_TAG -f dockerfile --build-arg IMAGE_PROXY=$CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX --push .
 
 package-amd64-docker:
   extends: .package-docker

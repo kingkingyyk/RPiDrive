@@ -17,7 +17,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import { ajax } from "../../utils/generics";
 import IsLoggedIn from "../users/IsLoggedIn";
 
-const AppButton = styled(Button)(({ theme }) => ({
+const AppButton = styled(Button)(() => ({
   width: 180,
   height: 100,
   transition: "transform .2s",
@@ -96,7 +96,7 @@ const Home = () => {
   const logout = () => {
     ajax
       .post("/drive/ui-api/users/logout")
-      .then((response) => {
+      .then(() => {
         navigate("/drive/login");
       })
       .catch((reason) => console.error(reason));
@@ -161,7 +161,7 @@ const Home = () => {
           </Box>
           . Powered by{" "}
           {poweredBy.map((comp, idx) => (
-            <React.Fragment>
+            <React.Fragment key={comp.name}>
               <Box
                 component={RouterLink}
                 to={comp.url}

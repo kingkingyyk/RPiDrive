@@ -27,7 +27,6 @@ const EditDialog = (props) => {
 
   React.useEffect(() => {
     if (playlistId !== -1) loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playlistId]);
 
   const handleSave = (event) => {

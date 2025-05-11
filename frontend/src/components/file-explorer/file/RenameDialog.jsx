@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
+
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -12,39 +12,40 @@ import TextField from "@mui/material/TextField";
 
 import { ajax } from "../../../utils/generics";
 
-const NewFolderDialog = (props) => {
-  const { open, folderId, onClose } = props;
-  const navigate = useNavigate();
-  const [name, setName] = React.useState("New folder");
-  const [isCreating, setIsCreating] = React.useState(false);
-  const [createError, setCreateError] = React.useState("");
+const RenameDialog = (props) => {
+  const { file, onClose } = props;
+  const [name, setName] = React.useState(file.name);
+  const [isRenaming, setIsRenaming] = React.useState(false);
+  const [renameError, setRenameError] = React.useState("");
 
-  const handleClickCreate = (event) => {
-    setIsCreating(true);
-    setCreateError("");
+  const handleClickRename = () => {
+    if (file.name === name) {
+      onClose(true);
+      return;
+    }
+
+    setIsRenaming(true);
+    setRenameError("");
 
     ajax
-      .post(`/drive/ui-api/files/${folderId}/new-folder`, { name: name })
-      .then((response) => {
+      .post(`/drive/ui-api/files/${file.id}/rename`, { name: name })
+      .then(() => {
         onClose(true);
-        navigate(`/drive/folder/${response.data.id}`);
       })
       .catch((reason) => {
-        setCreateError(reason.response.data.error);
+        setRenameError(reason.response.data.error);
       })
-      .finally(() => setIsCreating(false));
+      .finally(() => setIsRenaming(false));
   };
 
-  React.useEffect(() => setName("New folder"), [open]);
-
   return (
-    <Dialog open={open} fullWidth maxWidth="xl">
+    <Dialog open={true} fullWidth maxWidth="xl">
       <DialogTitle
         color="primary"
         sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}
       >
         <EditIcon size="small" />
-        Create new folder
+        Rename file
       </DialogTitle>
       <DialogContent>
         <TextField
@@ -53,7 +54,7 @@ const NewFolderDialog = (props) => {
           size="small"
           value={name}
           onChange={(event) => setName(event.target.value)}
-          disabled={isCreating}
+          disabled={isRenaming}
           fullWidth
           inputRef={(input) => input?.focus()}
           onFocus={(e) =>
@@ -67,13 +68,13 @@ const NewFolderDialog = (props) => {
       </DialogContent>
       <DialogActions>
         <Typography color="error" variant="subtitle2">
-          {createError}
+          {renameError}
         </Typography>
-        <Button disabled={isCreating} size="small" onClick={handleClickCreate}>
-          Create
+        <Button disabled={isRenaming} size="small" onClick={handleClickRename}>
+          Rename
         </Button>
         <Button
-          disabled={isCreating}
+          disabled={isRenaming}
           size="small"
           onClick={() => onClose(false)}
         >
@@ -84,10 +85,9 @@ const NewFolderDialog = (props) => {
   );
 };
 
-NewFolderDialog.propTypes = {
-  open: PropTypes.bool.isRequired,
-  folderId: PropTypes.string.isRequired,
+RenameDialog.propTypes = {
+  file: PropTypes.object.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 
-export default NewFolderDialog;
+export default RenameDialog;

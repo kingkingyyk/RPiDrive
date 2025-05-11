@@ -27,7 +27,7 @@ const DeleteDialog = (props) => {
     const fileIds = files.map((file) => file.id);
     ajax
       .post(`/drive/ui-api/files/delete`, { files: fileIds })
-      .then((response) => {
+      .then(() => {
         onClose(true);
       })
       .catch((reason) => {

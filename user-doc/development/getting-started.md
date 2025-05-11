@@ -3,8 +3,8 @@
 #### Prerequisite
 
 - Linux (I use Virtualbox + [Ubuntu 22](https://ubuntu.com/download/desktop))
-- [Python 3.12+](https://www.python.org/downloads/)
-- [Node.js 20](https://nodejs.org/en/download/releases/)
+- [Python 3.13+](https://www.python.org/downloads/)
+- [Node.js 24](https://nodejs.org/en/download/releases/)
 - [VSCode](https://code.visualstudio.com/)
 - [Docker](https://hub.docker.com/)
 

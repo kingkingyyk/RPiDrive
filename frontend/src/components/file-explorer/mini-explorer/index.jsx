@@ -50,7 +50,6 @@ const MiniExplorer = (props) => {
       .catch(() => onError());
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => loadRoot(), [volumeId]);
 
   if (currFolder === null) {
@@ -73,6 +72,7 @@ const MiniExplorer = (props) => {
         <List dense>
           {currFolder.children.map((file) => (
             <ListItemButton
+              key={file.id}
               disabled={
                 file.kind !== "folder" || blockedFoldersSet.has(file.id)
               }

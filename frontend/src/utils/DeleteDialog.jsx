@@ -39,12 +39,12 @@ const DeleteDialog = (props) => {
         </Typography>
         <Button
           onClick={props.onApply}
-          disabled={props.isLoading || validText !== props.validateText}
+          disabled={props.loading || validText !== props.validateText}
           color="error"
         >
           Delete
         </Button>
-        <Button onClick={props.onCancel} disabled={props.isLoading} autoFocus>
+        <Button onClick={props.onCancel} disabled={props.loading} autoFocus>
           Cancel
         </Button>
       </DialogActions>

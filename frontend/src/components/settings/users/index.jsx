@@ -249,6 +249,7 @@ const Users = () => {
         displayColumnDefOptions={{
           "mrt-row-actions": { size: 80, maxSize: 80 },
         }}
+        layoutMode="grid"
         renderTopToolbarCustomActions={() => (
           <Button
             size="small"

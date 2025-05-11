@@ -109,7 +109,6 @@ const Playlist = () => {
   React.useEffect(() => {
     setPlayingFile(null);
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playlistId]);
 
   const handleClickMore = (event) => {
@@ -355,7 +354,6 @@ const Playlist = () => {
         navigator.mediaSession.metadata = new MediaMetadata(mMetadata);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playingFile]);
 
   const handleRemoveFile = (file) => {
@@ -627,6 +625,7 @@ const Playlist = () => {
                 <audio
                   key={playingFile.id}
                   controls
+                  /* eslint-disable-next-line react/no-unknown-property */
                   autoplay=""
                   style={{ flexGrow: 1, height: "60px", width: "100%" }}
                   loop={playlist && playlist.files.length === 1}

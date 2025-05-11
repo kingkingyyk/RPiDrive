@@ -39,3 +39,6 @@ frontend/typings
 frontend/.DS_Store
 frontend/Thumbs.db
 frontend/dist/**
+
+# IDE
+.vscode/*

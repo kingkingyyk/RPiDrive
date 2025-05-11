@@ -53,7 +53,6 @@ const EditDialog = (props) => {
     if (userId !== -1) {
       loadUser();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   React.useEffect(() => {
@@ -64,7 +63,6 @@ const EditDialog = (props) => {
     } else {
       setEmailError(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email]);
 
   React.useEffect(() => {

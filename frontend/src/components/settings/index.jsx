@@ -165,7 +165,7 @@ const Settings = () => {
           ) : (
             <Box sx={{ width: "100%", textAlign: "center", mt: 10 }}>
               <Typography color="red" variant="h6">
-                You don't have permission to view this page.
+                You don&apos;t have permission to view this page.
               </Typography>
             </Box>
           ))}
