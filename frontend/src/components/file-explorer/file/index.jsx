@@ -186,7 +186,11 @@ const File = () => {
                 vertical: "top",
                 horizontal: "left",
               }}
-              MenuListProps={{ dense: true }}
+              slotProps={{
+                list: {
+                  dense: true
+                }
+              }}
             >
               {collapsedPaths.map((folder) => (
                 <MenuItem key={folder.id} onClick={() => openFolder(folder.id)}>
@@ -291,7 +295,11 @@ const File = () => {
             ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
             : undefined
         }
-        MenuListProps={{ dense: true }}
+        slotProps={{
+          list: {
+            dense: true
+          }
+        }}
       >
         <MenuItem
           disabled={!contextMenu || contextMenu.files.length > 1}

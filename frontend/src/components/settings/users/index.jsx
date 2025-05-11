@@ -141,7 +141,11 @@ const Users = () => {
             ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
             : undefined
         }
-        MenuListProps={{ dense: true }}
+        slotProps={{
+          list: {
+            dense: true
+          }
+        }}
       >
         <MenuItem
           disabled={!contextMenu}

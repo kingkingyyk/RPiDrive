@@ -187,7 +187,9 @@ const Volume = () => {
             ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
             : undefined
         }
-        MenuListProps={{ dense: true }}
+        slotProps={{
+          list: { dense: true}
+        }}
       >
         {contextMenu && <MenuItem disabled>{contextMenu.volume.name}</MenuItem>}
         <Divider />

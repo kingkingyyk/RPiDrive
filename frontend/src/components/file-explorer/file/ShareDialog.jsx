@@ -75,16 +75,18 @@ const ShareDialog = (props) => {
         <TextField
           value={permalink}
           fullWidth
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <Tooltip title="Copy to clipboard">
-                  <IconButton size="small" onClick={handleCopyPermalink}>
-                    <ContentCopyIcon />
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Tooltip title="Copy to clipboard">
+                    <IconButton size="small" onClick={handleCopyPermalink}>
+                      <ContentCopyIcon />
+                    </IconButton>
+                  </Tooltip>
+                </InputAdornment>
+              )
+            }
           }}
           size="small"
           spellCheck={false}
@@ -103,16 +105,18 @@ const ShareDialog = (props) => {
           <TextField
             value={publicLink}
             fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip title="Copy to clipboard">
-                    <IconButton size="small" onClick={handleCopyPublicLink}>
-                      <ContentCopyIcon />
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip title="Copy to clipboard">
+                      <IconButton size="small" onClick={handleCopyPublicLink}>
+                        <ContentCopyIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                )
+              }
             }}
             size="small"
             spellCheck={false}

@@ -50,7 +50,11 @@ const Profile = () => {
             label="Theme"
             onChange={handleChangeTheme}
             MenuProps={{
-              MenuListProps: { dense: true },
+              slotProps: {
+                list: {
+                  dense: true
+                }
+              }
             }}
           >
             <MenuItem value="system">System</MenuItem>

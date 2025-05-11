@@ -151,7 +151,11 @@ const EditVolumeDialog = (props) => {
                 disabled={kindFixed}
                 required
                 MenuProps={{
-                  MenuListProps: { dense: true },
+                  slotProps: {
+                    list: {
+                      dense: true
+                    }
+                  }
                 }}
               >
                 {kinds.map((kind) => (
