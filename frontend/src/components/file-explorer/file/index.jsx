@@ -24,6 +24,7 @@ import CompressIcon from "@mui/icons-material/Compress";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import SyncIcon from '@mui/icons-material/Sync';
 
 import { MaterialReactTable } from "material-react-table";
 import prettyBytes from "pretty-bytes";
@@ -108,10 +109,13 @@ const File = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [contextMenu, setContextMenu] = React.useState(null);
 
-  const loadFile = () => {
+  const loadFile = (forceRefresh) => {
     const params = {
       fields: "volume,path,children",
     };
+    if (forceRefresh) {
+      params["reindex"] = "true";
+    }
 
     setIsLoading(true);
     setErrorLoading("");
@@ -137,7 +141,7 @@ const File = () => {
 
   React.useEffect(() => {
     setRowSelection({});
-    loadFile();
+    loadFile(false);
   }, [fileId, triggerLoad]);
 
   const handleExpandPath = (event) => {
@@ -227,6 +231,11 @@ const File = () => {
     setOpenShareDialog(false);
   };
 
+  const handleForceRefresh = () => {
+    setRowSelection({});
+    loadFile(true);
+  };
+
   const handleCompressDialogClose = (flag) => {
     setOpenCompressDialog(false);
     if (flag) {
@@ -237,7 +246,7 @@ const File = () => {
   const handleRenameDialogClose = (flag) => {
     setOpenRenameDialog(false);
     if (flag) {
-      loadFile();
+      loadFile(false);
     }
   };
 
@@ -245,7 +254,7 @@ const File = () => {
     setOpenMoveDialog(false);
     if (flag) {
       setRowSelection({});
-      loadFile();
+      loadFile(false);
     }
   };
 
@@ -253,7 +262,7 @@ const File = () => {
     setOpenDeleteDialog(false);
     if (flag) {
       setRowSelection({});
-      loadFile();
+      loadFile(false);
     }
   };
 
@@ -437,6 +446,15 @@ const File = () => {
           ).length;
           return (
             <Box sx={{ display: "flex", gap: "1rem" }}>
+              <Tooltip title="Refresh">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={handleForceRefresh}
+                >
+                  <SyncIcon />
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Compress">
                 <IconButton
                   size="small"

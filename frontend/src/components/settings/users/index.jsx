@@ -20,6 +20,7 @@ import Timestamp from "react-timestamp";
 import { ajax } from "../../../utils/generics";
 import EditDialog from "./EditDialog";
 import DeleteDialog from "../../../utils/DeleteDialog";
+import { UserContext } from "../../../utils/contexts";
 
 const Users = () => {
   const [isLoading, setIsLoading] = React.useState(false);
@@ -81,6 +82,7 @@ const Users = () => {
     ],
     []
   );
+  const userContext = React.useContext(UserContext);
   const [selfId, setSelfId] = React.useState(-1);
   const [openEditDialog, setOpenEditDialog] = React.useState(false);
   const [userIdToEdit, setUserIdToEdit] = React.useState(-1);
@@ -89,16 +91,6 @@ const Users = () => {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState("");
   const [contextMenu, setContextMenu] = React.useState(null);
-
-  const loadSelf = () => {
-    ajax
-      .get("/drive/ui-api/users/self")
-      .then((response) => {
-        setSelfId(response.data.id);
-      })
-      .catch((reason) => setErrorLoading(reason.response.data.error))
-      .finally(() => setIsLoading(false));
-  };
 
   const loadData = () => {
     setIsLoading(true);
@@ -113,9 +105,11 @@ const Users = () => {
 
   React.useEffect(() => {
     document.title = "Users - RPi Drive";
-    loadSelf();
+    if (userContext) {
+      setSelfId(userContext.id);
+    }
     loadData();
-  }, []);
+  }, [userContext]);
 
   const handleContextMenuOpen = (event, user) => {
     event.preventDefault();

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.response import JsonResponse
 from django.views import View
@@ -8,6 +9,7 @@ class UserSelfView(LoginRequiredMixin, View):
 
     def get(self, request, *_args, **_kwargs) -> JsonResponse:
         """Handle GET response"""
+        request.session.set_expiry(settings.SESSION_COOKIE_AGE)
         user = request.user
         return JsonResponse(
             {

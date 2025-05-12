@@ -10,9 +10,10 @@ from rpidrive.controllers.file import (
     delete_files,
     get_file,
     get_file_parents,
+    perform_shallow_index,
 )
 from rpidrive.controllers.volume import VolumeNotFoundException
-from rpidrive.models import File
+from rpidrive.models import File, FileKindEnum
 from rpidrive.views.decorators.generics import handle_exceptions
 
 
@@ -23,6 +24,7 @@ class FileDetailView(LoginRequiredMixin, View):
     _PARENT_FIELD = "parent"
     _CHILDREN_FIELD = "children"
     _PATH_FIELD = "path"
+    _REINDEX_PARAM = "reindex"
 
     _SELECT_FIELDS = (
         _VOLUME_FIELD,
@@ -64,8 +66,12 @@ class FileDetailView(LoginRequiredMixin, View):
         fields = set(request.GET.get("fields", "").split(","))
         select_related = {x for x in self._SELECT_FIELDS if x in fields}
         prefetch_related = {x for x in self._PREFETCH_FIELDS if x in fields}
+        reindex = request.GET.get(self._REINDEX_PARAM, "") == "true"
 
         file = get_file(request.user, file_id, select_related, prefetch_related)
+        if file.kind == FileKindEnum.FOLDER and reindex:
+            perform_shallow_index(file)
+            file = get_file(request.user, file_id, select_related, prefetch_related)
         raw_data = FileDetailView._get_file_as_raw(file)
 
         # Add extra fields

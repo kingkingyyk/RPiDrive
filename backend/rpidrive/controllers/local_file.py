@@ -134,6 +134,7 @@ def perform_index(volume: Volume):
         new_files,
         changed_files,
         deleted_files,
+        100000,
     )
 
     File.objects.bulk_update(
@@ -146,6 +147,32 @@ def perform_index(volume: Volume):
     volume.indexing = False
     volume.last_indexed = timezone.now()
     volume.save(update_fields=["indexing", "last_indexed"])
+
+
+def perform_shallow_index(folder: File):
+    """Perform single level index"""
+    if folder.kind != FileKindEnum.FOLDER:
+        raise InvalidOperationRequestException("This file doesn't support indexing.")
+
+    new_files = []
+    changed_files = []
+    deleted_files = []
+    _recurse_check(
+        folder.volume,
+        folder,
+        get_full_path(folder),
+        new_files,
+        changed_files,
+        deleted_files,
+        1,
+    )
+
+    File.objects.bulk_update(
+        changed_files,
+        fields=["last_modified", "size", "media_type", "metadata"],
+        batch_size=settings.BULK_BATCH_SIZE,
+    )
+    File.objects.filter(pk__in=deleted_files).all().delete()
 
 
 def _get_kind(file_path: str) -> FileKindEnum:
@@ -215,7 +242,11 @@ def _recurse_check(  # pylint: disable=too-many-arguments, too-many-positional-a
     new: List[File],
     changed: List[File],
     delete: List[str],
+    rem_level: int,
 ):
+    if rem_level <= 0:
+        return
+
     files_in_dir = os.listdir(curr_path)
     files_in_db = {x.name: x for x in root.children.all()}
     for filename in files_in_dir:
@@ -244,7 +275,9 @@ def _recurse_check(  # pylint: disable=too-many-arguments, too-many-positional-a
             new.append(curr_file_obj)
 
         if os.path.isdir(full_path):
-            _recurse_check(volume, curr_file_obj, full_path, new, changed, delete)
+            _recurse_check(
+                volume, curr_file_obj, full_path, new, changed, delete, rem_level - 1
+            )
 
     # Add to deleted
     delete.extend([x.pk for x in files_in_db.values()])

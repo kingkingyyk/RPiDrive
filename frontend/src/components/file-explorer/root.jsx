@@ -41,7 +41,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import prettyBytes from "pretty-bytes";
 import { debounce } from "lodash";
 import { ajax } from "../../utils/generics";
-import IsLoggedIn from "../users/IsLoggedIn";
+import { UserContext } from "../../utils/contexts";
 import EditVolumeDialog from "./volume/EditVolumeDialog";
 import NewFolderDialog from "./file/NewFolderDialog";
 import UploadDialog from "./file/UploadDialog";
@@ -57,6 +57,7 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 const FileExplorerRoot = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const userContext = React.useContext(UserContext);
   const wideView = useMediaQuery("(min-width:600px)");
   const [openDrawer, setOpenDrawer] = React.useState(wideView);
   const [volumes, setVolumes] = React.useState(null);
@@ -75,6 +76,8 @@ const FileExplorerRoot = () => {
   const [searchText, setSearchText] = React.useState("");
 
   const loadVolumes = () => {
+    if (!userContext) return;
+
     setIsLoading(true);
     setErrorMsg("");
     ajax
@@ -87,6 +90,8 @@ const FileExplorerRoot = () => {
   };
 
   const loadJobs = () => {
+    if (!userContext) return;
+
     ajax
       .get("/drive/ui-api/jobs/")
       .then((response) => {
@@ -98,7 +103,7 @@ const FileExplorerRoot = () => {
   React.useEffect(() => {
     loadVolumes();
     loadJobs();
-  }, [triggerLoad]);
+  }, [triggerLoad, userContext]);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -109,6 +114,8 @@ const FileExplorerRoot = () => {
   }, []);
 
   React.useEffect(() => {
+    if (!userContext) return;
+
     if (location.pathname.startsWith("/drive/folder/search")) {
       const params = new URLSearchParams(location.search);
       const keyword = params.get("keyword") || "";
@@ -119,7 +126,7 @@ const FileExplorerRoot = () => {
     } else {
       setCurrFolder(null);
     }
-  }, [location]);
+  }, [location, userContext]);
 
   const handleClickNewButton = (event) => {
     setAnchorEl(event.currentTarget);
@@ -245,6 +252,9 @@ const FileExplorerRoot = () => {
     }
   };
 
+  if (!userContext) {
+    return <Skeleton />
+  }
   return (
     <Box sx={{ flexGow: 1 }}>
       <AppBar
@@ -460,7 +470,6 @@ const FileExplorerRoot = () => {
         folderId={currFolder}
         onClose={handleUploadDialogClose}
       />
-      <IsLoggedIn />
     </Box>
   );
 };

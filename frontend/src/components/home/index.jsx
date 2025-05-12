@@ -13,9 +13,10 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Fade from "@mui/material/Fade";
 import Skeleton from "@mui/material/Skeleton";
 import PersonIcon from "@mui/icons-material/Person";
+import LinearProgress from "@mui/material/LinearProgress";
 
 import { ajax } from "../../utils/generics";
-import IsLoggedIn from "../users/IsLoggedIn";
+import { UserContext } from "../../utils/contexts";
 
 const AppButton = styled(Button)(() => ({
   width: 180,
@@ -31,6 +32,7 @@ const Home = () => {
   const navigate = useNavigate();
   const wideView = useMediaQuery("(min-width:600px)");
   const [self, setSelf] = React.useState(null);
+  const userContext = React.useContext(UserContext);
   const apps = React.useMemo(
     () => [
       {
@@ -85,13 +87,9 @@ const Home = () => {
 
   React.useEffect(() => {
     document.title = "RPi Drive";
-    ajax
-      .get("/drive/ui-api/users/self")
-      .then((response) => {
-        setSelf(response.data);
-      })
-      .catch(() => {});
-  }, []);
+    if (!userContext) return;
+    setSelf(userContext);
+  }, [userContext]);
 
   const logout = () => {
     ajax
@@ -101,6 +99,15 @@ const Home = () => {
       })
       .catch((reason) => console.error(reason));
   };
+
+  if (!userContext) {
+    return (
+      <Box>
+        <Box className="background" />
+        <LinearProgress />
+      </Box>
+    )
+  }
 
   return (
     <Box>
@@ -177,7 +184,6 @@ const Home = () => {
           ))}
         </Typography>
       </Box>
-      <IsLoggedIn />
     </Box>
   );
 };
