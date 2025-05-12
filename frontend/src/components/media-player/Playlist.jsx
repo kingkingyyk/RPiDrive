@@ -85,7 +85,7 @@ const Playlist = () => {
       .then((response) => {
         let rPlaylist = response.data;
         document.title = `${rPlaylist.name} - Media Player - RPi Drive`;
-        for (let file of rPlaylist) {
+        for (let file of rPlaylist.files) {
           if (!file.metadata) {
             file.metadata = {};
           }
@@ -95,7 +95,10 @@ const Playlist = () => {
           setPlayingFile(rPlaylist.files[0]);
         }
       })
-      .catch((reason) => setErrorLoading(reason.response.error));
+      .catch((reason) => {
+        console.log(reason);
+        setErrorLoading(reason.response.data.error)
+      });
   };
 
   const loadVolumes = () => {
