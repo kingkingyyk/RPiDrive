@@ -15,6 +15,7 @@ import Tooltip from "@mui/material/Tooltip";
 import LinearProgress from "@mui/material/LinearProgress";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import axios from "axios";
 
 import { ajax } from "../../../utils/generics";
 
@@ -27,10 +28,11 @@ const UploadEntry = (props) => {
   const queued = "Queued";
   const uploading = "Uploading";
   const done = "Done";
+  const cancelled = "Cancelled"
 
   const [progress, setProgress] = React.useState(0);
   const [status, setStatus] = React.useState(queued);
-  const [ajaxCtrl, setAjaxCtrl] = React.useState(null);
+  const ajaxCtrl = React.useRef(new AbortController());
 
   React.useEffect(() => {
     if (status !== queued) return;
@@ -39,9 +41,7 @@ const UploadEntry = (props) => {
     formData.append("files", file);
     formData.append("paths", file.webkitRelativePath);
 
-    const ctrl = new AbortController();
     setStatus(uploading);
-    setAjaxCtrl(ctrl);
     ajax
       .post(uploadUrl, formData, {
         headers: {
@@ -51,28 +51,36 @@ const UploadEntry = (props) => {
           const progress = Math.round((event.loaded / event.total) * 100);
           setProgress(progress);
         },
-        signal: ctrl.signal,
+        signal: ajaxCtrl.current.signal,
       })
       .then(() => {
         setStatus(done);
         onCompleted();
       })
-      .catch((error) => {
-        setStatus(error);
-        onFailed();
+      .catch((reason) => {
+        if (axios.isCancel(reason)) {
+          setStatus(cancelled);
+          onCancelled();
+        } else {
+          setStatus(reason.response.data.error || "Failed");
+          onFailed();
+        }
       });
+
+    return () => {
+      ajaxCtrl.current.abort();
+    };
   }, [file]);
 
   const handleCancel = () => {
-    ajaxCtrl.abort();
-    onCancelled();
+    ajaxCtrl.current.abort();
   };
 
   return (
     <ListItem
       disablePadding
       secondaryAction={
-        status === uploading && (
+        status === uploading ? (
           <Tooltip title="Cancel">
             <IconButton
               edge="end"
@@ -83,7 +91,7 @@ const UploadEntry = (props) => {
               <CancelIcon />
             </IconButton>
           </Tooltip>
-        )
+        ) : <React.Fragment></React.Fragment>
       }
     >
       <ListItemText
@@ -126,7 +134,6 @@ const UploadDialog = (props) => {
   const handleUpload = (event) => {
     if (!event.target.files) return;
 
-    console.log(event.target.files);
     let newEntries = [...entries];
     for (let file of event.target.files) newEntries.push(file);
     setEntries(newEntries);
