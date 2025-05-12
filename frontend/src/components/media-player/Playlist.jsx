@@ -85,6 +85,11 @@ const Playlist = () => {
       .then((response) => {
         let rPlaylist = response.data;
         document.title = `${rPlaylist.name} - Media Player - RPi Drive`;
+        for (let file of rPlaylist) {
+          if (!file.metadata) {
+            file.metadata = {};
+          }
+        }
         setPlaylist(rPlaylist);
         if (rPlaylist.files.length > 0) {
           setPlayingFile(rPlaylist.files[0]);
