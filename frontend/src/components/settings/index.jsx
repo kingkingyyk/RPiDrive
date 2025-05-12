@@ -26,9 +26,9 @@ import PodcastsIcon from "@mui/icons-material/Podcasts";
 import DnsIcon from "@mui/icons-material/Dns";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import MenuIcon from "@mui/icons-material/Menu";
+import Skeleton from "@mui/material/Skeleton";
 
-import { ajax } from "../../utils/generics";
-import IsLoggedIn from "../users/IsLoggedIn";
+import { UserContext } from "../../utils/contexts";
 
 const drawerWidth = 160;
 const usersUrl = "/drive/settings/users";
@@ -47,6 +47,7 @@ const Settings = () => {
   const location = useLocation();
   const wideView = useMediaQuery("(min-width:600px)");
   const [self, setSelf] = React.useState(null);
+  const userContext = React.useContext(UserContext);
   const links = React.useMemo(
     () => [
       {
@@ -74,14 +75,13 @@ const Settings = () => {
 
   React.useEffect(() => {
     document.title = "RPi Drive";
-    ajax
-      .get("/drive/ui-api/users/self")
-      .then((response) => {
-        setSelf(response.data);
-      })
-      .catch(() => {});
-  }, []);
+    if (!userContext) return;
+    setSelf(userContext);
+  }, [userContext]);
 
+  if (!userContext) {
+    return <Skeleton />
+  }
   return (
     <Box sx={{ flexGow: 1 }}>
       <AppBar
@@ -170,7 +170,6 @@ const Settings = () => {
             </Box>
           ))}
       </Box>
-      <IsLoggedIn />
     </Box>
   );
 };

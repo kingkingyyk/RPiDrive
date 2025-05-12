@@ -29,7 +29,7 @@ import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 
 import { ajax } from "../../utils/generics";
 import EditDialog from "./EditDialog";
-import IsLoggedIn from "../users/IsLoggedIn";
+import { UserContext } from "../../utils/contexts";
 
 const drawerWidth = 250;
 const DrawerHeader = styled("div")(({ theme }) => ({
@@ -43,6 +43,7 @@ const MediaPlayer = () => {
   const { playlistId } = useParams();
   const navigate = useNavigate();
   const wideView = useMediaQuery("(min-width:600px)");
+  const userContext = React.useContext(UserContext);
   const [openDrawer, setOpenDrawer] = React.useState(wideView);
   const [playlists, setPlaylists] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -50,6 +51,8 @@ const MediaPlayer = () => {
   const [openCreateDialog, setOpenCreateDialog] = React.useState(false);
 
   const loadData = () => {
+    if (!userContext) return;
+
     setIsLoading(true);
     setErrorLoading("");
     ajax
@@ -62,7 +65,7 @@ const MediaPlayer = () => {
   React.useEffect(() => {
     document.title = "Media Player - RPi Drive";
     loadData();
-  }, []);
+  }, [userContext]);
 
   const handleEditDialogClose = (data) => {
     setOpenCreateDialog(false);
@@ -106,6 +109,9 @@ const MediaPlayer = () => {
     }
   };
 
+  if (!userContext) {
+    return <Skeleton />
+  }
   return (
     <Box sx={{ flexGow: 1 }}>
       <AppBar
@@ -204,7 +210,6 @@ const MediaPlayer = () => {
       {openCreateDialog && (
         <EditDialog playlistId={-1} onClose={handleEditDialogClose} />
       )}
-      <IsLoggedIn />
     </Box>
   );
 };

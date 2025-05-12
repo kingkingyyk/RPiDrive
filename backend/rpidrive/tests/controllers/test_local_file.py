@@ -22,6 +22,7 @@ from rpidrive.controllers.local_file import (
     get_metadata,
     move_files,
     perform_index,
+    perform_shallow_index,
     process_compress_job,
     rename_file,
 )
@@ -772,3 +773,46 @@ class TestLocalFileController(TestCase):  # pylint: disable=too-many-public-meth
         with ZipFile(get_full_path(output), "r") as zf:
             zf_list = {x.filename for x in zf.filelist}
         self.assertEqual({file_name, folder_name + os.path.sep}, zf_list)
+
+    def test_perform_shallow_index_1(self):
+        """Test perform_shallow_index"""
+        folder_1 = os.path.join(self.context.root_path, "folder1")
+        os.makedirs(folder_1)
+
+        with transaction.atomic():
+            perform_index(self.context.volume)
+
+        folder_2 = os.path.join(folder_1, "folder2")
+        os.makedirs(folder_2)
+        folder_3 = os.path.join(folder_2, "folder3")
+        os.makedirs(folder_3)
+
+        folder_obj_1 = File.objects.get(name="folder1")
+        with transaction.atomic():
+            perform_shallow_index(folder_obj_1)
+
+        folder_obj_2 = File.objects.filter(name="folder2").first()
+        folder_obj_3 = File.objects.filter(name="folder3").first()
+        self.assertIsNotNone(folder_obj_2)
+        self.assertEqual("folder2", folder_obj_2.name)
+        self.assertEqual("folder", folder_obj_2.kind)
+        self.assertEqual(folder_obj_1, folder_obj_2.parent)
+        self.assertEqual(self.context.volume, folder_obj_1.volume)
+        self.assertIsNotNone(folder_obj_2.last_modified)
+        self.assertEqual("/folder1/folder2", folder_obj_2.path_from_vol)
+        self.assertIsNone(folder_obj_3)
+
+    def test_perform_shallow_index_2(self):
+        """Test perform_shallow_index (Attempt with file)"""
+        file_name = "log.txt"
+        file_path = os.path.join(self.context.root_path, file_name)
+        with open(file_path, "w+") as f_h:
+            f_h.write("1")
+
+        with transaction.atomic():
+            perform_index(self.context.volume)
+
+        file_obj = File.objects.get(name=file_name)
+        with self.assertRaises(InvalidOperationRequestException) as ctx:
+            perform_shallow_index(file_obj)
+        self.assertEqual("This file doesn't support indexing.", str(ctx.exception))

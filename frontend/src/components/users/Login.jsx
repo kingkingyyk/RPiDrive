@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -11,13 +12,13 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 import Typography from "@mui/material/Typography";
-
-import { useNavigate, useSearchParams } from "react-router-dom";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import { ajax } from "../../utils/generics";
 
 const Login = () => {
   const navigate = useNavigate();
+  const wideView = useMediaQuery("(min-width:500px)");
   // eslint-disable-next-line no-unused-vars
   const [searchParams, setSearchParams] = useSearchParams();
   const [username, setUsername] = React.useState("");
@@ -27,6 +28,17 @@ const Login = () => {
   const [errorMsg, setErrorMsg] = React.useState("");
 
   document.title = "RPi Drive - Login";
+
+  React.useEffect(() => {
+    ajax.get("/drive/ui-api/users/check")
+    .then((response) => {
+      if (response.data.flag) {
+        const nextUrl = searchParams.get("next");
+        navigate(nextUrl ? nextUrl : "/drive");
+      }
+    })
+    .catch(() => {});
+  }, []);
 
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
@@ -75,13 +87,18 @@ const Login = () => {
       <form autoComplete="off" onSubmit={login}>
         <Box
           noValidate
-          sx={{
+          sx={wideView ? {
             width: "70%",
             maxWidth: "500px",
             position: "fixed",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
+          }: {
+            top: "calc(50% - 100px)",
+            width: "100%",
+            position: "fixed",
+            zIndex: 2,
           }}
         >
           <Paper sx={{ p: 2, backgroundColor: "rgba(150,150,150,0.7)" }}>
@@ -138,7 +155,7 @@ const Login = () => {
                   variant="contained"
                   size="small"
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !username || !password}
                 >
                   Login
                 </Button>

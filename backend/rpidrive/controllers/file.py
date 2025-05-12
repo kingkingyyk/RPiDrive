@@ -22,6 +22,7 @@ from rpidrive.controllers.local_file import (
     get_file_parents as local_get_file_parents,
     get_full_path as local_get_full_path,
     move_files as local_move_files,
+    perform_shallow_index as local_perform_shallow_index,
     rename_file as local_rename_file,
     serve_file as local_serve_file,
     serve_file_thumbnail as local_serve_file_thumbnail,
@@ -306,3 +307,12 @@ def get_file_full_path(file: File):
         return local_get_full_path(file)
 
     raise NotImplementedError()
+
+
+def perform_shallow_index(file: File):
+    """Perform shallow index"""
+    if (
+        file.kind == FileKindEnum.FOLDER
+        and file.volume.kind == VolumeKindEnum.HOST_PATH
+    ):
+        local_perform_shallow_index(file)

@@ -8,6 +8,8 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import CssBaseline from "@mui/material/CssBaseline";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { red, amber, pink, grey } from "@mui/material/colors";
+
 
 import Login from "./components/users/Login";
 import Home from "./components/home";
@@ -23,7 +25,7 @@ import System from "./components/settings/system";
 import Users from "./components/settings/users";
 import Profile from "./components/profile";
 import ErrorPage from "./utils/ErrorPage";
-import { red, amber, pink, grey } from "@mui/material/colors";
+import NeedsLogin from "./utils/NeedsLogin";
 
 function App() {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
@@ -59,30 +61,33 @@ function App() {
     [prefersDarkMode]
   );
 
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
         <Routes>
           <Route path="*" element={<ErrorPage />} />
-          <Route path="/drive" element={<Home />} />
           <Route path="/drive/login" element={<Login />} />
-          <Route path="/drive/my-drive" element={<DriveHome />}>
-            <Route path="" element={<Volume />} />
+          <Route path="" element={<NeedsLogin />}>
+            <Route path="/drive" element={<Home />} />
+            <Route path="/drive/my-drive" element={<DriveHome />}>
+              <Route path="" element={<Volume />} />
+            </Route>
+            <Route path="/drive/folder" element={<DriveHome />}>
+              <Route path="search" element={<FileSearchResult />} />
+              <Route path=":fileId" element={<File />} />
+            </Route>
+            <Route path="/drive/media-player" element={<MediaPlayer />}>
+              <Route path=":playlistId" element={<Playlist />} />
+            </Route>
+            <Route path="/drive/settings" element={<Settings />}>
+              <Route path="users" element={<Users />} />
+              <Route path="network" element={<Network />} />
+              <Route path="system" element={<System />} />
+            </Route>
+            <Route path="/drive/profile" element={<Profile />} />
           </Route>
-          <Route path="/drive/folder" element={<DriveHome />}>
-            <Route path="search" element={<FileSearchResult />} />
-            <Route path=":fileId" element={<File />} />
-          </Route>
-          <Route path="/drive/media-player" element={<MediaPlayer />}>
-            <Route path=":playlistId" element={<Playlist />} />
-          </Route>
-          <Route path="/drive/settings" element={<Settings />}>
-            <Route path="users" element={<Users />} />
-            <Route path="network" element={<Network />} />
-            <Route path="system" element={<System />} />
-          </Route>
-          <Route path="/drive/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

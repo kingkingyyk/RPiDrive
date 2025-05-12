@@ -96,7 +96,6 @@ const Playlist = () => {
         }
       })
       .catch((reason) => {
-        console.log(reason);
         setErrorLoading(reason.response.data.error)
       });
   };
