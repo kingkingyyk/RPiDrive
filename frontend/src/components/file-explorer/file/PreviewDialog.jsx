@@ -24,16 +24,17 @@ const PreviewDialog = (props) => {
   const [fileText, setFileText] = React.useState("");
 
   React.useEffect(() => {
-    if (file && file.media_type.startsWith("text/")) {
-      ajax
-        .get(downloadLink)
-        .then((response) => {
-          setFileText(response.data);
-        })
-        .catch(() => {
-          onClose();
-        });
-    }
+    if (!file || !file.media_type) return;
+    if (!file.media_type.startsWith("text/")) return;
+
+    ajax
+      .get(downloadLink)
+      .then((response) => {
+        setFileText(response.data);
+      })
+      .catch(() => {
+        onClose();
+      });
   }, [file]);
 
   const loadFileInfo = () => {
@@ -87,7 +88,7 @@ const PreviewDialog = (props) => {
             </Grid>
           </Grid>
           {/* eslint-disable-next-line react/no-unknown-property */}
-          <audio controls autoplay loop style={{ width: "100%" }}>
+          <audio controls autoplay="" loop style={{ width: "100%" }}>
             <source src={downloadLink} type={file.media_type} />
           </audio>
         </Box>
@@ -96,7 +97,7 @@ const PreviewDialog = (props) => {
     if (file.media_type.startsWith("video")) {
       return (
         // eslint-disable-next-line react/no-unknown-property
-        <video controls autoplay loop style={{ width: "100%" }}>
+        <video controls autoplay="" loop style={{ width: "100%" }}>
           <source src={downloadLink} type={file.media_type} />
         </video>
       );
