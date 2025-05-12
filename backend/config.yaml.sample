@@ -1,26 +1,24 @@
 web:
-    debug: true
-    secret_key: <str:value>
-    time-zone: <str:unix-tz>
-    temp-dir: <str:path>
+  debug: true
+  secret_key: <str:value>
+  time-zone: <str:unix-tz>
 indexer:
-    period: 30
+  period: 30
 database:
-    engine: 'django.db.backends.sqlite3'
-    host: <str:name>
-    port: <int:value>
-    name: <str:name>
-    user: <str:username>
-    password: <str:password>
+  host: <str:name>
+  port: <int:value>
+  name: <str:name>
+  user: <str:username>
+  password: <str:password>
 redis:
-    host: <str:name>
-    port: <int:value>
-    db: <int:value>
+  host: <str:name>
+  port: <int:value>
+  db: <int:value>
 security:
-    spam-protect:
-        max-retries: <int:value>
-        block-duration: <int:value>
+  block-spam: false
+  block-trigger: 5
+  block-duration: 600
+  domain:
+    - https://example.com
 reverse-proxy:
-    ip-header: 'HTTP_X_FORWARDED_FOR'
-hostname:
-    - example.com
+  ip-header: 'HTTP_X_FORWARDED_FOR'

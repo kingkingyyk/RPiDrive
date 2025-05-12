@@ -1,18 +1,22 @@
-FROM python:3.11-slim-bullseye
+ARG IMAGE_PROXY
 
-ADD build.tar.gz /
+FROM $IMAGE_PROXY/python:3.13-slim-bookworm
+
+ADD backend /app
 
 WORKDIR /app
 
-ENV MODE=web
-
 RUN chmod +x start.sh &&\
     apt update &&\
-    apt install gcc libpq-dev g++ libffi-dev make -y &&\
-    pip install --no-cache-dir -r requirements.txt &&\
+    apt install gcc libpq-dev g++ libffi-dev make mime-support -y &&\
+    pip install --no-cache-dir -r .req/build-multiarch.txt &&\
     rm -rf /var/lib/apt/lists/*
+
+ENV MODE=web \
+    RPIDRIVE_DATA_DIR=/app/.config \
+    RPIDRIVE_LOG_DIR=/app/logs \
+    DJANGO_SETTINGS_MODULE=backend.settings.prod
 
 EXPOSE 8000
 
-ENTRYPOINT ["/bin/bash"]
-CMD ["/app/start.sh"]
+CMD ["bash", "start.sh"]

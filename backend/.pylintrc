@@ -1,8 +1,7 @@
 [MASTER]
 load-plugins=pylint_django
-jobs=4
 ignore=migrations
-django-settings-module=rpidrive.settings
+django-settings-module=backend.settings
 extension-pkg-whitelist=pydantic
 
 [MESSAGES CONTROL]
@@ -10,6 +9,5 @@ disable=missing-module-docstring,
         imported-auth-user,
         too-few-public-methods,
         duplicate-code,
-        consider-using-f-string,
-        consider-using-with,
-        unspecified-encoding
+        unspecified-encoding,
+        broad-exception-raised,

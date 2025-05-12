@@ -1,0 +1,7 @@
+-r build.txt
+coverage
+pytest-django
+pylint==3.3.7
+pylint-django
+black
+bandit
